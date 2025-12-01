@@ -14,6 +14,14 @@ import {
   ExternalLink,
   Zap,
   Command,
+  Crosshair,
+  Target,
+  Swords,
+  Bot,
+  PawPrint,
+  Shield,
+  ChevronLeft,
+  Filter,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,4 +60,12 @@ export const Icons = {
   externalLink: ExternalLink,
   zap: Zap,
   command: Command,
+  crosshair: Crosshair,
+  target: Target,
+  swords: Swords,
+  bot: Bot,
+  pawPrint: PawPrint,
+  shield: Shield,
+  chevronLeft: ChevronLeft,
+  filter: Filter,
 };
