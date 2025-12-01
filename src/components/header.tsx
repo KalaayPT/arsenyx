@@ -41,10 +41,6 @@ export function Header() {
           </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon">
-            <Icons.github className="h-4 w-4" />
-            <span className="sr-only">GitHub</span>
-          </Button>
-          <Button variant="ghost" size="icon">
             <Icons.user className="h-4 w-4" />
             <span className="sr-only">Profile</span>
           </Button>
