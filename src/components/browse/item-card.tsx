@@ -35,7 +35,10 @@ export function ItemCard({ item, index }: ItemCardProps) {
             </Badge>
           )}
           {item.vaulted && (
-            <Badge variant="outline" className="bg-background/80 text-xs px-2 py-0.5">
+            <Badge
+              variant="outline"
+              className="bg-background/80 text-xs px-2 py-0.5"
+            >
               Vaulted
             </Badge>
           )}
