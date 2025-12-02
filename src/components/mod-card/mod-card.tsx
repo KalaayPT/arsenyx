@@ -157,7 +157,7 @@ function CompactModCard({
   return (
     <div className="relative w-[310px] h-[100px] flex items-center justify-center">
       {/* Mod Image */}
-      <div className="absolute top-2 left-8.5 right-8.5 bottom-0 z-10 overflow-hidden">
+      <div className="absolute top-2 left-8.5 right-8.5 -bottom-4 z-10 overflow-hidden">
         <Image
           src={getImageUrl(mod.imageName)}
           alt={mod.name}
