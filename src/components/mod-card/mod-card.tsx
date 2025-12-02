@@ -155,17 +155,29 @@ function CompactModCard({
   className,
 }: InternalModCardProps) {
   return (
-    <div className="inline-flex flex-col items-start relative">
-      {/* Start with just the actual size topframe as requested */}
+    <div className="relative w-[310px] h-[100px] flex items-center justify-center">
+      {/* Mod Image */}
+      <div className="absolute top-2 left-8.5 right-8.5 bottom-0 z-10 overflow-hidden">
+        <Image
+          src={getImageUrl(mod.imageName)}
+          alt={mod.name}
+          fill
+          className="object-cover"
+        />
+      </div>
+
+      {/* Top Frame */}
       <img
         src={getModAssetUrl(rarity, "FrameTop")}
         alt="Top Frame"
-        className="block relative z-10"
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-20"
       />
+
+      {/* Bottom Frame */}
       <img
         src={getModAssetUrl(rarity, "FrameBottom")}
         alt="Bottom Frame"
-        className="block relative z-20 -mt-22"
+        className="absolute -bottom-10 left-1/2 -translate-x-1/2 z-20"
       />
     </div>
   );
