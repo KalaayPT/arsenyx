@@ -110,7 +110,26 @@ export function ModCard({
 }
 
 // =============================================================================
-// COMPACT MOD CARD (Horizontal bar style, like in-game)
+// COMPACT MOD CARD ASSET PATHS
+// =============================================================================
+
+// Map rarity to asset folder and prefix
+const RARITY_ASSET_MAP: Record<ModRarity, { folder: string; prefix: string }> =
+  {
+    Common: { folder: "common", prefix: "Bronze" },
+    Uncommon: { folder: "uncommon", prefix: "Silver" },
+    Rare: { folder: "rare", prefix: "Gold" },
+    Legendary: { folder: "legendary", prefix: "Legendary" },
+    Peculiar: { folder: "legendary", prefix: "Legendary" }, // Peculiar uses Legendary assets
+  };
+
+function getModAssetUrl(rarity: ModRarity, asset: string): string {
+  const { folder, prefix } = RARITY_ASSET_MAP[rarity];
+  return `/mod-components/${folder}/${prefix}${asset}.png`;
+}
+
+// =============================================================================
+// COMPACT MOD CARD (Horizontal bar style, using real assets)
 // =============================================================================
 
 interface InternalModCardProps {
@@ -125,38 +144,6 @@ interface InternalModCardProps {
   className?: string;
 }
 
-// Frame colors for compact card
-const COMPACT_FRAME_COLORS: Record<
-  ModRarity,
-  { border: string; corner: string; glow: string }
-> = {
-  Common: {
-    border: "border-amber-800/70",
-    corner: "bg-amber-600",
-    glow: "shadow-amber-600/20",
-  },
-  Uncommon: {
-    border: "border-slate-500/70",
-    corner: "bg-slate-400",
-    glow: "shadow-slate-400/20",
-  },
-  Rare: {
-    border: "border-yellow-600/70",
-    corner: "bg-yellow-500",
-    glow: "shadow-yellow-500/30",
-  },
-  Legendary: {
-    border: "border-slate-300/70",
-    corner: "bg-white",
-    glow: "shadow-white/20",
-  },
-  Peculiar: {
-    border: "border-purple-600/70",
-    corner: "bg-purple-500",
-    glow: "shadow-purple-500/20",
-  },
-};
-
 function CompactModCard({
   mod,
   rarity,
@@ -167,159 +154,19 @@ function CompactModCard({
   onClick,
   className,
 }: InternalModCardProps) {
-  const frameColors = COMPACT_FRAME_COLORS[rarity];
-
   return (
-    <div
-      onClick={isDisabled ? undefined : onClick}
-      className={cn(
-        "relative w-[180px] h-[48px] transition-all group",
-        onClick && !isDisabled && "cursor-pointer hover:scale-[1.02]",
-        isSelected && "scale-[1.02]",
-        isDisabled && "opacity-50 grayscale cursor-not-allowed",
-        className
-      )}
-    >
-      {/* Main container with frame */}
-      <div className="relative w-full h-full">
-        {/* Dark background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black rounded-sm" />
-
-        {/* Border frame */}
-        <div
-          className={cn(
-            "absolute inset-0 border rounded-sm",
-            frameColors.border,
-            isSelected && "border-primary"
-          )}
-        />
-
-        {/* Top frame line with corner accents */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]">
-          {/* Left corner accent */}
-          <div
-            className={cn(
-              "absolute left-0 top-0 w-3 h-[2px]",
-              frameColors.corner
-            )}
-          />
-          {/* Center thin line */}
-          <div className="absolute left-3 right-12 top-0 h-[1px] bg-slate-600/50" />
-          {/* Right corner (drain backer area) */}
-          <div
-            className={cn(
-              "absolute right-0 top-0 w-12 h-[2px]",
-              frameColors.corner
-            )}
-          />
-        </div>
-
-        {/* Bottom frame with corner accents */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px]">
-          {/* Left corner */}
-          <div
-            className={cn(
-              "absolute left-0 bottom-0 w-4 h-[2px]",
-              frameColors.corner
-            )}
-          />
-          {/* Center line */}
-          <div className="absolute left-4 right-4 bottom-0 h-[1px] bg-slate-600/50" />
-          {/* Right corner */}
-          <div
-            className={cn(
-              "absolute right-0 bottom-0 w-4 h-[2px]",
-              frameColors.corner
-            )}
-          />
-        </div>
-
-        {/* Left side accent */}
-        <div
-          className={cn(
-            "absolute left-0 top-0 bottom-0 w-[2px]",
-            "bg-gradient-to-b from-transparent via-slate-600/30 to-transparent"
-          )}
-        >
-          <div
-            className={cn(
-              "absolute top-0 left-0 w-[2px] h-3",
-              frameColors.corner
-            )}
-          />
-          <div
-            className={cn(
-              "absolute bottom-0 left-0 w-[2px] h-3",
-              frameColors.corner
-            )}
-          />
-        </div>
-
-        {/* Right side accent */}
-        <div
-          className={cn(
-            "absolute right-0 top-0 bottom-0 w-[2px]",
-            "bg-gradient-to-b from-transparent via-slate-600/30 to-transparent"
-          )}
-        >
-          <div
-            className={cn(
-              "absolute top-0 right-0 w-[2px] h-3",
-              frameColors.corner
-            )}
-          />
-          <div
-            className={cn(
-              "absolute bottom-0 right-0 w-[2px] h-3",
-              frameColors.corner
-            )}
-          />
-        </div>
-
-        {/* Content area */}
-        <div className="absolute inset-[3px] flex items-center">
-          {/* Mod Image */}
-          <div className="relative w-[42px] h-[42px] flex-shrink-0 overflow-hidden">
-            <Image
-              src={getImageUrl(mod.imageName)}
-              alt={mod.name}
-              fill
-              className="object-contain"
-            />
-          </div>
-
-          {/* Mod Name & Info */}
-          <div className="flex-1 min-w-0 px-2 flex flex-col justify-center">
-            <span className="font-medium text-[11px] text-white/90 truncate leading-tight">
-              {mod.name}
-            </span>
-            {/* Rank Pips */}
-            <div className="mt-1">
-              <RankPips currentRank={currentRank} maxRank={maxRank} size="sm" />
-            </div>
-          </div>
-
-          {/* Drain & Polarity (top right area) */}
-          <div className="absolute top-0 right-0 flex items-center gap-1 px-1.5 py-0.5 bg-slate-900/80">
-            {mod.polarity && mod.polarity !== "universal" && (
-              <PolarityIcon polarity={mod.polarity} size="sm" />
-            )}
-            <span className="text-[10px] font-bold text-cyan-300">
-              {mod.baseDrain}
-            </span>
-          </div>
-        </div>
-
-        {/* Selection glow */}
-        {isSelected && (
-          <div
-            className={cn(
-              "absolute inset-0 rounded-sm shadow-[inset_0_0_8px_rgba(59,130,246,0.5)]",
-              "pointer-events-none"
-            )}
-          />
-        )}
-      </div>
+    <div className="inline-flex flex-col items-start relative">
+      {/* Start with just the actual size topframe as requested */}
+      <img
+        src={getModAssetUrl(rarity, "FrameTop")}
+        alt="Top Frame"
+        className="block relative z-10"
+      />
+      <img
+        src={getModAssetUrl(rarity, "FrameBottom")}
+        alt="Bottom Frame"
+        className="block relative z-20 -mt-22"
+      />
     </div>
   );
 }
@@ -447,14 +294,15 @@ function LargeModCard({
 interface RankPipsProps {
   currentRank: number;
   maxRank: number;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md";
 }
 
 function RankPips({ currentRank, maxRank, size = "sm" }: RankPipsProps) {
   if (maxRank === 0) return null;
 
-  const pipSize = size === "sm" ? "w-1.5 h-1.5" : "w-2 h-2";
-  const gap = size === "sm" ? "gap-0.5" : "gap-1";
+  const pipSize =
+    size === "xs" ? "w-1 h-1" : size === "sm" ? "w-1.5 h-1.5" : "w-2 h-2";
+  const gap = size === "xs" ? "gap-[2px]" : size === "sm" ? "gap-0.5" : "gap-1";
 
   return (
     <div className={cn("flex items-center justify-center", gap)}>
