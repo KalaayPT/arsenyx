@@ -24,7 +24,9 @@ import {
   Filter,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
+import type { Polarity } from "@/lib/warframe/types";
 
 export type Icon = LucideIcon;
 
@@ -69,3 +71,60 @@ export const Icons = {
   chevronLeft: ChevronLeft,
   filter: Filter,
 };
+
+// =============================================================================
+// POLARITY ICON COMPONENT
+// =============================================================================
+
+const polaritySvgMap: Record<Polarity, string> = {
+  madurai: "/Madurai_Pol.svg",
+  vazarin: "/Vazarin_Pol.svg",
+  naramon: "/Naramon_Pol.svg",
+  zenurik: "/Zenurik_Pol.svg",
+  unairu: "/Unairu_Pol.svg",
+  penjaga: "/Penjaga_Pol.svg",
+  umbra: "/Umbra_Pol.svg",
+  universal: "/Any_Pol.svg",
+};
+
+const polarityColorMap: Record<Polarity, string> = {
+  madurai: "brightness-0 invert sepia saturate-[10] hue-rotate-[350deg]", // Orange
+  vazarin: "brightness-0 invert sepia saturate-[10] hue-rotate-[180deg]", // Blue
+  naramon: "brightness-0 invert sepia saturate-[10] hue-rotate-[85deg]", // Green
+  zenurik: "brightness-0 invert sepia saturate-[10] hue-rotate-[15deg]", // Yellow
+  unairu: "brightness-0 invert sepia saturate-[10] hue-rotate-[250deg]", // Purple
+  penjaga: "brightness-0 invert sepia saturate-[10] hue-rotate-[150deg]", // Cyan
+  umbra: "brightness-0 invert sepia saturate-[10] hue-rotate-[25deg]", // Amber
+  universal: "brightness-0 invert opacity-60", // Gray
+};
+
+interface PolarityIconProps {
+  polarity: Polarity;
+  size?: IconSize;
+  className?: string;
+  colored?: boolean;
+}
+
+export function PolarityIcon({
+  polarity,
+  size = "sm",
+  className,
+  colored = false,
+}: PolarityIconProps) {
+  const sizeClasses = iconSizes[size];
+  const svgPath = polaritySvgMap[polarity];
+
+  return (
+    <div className={cn("relative", sizeClasses, className)}>
+      <Image
+        src={svgPath}
+        alt={`${polarity} polarity`}
+        fill
+        className={cn(
+          "object-contain",
+          colored ? polarityColorMap[polarity] : "brightness-0 invert"
+        )}
+      />
+    </div>
+  );
+}

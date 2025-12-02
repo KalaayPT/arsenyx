@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { PolarityIcon } from "@/components/icons";
 import type { Mod, Polarity, SlotType } from "@/lib/warframe/types";
 
 interface ModSearchPanelProps {
@@ -401,7 +402,7 @@ function ModCard({
           {/* Drain & Polarity */}
           <div className="flex items-center gap-1 bg-muted/50 px-1.5 py-0.5 rounded text-[10px] font-mono text-muted-foreground">
             <span>{mod.baseDrain}</span>
-            <PolarityIcon polarity={mod.polarity} className="text-[10px]" />
+            <PolarityIcon polarity={mod.polarity} size="xs" />
           </div>
         </div>
 
@@ -424,44 +425,3 @@ function ModCard({
     </div>
   );
 }
-
-// =============================================================================
-// POLARITY ICON COMPONENT
-// =============================================================================
-
-interface PolarityIconProps {
-  polarity: Polarity;
-  className?: string;
-}
-
-function PolarityIcon({ polarity, className }: PolarityIconProps) {
-  const iconMap: Record<Polarity, string> = {
-    madurai: "V",
-    vazarin: "D",
-    naramon: "—",
-    zenurik: "=",
-    unairu: "R",
-    penjaga: "Y",
-    umbra: "Ω",
-    universal: "○",
-  };
-
-  const colorMap: Record<Polarity, string> = {
-    madurai: "text-orange-500",
-    vazarin: "text-blue-500",
-    naramon: "text-green-500",
-    zenurik: "text-yellow-500",
-    unairu: "text-purple-500",
-    penjaga: "text-cyan-500",
-    umbra: "text-amber-600",
-    universal: "text-gray-400",
-  };
-
-  return (
-    <span className={cn("font-bold", colorMap[polarity], className)}>
-      {iconMap[polarity]}
-    </span>
-  );
-}
-
-export { PolarityIcon };

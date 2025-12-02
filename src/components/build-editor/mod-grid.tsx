@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { calculateSlotDrain, getSlotPolarity } from "@/lib/warframe/capacity";
 import type { ModSlot, Polarity } from "@/lib/warframe/types";
 import { Plus } from "lucide-react";
+import { PolarityIcon } from "@/components/icons";
 
 interface ModGridProps {
   auraSlot?: ModSlot;
@@ -195,7 +196,7 @@ function ModSlotCard({
             {/* Polarity Icon (Background) */}
             {polarity && !hasMod && (
               <div className="absolute right-2 top-2 opacity-20 pointer-events-none">
-                <PolarityIcon polarity={polarity} className="text-xl" />
+                <PolarityIcon polarity={polarity} size="lg" />
               </div>
             )}
 
@@ -256,7 +257,8 @@ function ModSlotCard({
                       {polarity && (
                         <PolarityIcon
                           polarity={polarity}
-                          className="text-xs opacity-50"
+                          size="xs"
+                          className="opacity-50"
                         />
                       )}
                     </div>
@@ -291,33 +293,5 @@ function ModSlotCard({
   );
 }
 
-// =============================================================================
-// POLARITY ICON COMPONENT
-// =============================================================================
-
-interface PolarityIconProps {
-  polarity: Polarity;
-  className?: string;
-}
-
-function PolarityIcon({ polarity, className }: PolarityIconProps) {
-  const iconMap: Record<Polarity, string> = {
-    madurai: "V", // Damage
-    vazarin: "D", // Defense
-    naramon: "—", // Utility (dash)
-    zenurik: "=", // Energy
-    unairu: "R", // Resistance
-    penjaga: "Y", // Sentinel
-    umbra: "Ω", // Umbra (omega)
-    universal: "○", // Universal (circle)
-  };
-
-  // Using currentColor for flexibility, but keeping map for reference if needed
-  return (
-    <span className={cn("font-bold font-mono", className)}>
-      {iconMap[polarity]}
-    </span>
-  );
-}
-
-export { PolarityIcon };
+// Re-export PolarityIcon from icons for backwards compatibility
+export { PolarityIcon } from "@/components/icons";
