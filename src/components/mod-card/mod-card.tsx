@@ -22,6 +22,15 @@ const RARITY_ASSET_MAP: Record<ModRarity, { folder: string; prefix: string }> =
     Peculiar: { folder: "legendary", prefix: "Legendary" }, // Peculiar uses Legendary assets
   };
 
+// Map rarity to text color
+const RARITY_COLOR_MAP: Record<ModRarity, string> = {
+  Common: "#C79989",
+  Uncommon: "#BEC0C2",
+  Rare: "#FBECC4",
+  Legendary: "#DFDFDF",
+  Peculiar: "#DFDFDF", // Peculiar uses Legendary color
+};
+
 function getModAssetUrl(rarity: ModRarity, asset: string): string {
   const { folder, prefix } = RARITY_ASSET_MAP[rarity];
   return `/mod-components/${folder}/${prefix}${asset}.png`;
@@ -38,6 +47,14 @@ export interface ModCardProps {
   isDisabled?: boolean;
   onClick?: () => void;
   className?: string;
+}
+
+// Helper to get first stat at a given rank
+function getModStat(mod: Mod, rank: number): string | null {
+  if (!mod.levelStats || mod.levelStats.length === 0) return null;
+  const levelIndex = Math.min(rank, mod.levelStats.length - 1);
+  const stats = mod.levelStats[levelIndex]?.stats;
+  return stats?.[0] ?? null;
 }
 
 export function ModCard({ mod, className }: ModCardProps) {
@@ -70,7 +87,7 @@ interface FrameCardProps {
 
 function CompactModCard({ mod, rarity }: FrameCardProps) {
   return (
-    <div className="relative w-[158px] h-[55px] flex items-center justify-center">
+    <div className="relative w-[184px] h-[64px] flex items-center justify-center">
       {/* Mod Image */}
       <div className="absolute top-[4px] left-[3px] right-[3px] -bottom-4 z-10 overflow-hidden">
         <Image
@@ -88,9 +105,10 @@ function CompactModCard({ mod, rarity }: FrameCardProps) {
       />
       {/* Mod Name */}
       <span
-        className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-30 text-[17px] font-normal text-[#C79989] text-center"
+        className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 text-[16px] font-normal text-center max-w-[180px] whitespace-nowrap"
         style={{
           fontFamily: "Roboto, sans-serif",
+          color: RARITY_COLOR_MAP[rarity],
           textShadow:
             "0 0 8px rgba(0,0,0,1), 0 0 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,1)",
         }}
@@ -112,9 +130,20 @@ function CompactModCard({ mod, rarity }: FrameCardProps) {
 // =============================================================================
 
 function ExpandedModCard({ mod, rarity }: FrameCardProps) {
+  const stat = getModStat(mod, 0); // Show rank 0 stats
+
   return (
-    <div className="relative w-[158px] h-[245px] flex items-center justify-center">
-      {/* Mod Image */}
+    <div className="relative w-[184px] h-[285px]">
+      {/* Top Frame */}
+      <Image
+        src={getModAssetUrl(rarity, "FrameTop")}
+        alt="Top Frame"
+        width={184}
+        height={58}
+        className="absolute top-0 left-1/2 -translate-x-1/2 z-20"
+      />
+
+      {/* Mod Image - full card, will be covered by info panel at bottom */}
       <div className="absolute top-[4px] left-[3px] right-[3px] bottom-[4px] z-10 overflow-hidden">
         <Image
           src={getImageUrl(mod.imageName)}
@@ -123,20 +152,54 @@ function ExpandedModCard({ mod, rarity }: FrameCardProps) {
           className="object-contain object-top"
         />
       </div>
-      {/* Top Frame */}
-      <Image
-        src={getModAssetUrl(rarity, "FrameTop")}
-        alt="Top Frame"
-        width={158}
-        height={50}
-        className="absolute top-0 left-1/2 -translate-x-1/2 z-20"
-      />
+
+      {/* Info Panel - positioned at bottom, sized by content */}
+      <div className="absolute bottom-[4px] left-[3px] right-[3px] z-15">
+        {/* Background Image - clips to panel height */}
+        <div className="absolute inset-0 overflow-hidden">
+          <img
+            src={getModAssetUrl(rarity, "Background")}
+            alt=""
+            className="absolute bottom-0 left-0 w-full"
+          />
+        </div>
+        {/* Text Content */}
+        <div className="relative z-20 flex flex-col items-center px-2 pt-2 pb-1">
+          {/* Mod Name */}
+          <span
+            className="text-[14px] font-medium text-center leading-tight"
+            style={{ color: RARITY_COLOR_MAP[rarity] }}
+          >
+            {mod.name}
+          </span>
+          {/* Stat */}
+          {stat && (
+            <span
+              className="text-[11px] text-gray-300 text-center leading-tight"
+              dangerouslySetInnerHTML={{ __html: stat }}
+            />
+          )}
+          {/* Compatibility Badge */}
+          {mod.compatName && (
+            <span className="mt-0.5 text-[9px] uppercase tracking-wider text-cyan-400">
+              {mod.compatName}
+            </span>
+          )}
+          {/* Lower Tab - under the text */}
+          <img
+            src={getModAssetUrl(rarity, "LowerTab")}
+            alt=""
+            className="mt-1 w-[80%]"
+          />
+        </div>
+      </div>
+
       {/* Bottom Frame */}
       <Image
         src={getModAssetUrl(rarity, "FrameBottom")}
         alt="Bottom Frame"
-        width={158}
-        height={50}
+        width={184}
+        height={58}
         className="absolute bottom-0 left-1/2 -translate-x-1/2 z-20"
       />
     </div>
