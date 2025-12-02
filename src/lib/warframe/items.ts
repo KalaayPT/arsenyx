@@ -243,3 +243,23 @@ export function getCategoryCounts(): Record<BrowseCategory, number> {
 
   return counts;
 }
+
+/**
+ * Get full item data by unique name and category
+ * Returns the complete item object with all fields
+ */
+export function getFullItem(
+  category: BrowseCategory,
+  uniqueName: string
+): BrowseableItem | null {
+  const config = getCategoryConfig(category);
+  if (!config) return null;
+
+  for (const item of allItems) {
+    if (item.uniqueName === uniqueName) {
+      return item as BrowseableItem;
+    }
+  }
+
+  return null;
+}

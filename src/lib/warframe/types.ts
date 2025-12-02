@@ -169,3 +169,141 @@ export interface BrowseFilters {
   primeOnly?: boolean;
   hideVaulted?: boolean;
 }
+
+// =============================================================================
+// POLARITIES
+// =============================================================================
+
+export type Polarity =
+  | "madurai"
+  | "vazarin"
+  | "naramon"
+  | "zenurik"
+  | "unairu"
+  | "penjaga"
+  | "umbra"
+  | "universal";
+
+// =============================================================================
+// MOD TYPES
+// =============================================================================
+
+export interface Mod {
+  uniqueName: string;
+  name: string;
+  description?: string;
+  imageName?: string;
+  polarity: Polarity;
+  rarity: "Common" | "Uncommon" | "Rare" | "Legendary" | "Peculiar";
+  baseDrain: number;
+  fusionLimit: number;
+  compatName?: string; // e.g., "Warframe", "Rifle", "Shotgun", "Pistol", "Melee"
+  type: string; // e.g., "Warframe Mod", "Primary Mod", "Secondary Mod", "Melee Mod"
+  tradable: boolean;
+  isAugment?: boolean;
+  isPrime?: boolean;
+  isExilus?: boolean;
+  levelStats?: Array<{ stats: string[] }>;
+  transmutable?: boolean;
+  drops?: Array<{
+    chance: number;
+    location: string;
+    rarity: string;
+    type: string;
+  }>;
+}
+
+// =============================================================================
+// ARCANE TYPES
+// =============================================================================
+
+export interface Arcane {
+  uniqueName: string;
+  name: string;
+  description?: string;
+  imageName?: string;
+  rarity: "Common" | "Uncommon" | "Rare" | "Legendary";
+  type: string;
+  tradable: boolean;
+  levelStats?: Array<{ stats: string[] }>;
+  drops?: Array<{
+    chance: number;
+    location: string;
+    rarity: string;
+    type: string;
+  }>;
+}
+
+// =============================================================================
+// BUILD STATE TYPES
+// =============================================================================
+
+export type SlotType = "aura" | "exilus" | "normal" | "arcane";
+
+export interface ModSlot {
+  id: string;
+  type: SlotType;
+  innatePolarity?: Polarity;
+  formaPolarity?: Polarity; // User-applied forma polarity
+  mod?: PlacedMod;
+}
+
+export interface PlacedMod {
+  uniqueName: string;
+  name: string;
+  imageName?: string;
+  polarity: Polarity;
+  baseDrain: number;
+  fusionLimit: number;
+  rank: number; // Current rank (0 to fusionLimit)
+  rarity: string;
+}
+
+export interface PlacedArcane {
+  uniqueName: string;
+  name: string;
+  imageName?: string;
+  rank: number;
+  rarity: string;
+}
+
+export interface BuildState {
+  // Item info
+  itemUniqueName: string;
+  itemName: string;
+  itemCategory: BrowseCategory;
+  itemImageName?: string;
+
+  // Enhancement status
+  hasReactor: boolean; // Orokin Reactor (Warframe) or Catalyst (Weapon)
+
+  // Mod slots
+  auraSlot?: ModSlot; // Warframes only
+  exilusSlot: ModSlot;
+  normalSlots: ModSlot[]; // 8 slots
+  arcaneSlots: PlacedArcane[]; // 2 slots for Warframes
+
+  // Capacity tracking
+  baseCapacity: number; // 30 base, 60 with reactor
+  currentCapacity: number; // Remaining after mods
+
+  // Metadata
+  buildName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Mod compatibility categories for filtering
+export type ModCompatibility =
+  | "Warframe"
+  | "Aura"
+  | "Exilus"
+  | "Rifle"
+  | "Shotgun"
+  | "Pistol"
+  | "Melee"
+  | "Companion"
+  | "Archwing"
+  | "Archgun"
+  | "Archmelee"
+  | "Necramech";

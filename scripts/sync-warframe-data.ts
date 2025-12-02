@@ -15,6 +15,8 @@ const DATA_FILES = [
   "Melee.json",
   "Sentinels.json",
   "Pets.json",
+  "Mods.json",
+  "Arcanes.json",
 ];
 
 const SOURCE_DIR = join(process.cwd(), "node_modules/@wfcd/items/data/json");
