@@ -5,8 +5,16 @@ export default function ModsTestPage() {
   // Get sample mods for each rarity
   const allMods = getAllMods();
 
+  // Find specific iconic mods
+  const vitality = allMods.find((m) => m.name === "Vitality");
+
   const sampleMods = {
-    Common: allMods.filter((m) => m.rarity === "Common").slice(0, 4),
+    Common: [
+      vitality,
+      ...allMods
+        .filter((m) => m.rarity === "Common" && m.name !== "Vitality")
+        .slice(0, 3),
+    ].filter(Boolean) as typeof allMods,
     Uncommon: allMods.filter((m) => m.rarity === "Uncommon").slice(0, 4),
     Rare: allMods.filter((m) => m.rarity === "Rare").slice(0, 4),
     Legendary: allMods.filter((m) => m.rarity === "Legendary").slice(0, 4),

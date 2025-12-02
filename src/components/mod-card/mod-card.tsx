@@ -109,7 +109,7 @@ function ExpandedModCard({ mod, rarity }: FrameCardProps) {
           src={getImageUrl(mod.imageName)}
           alt={mod.name}
           fill
-          className="object-contain p-2"
+          className="object-contain object-top p-2"
         />
       </div>
       {/* Top Frame */}
