@@ -113,12 +113,12 @@ export function ModCard({
   className,
 }: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [internalRank, setInternalRank] = useState(0);
+  const maxRank = mod.fusionLimit ?? 0;
+  const [internalRank, setInternalRank] = useState(maxRank);
   const rarity = (mod.rarity as ModRarity) ?? "Common";
 
   // Use external rank if provided, otherwise use internal state
   const currentRank = externalRank ?? internalRank;
-  const maxRank = mod.fusionLimit ?? 0;
   const isMaxRank = currentRank >= maxRank;
 
   const handleRankChange = useCallback(
