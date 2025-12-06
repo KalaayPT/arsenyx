@@ -1,10 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe/images";
 import type { Mod } from "@/lib/warframe/types";
+
+// =============================================================================
+// RANK COMPLETE LINE COMPONENT WITH ANIMATION
+// =============================================================================
+
+function RankCompleteLine({
+  rarity,
+  className,
+}: {
+  rarity: ModRarity;
+  className?: string;
+}) {
+  return (
+    <div className={cn("overflow-hidden", className)}>
+      <img
+        src={`/mod-components/${RARITY_ASSET_MAP[rarity].folder}/RankCompleteLine.png`}
+        alt="Max Rank"
+        className="w-full animate-rank-shimmer"
+        style={{
+          maskImage: "linear-gradient(90deg, transparent, white, transparent)",
+          maskSize: "200% 100%",
+          maskPosition: "100% 0",
+          WebkitMaskImage:
+            "linear-gradient(90deg, transparent, white, transparent)",
+          WebkitMaskSize: "200% 100%",
+          WebkitMaskPosition: "100% 0",
+          animation: "rankShimmer 2s ease-in-out infinite",
+        }}
+      />
+      <style jsx>{`
+        @keyframes rankShimmer {
+          0% {
+            mask-position: 100% 0;
+            -webkit-mask-position: 100% 0;
+          }
+          50% {
+            mask-position: 0% 0;
+            -webkit-mask-position: 0% 0;
+          }
+          100% {
+            mask-position: 100% 0;
+            -webkit-mask-position: 100% 0;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 // =============================================================================
 // RARITY TYPES
@@ -43,6 +91,7 @@ function getModAssetUrl(rarity: ModRarity, asset: string): string {
 export interface ModCardProps {
   mod: Mod;
   rank?: number;
+  onRankChange?: (rank: number) => void;
   isSelected?: boolean;
   isDisabled?: boolean;
   onClick?: () => void;
@@ -57,9 +106,50 @@ function getModStat(mod: Mod, rank: number): string | null {
   return stats?.[0] ?? null;
 }
 
-export function ModCard({ mod, className }: ModCardProps) {
+export function ModCard({
+  mod,
+  rank: externalRank,
+  onRankChange,
+  className,
+}: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [internalRank, setInternalRank] = useState(0);
   const rarity = (mod.rarity as ModRarity) ?? "Common";
+
+  // Use external rank if provided, otherwise use internal state
+  const currentRank = externalRank ?? internalRank;
+  const maxRank = mod.fusionLimit ?? 0;
+  const isMaxRank = currentRank >= maxRank;
+
+  const handleRankChange = useCallback(
+    (newRank: number) => {
+      const clampedRank = Math.max(0, Math.min(newRank, maxRank));
+      if (onRankChange) {
+        onRankChange(clampedRank);
+      } else {
+        setInternalRank(clampedRank);
+      }
+    },
+    [maxRank, onRankChange]
+  );
+
+  // Handle keyboard events for rank adjustment
+  useEffect(() => {
+    if (!isHovered) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "-" || e.key === "_") {
+        e.preventDefault();
+        handleRankChange(currentRank - 1);
+      } else if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        handleRankChange(currentRank + 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isHovered, currentRank, handleRankChange]);
 
   return (
     <div
@@ -74,7 +164,12 @@ export function ModCard({ mod, className }: ModCardProps) {
           isHovered ? "opacity-0" : "opacity-100"
         )}
       >
-        <CompactModCard mod={mod} rarity={rarity} />
+        <CompactModCard
+          mod={mod}
+          rarity={rarity}
+          rank={currentRank}
+          isMaxRank={isMaxRank}
+        />
       </div>
 
       {/* Expanded card overlays, centered vertically on the compact card */}
@@ -88,7 +183,12 @@ export function ModCard({ mod, className }: ModCardProps) {
             : "opacity-0 scale-75 pointer-events-none"
         )}
       >
-        <ExpandedModCard mod={mod} rarity={rarity} />
+        <ExpandedModCard
+          mod={mod}
+          rarity={rarity}
+          rank={currentRank}
+          isMaxRank={isMaxRank}
+        />
       </div>
     </div>
   );
@@ -101,9 +201,13 @@ export function ModCard({ mod, className }: ModCardProps) {
 interface FrameCardProps {
   mod: Mod;
   rarity: ModRarity;
+  rank: number;
+  isMaxRank: boolean;
 }
 
-function CompactModCard({ mod, rarity }: FrameCardProps) {
+function CompactModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
+  const maxRank = mod.fusionLimit ?? 0;
+
   return (
     <div className="relative w-[184px] h-[64px] flex items-center justify-center">
       {/* Mod Image */}
@@ -139,6 +243,29 @@ function CompactModCard({ mod, rarity }: FrameCardProps) {
         alt="Bottom Frame"
         className="absolute -bottom-8 left-1/2 -translate-x-1/2 z-20 w-full"
       />
+
+      {/* Rank Complete Line - shown when at max rank, on bottom frame behind dots */}
+      {isMaxRank && (
+        <RankCompleteLine
+          rarity={rarity}
+          className="absolute -bottom-[28px] left-1/2 -translate-x-1/2 z-25 w-[calc(100%-8px)]"
+        />
+      )}
+
+      {/* Rank Dots - positioned on top of bottom frame */}
+      {maxRank > 0 && (
+        <div className="absolute -bottom-[27px] left-1/2 -translate-x-1/2 z-30 flex gap-0.5">
+          {Array.from({ length: maxRank }, (_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "w-[5px] h-[5px] rounded-full",
+                i < rank ? "bg-cyan-400" : "bg-gray-800/60"
+              )}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -147,8 +274,9 @@ function CompactModCard({ mod, rarity }: FrameCardProps) {
 // EXPANDED MOD CARD (Vertical frames, on hover)
 // =============================================================================
 
-function ExpandedModCard({ mod, rarity }: FrameCardProps) {
-  const stat = getModStat(mod, 0); // Show rank 0 stats
+function ExpandedModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
+  const stat = getModStat(mod, rank); // Show stats for current rank
+  const maxRank = mod.fusionLimit ?? 0;
 
   return (
     <div className="relative w-[184px] h-[285px]">
@@ -191,7 +319,7 @@ function ExpandedModCard({ mod, rarity }: FrameCardProps) {
           {/* Stat */}
           {stat && (
             <span
-              className="text-[11px] text-gray-300 text-center leading-tight"
+              className="text-[11px] text-gray-300 text-center leading-tight mt-1"
               dangerouslySetInnerHTML={{ __html: stat }}
             />
           )}
@@ -217,6 +345,29 @@ function ExpandedModCard({ mod, rarity }: FrameCardProps) {
         alt="Bottom Frame"
         className="absolute bottom-0 left-1/2 -translate-x-1/2 z-20 w-full"
       />
+
+      {/* Rank Complete Line - shown when at max rank, on bottom frame behind dots */}
+      {isMaxRank && (
+        <RankCompleteLine
+          rarity={rarity}
+          className="absolute bottom-[3px] left-1/2 -translate-x-1/2 z-25 w-[calc(100%-8px)]"
+        />
+      )}
+
+      {/* Rank Dots - positioned on top of bottom frame */}
+      {maxRank > 0 && (
+        <div className="absolute bottom-[4px] left-1/2 -translate-x-1/2 z-30 flex gap-0.5">
+          {Array.from({ length: maxRank }, (_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "w-[5px] h-[5px] rounded-full",
+                i < rank ? "bg-cyan-400" : "bg-gray-800/60"
+              )}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
