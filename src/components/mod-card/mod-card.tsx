@@ -100,10 +100,38 @@ export interface ModCardProps {
 }
 
 // Helper to get stats at a given rank
-function getModStats(mod: Mod, rank: number): string[] {
+function getModStats(mod: Mod, rank: number, setCount: number = 0): string[] {
   if (!mod.levelStats || mod.levelStats.length === 0) return [];
   const levelIndex = Math.min(rank, mod.levelStats.length - 1);
-  return mod.levelStats[levelIndex]?.stats ?? [];
+  const baseStats = mod.levelStats[levelIndex]?.stats ?? [];
+
+  // Handle Umbral Set Bonus Scaling
+  if (
+    mod.modSet === "/Lotus/Upgrades/Mods/Sets/Umbra/UmbraSetMod" &&
+    setCount > 1
+  ) {
+    // Determine multiplier
+    let multiplier = 1.0;
+    const isIntensify = mod.name.includes("Intensify");
+
+    if (setCount === 2) {
+      multiplier = isIntensify ? 1.25 : 1.3;
+    } else if (setCount >= 3) {
+      multiplier = isIntensify ? 1.75 : 1.8;
+    }
+
+    return baseStats.map((stat) => {
+      // Regex to find numbers (including decimals)
+      return stat.replace(/(\d+(\.\d+)?)/g, (match) => {
+        const value = parseFloat(match);
+        const boosted = value * multiplier;
+        // Round to 1 decimal place, strip trailing zero
+        return parseFloat(boosted.toFixed(1)).toString();
+      });
+    });
+  }
+
+  return baseStats;
 }
 
 export function ModCard({
@@ -296,7 +324,7 @@ function ExpandedModCard({
   isMaxRank,
   setCount = 0,
 }: ExpandedModCardProps) {
-  const stats = getModStats(mod, rank); // Show stats for current rank
+  const stats = getModStats(mod, rank, setCount); // Show stats for current rank
   const maxRank = mod.fusionLimit ?? 0;
   const compatLabel =
     mod.compatName ||

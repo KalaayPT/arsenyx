@@ -197,6 +197,7 @@ function ModSlotCard({
         compatName: slot.mod!.compatName,
         type: slot.mod!.type || "",
         levelStats: slot.mod!.levelStats,
+        modSet: slot.mod!.modSet,
         modSetStats: slot.mod!.modSetStats,
         tradable: false,
       }
