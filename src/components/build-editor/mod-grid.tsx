@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { getImageUrl } from "@/lib/warframe/images";
-import { Badge } from "@/components/ui/badge";
+import { useState, useMemo } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,8 +8,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { calculateSlotDrain, getSlotPolarity } from "@/lib/warframe/capacity";
-import type { ModSlot, Polarity } from "@/lib/warframe/types";
+import { getSlotPolarity } from "@/lib/warframe/capacity";
+import { ModCard } from "@/components/mod-card";
+import type { ModSlot, Polarity, Mod } from "@/lib/warframe/types";
 import { Plus } from "lucide-react";
 import { PolarityIcon } from "@/components/icons";
 
@@ -37,6 +35,21 @@ export function ModGrid({
   isWarframe,
 }: ModGridProps) {
   const [activeTab, setActiveTab] = useState<"mods" | "shards">("mods");
+
+  // Calculate set counts
+  const setCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const allSlots = [auraSlot, exilusSlot, ...normalSlots].filter(
+      Boolean
+    ) as ModSlot[];
+
+    for (const slot of allSlots) {
+      if (slot.mod?.modSet) {
+        counts[slot.mod.modSet] = (counts[slot.mod.modSet] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [auraSlot, exilusSlot, normalSlots]);
 
   return (
     <div className="flex flex-col h-full">
@@ -77,8 +90,10 @@ export function ModGrid({
                 onSelect={() => onSelectSlot(auraSlot.id)}
                 onRemove={() => onRemoveMod(auraSlot.id)}
                 label="Aura"
-                className="w-[180px] h-[90px]"
-                horizontal
+                className="w-[184px] h-[100px]"
+                setCount={
+                  auraSlot.mod?.modSet ? setCounts[auraSlot.mod.modSet] : 0
+                }
               />
             )}
             <ModSlotCard
@@ -87,48 +102,50 @@ export function ModGrid({
               onSelect={() => onSelectSlot(exilusSlot.id)}
               onRemove={() => onRemoveMod(exilusSlot.id)}
               label="Exilus"
-              className="w-[180px] h-[90px]"
-              horizontal
+              className="w-[184px] h-[100px]"
+              setCount={
+                exilusSlot.mod?.modSet ? setCounts[exilusSlot.mod.modSet] : 0
+              }
             />
           </div>
 
           {/* Row 2: Normal Slots 1-4 */}
           <div className="flex gap-4 w-full justify-center">
-            {normalSlots.slice(0, 4).map((slot, i) => (
+            {normalSlots.slice(0, 4).map((slot) => (
               <ModSlotCard
                 key={slot.id}
                 slot={slot}
                 isActive={activeSlotId === slot.id}
                 onSelect={() => onSelectSlot(slot.id)}
                 onRemove={() => onRemoveMod(slot.id)}
-                className="w-[180px] h-[90px]"
-                horizontal
+                className="w-[184px] h-[100px]"
+                setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
               />
             ))}
           </div>
 
           {/* Row 3: Normal Slots 5-8 */}
           <div className="flex gap-4 w-full justify-center">
-            {normalSlots.slice(4, 8).map((slot, i) => (
+            {normalSlots.slice(4, 8).map((slot) => (
               <ModSlotCard
                 key={slot.id}
                 slot={slot}
                 isActive={activeSlotId === slot.id}
                 onSelect={() => onSelectSlot(slot.id)}
                 onRemove={() => onRemoveMod(slot.id)}
-                className="w-[180px] h-[90px]"
-                horizontal
+                className="w-[184px] h-[100px]"
+                setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
               />
             ))}
           </div>
 
-          {/* Row 4: Arcanes (Placeholder for now as they are not in buildState yet fully) */}
+          {/* Row 4: Arcanes (Placeholder) */}
           <div className="flex gap-4 w-full justify-center mt-2">
-            <div className="w-[180px] h-[75px] border border-dashed rounded-lg flex items-center justify-center text-muted-foreground/30">
-              <Plus className="w-6 h-6" />
+            <div className="w-[184px] h-[100px] border border-dashed rounded-lg flex items-center justify-center text-muted-foreground/30">
+              <Plus className="w-5 h-5" />
             </div>
-            <div className="w-[180px] h-[75px] border border-dashed rounded-lg flex items-center justify-center text-muted-foreground/30">
-              <Plus className="w-6 h-6" />
+            <div className="w-[184px] h-[100px] border border-dashed rounded-lg flex items-center justify-center text-muted-foreground/30">
+              <Plus className="w-5 h-5" />
             </div>
           </div>
         </div>
@@ -153,7 +170,7 @@ interface ModSlotCardProps {
   slotNumber?: number;
   className?: string;
   label?: string;
-  horizontal?: boolean;
+  setCount?: number;
 }
 
 function ModSlotCard({
@@ -161,132 +178,84 @@ function ModSlotCard({
   isActive,
   onSelect,
   onRemove,
-  slotNumber,
   className,
   label,
-  horizontal,
+  setCount = 0,
 }: ModSlotCardProps) {
   const hasMod = !!slot.mod;
   const polarity = getSlotPolarity(slot);
-  const drain = hasMod ? calculateSlotDrain(slot) : 0;
+  // Convert PlacedMod to Mod format for ModCard
+  const modForCard: Mod | null = hasMod
+    ? {
+        uniqueName: slot.mod!.uniqueName,
+        name: slot.mod!.name,
+        imageName: slot.mod!.imageName,
+        polarity: slot.mod!.polarity,
+        rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
+        baseDrain: slot.mod!.baseDrain,
+        fusionLimit: slot.mod!.fusionLimit,
+        compatName: slot.mod!.compatName,
+        type: slot.mod!.type || "",
+        levelStats: slot.mod!.levelStats,
+        modSetStats: slot.mod!.modSetStats,
+        tradable: false,
+      }
+    : null;
 
+  // When a mod is present, render without the tooltip to avoid overlay/callout
+  if (hasMod && modForCard) {
+    return (
+      <div
+        className={cn(
+          "relative flex items-start justify-center cursor-pointer transition-all rounded-lg overflow-visible group",
+          className
+        )}
+        onClick={onSelect}
+        onContextMenu={(e: React.MouseEvent) => {
+          e.preventDefault();
+          onRemove();
+        }}
+      >
+        <ModCard mod={modForCard} rank={slot.mod!.rank} setCount={setCount} />
+      </div>
+    );
+  }
+
+  // Empty slot keeps tooltip guidance
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "relative flex cursor-pointer transition-all rounded-lg overflow-hidden group",
+              "relative flex items-center justify-center cursor-pointer transition-all rounded-lg overflow-visible group",
               "bg-card border border-dashed border-border/60",
               isActive
-                ? "border-primary ring-1 ring-primary/30"
-                : "hover:border-primary/50 hover:bg-accent/5",
-              hasMod && "border-solid border-border",
-              horizontal
-                ? "flex-row items-center p-2 gap-3"
-                : "flex-col items-center justify-center",
+                ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                : "hover:ring-1 hover:ring-primary/50",
               className
             )}
             onClick={onSelect}
-            onContextMenu={(e: React.MouseEvent) => {
-              e.preventDefault();
-              if (hasMod) onRemove();
-            }}
           >
             {/* Polarity Icon (Background) */}
-            {polarity && !hasMod && (
+            {polarity && (
               <div className="absolute right-2 top-2 opacity-20 pointer-events-none">
                 <PolarityIcon polarity={polarity} size="lg" />
               </div>
             )}
 
             {/* Label (Aura/Exilus) */}
-            {label && !hasMod && (
-              <span className="absolute left-2 top-1 text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
+            {label && (
+              <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
                 {label}
               </span>
             )}
 
-            {hasMod ? (
-              <>
-                {/* Mod Image */}
-                <div
-                  className={cn(
-                    "relative shrink-0",
-                    horizontal ? "h-full aspect-[2/3]" : "w-full h-full p-1"
-                  )}
-                >
-                  <Image
-                    src={getImageUrl(slot.mod!.imageName)}
-                    alt={slot.mod!.name}
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-
-                {/* Mod Info (Horizontal Layout) */}
-                {horizontal && (
-                  <div className="flex flex-col min-w-0 flex-1 gap-0.5">
-                    <p className="text-sm font-medium truncate leading-tight">
-                      {slot.mod!.name}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <span className="uppercase tracking-wider">
-                        {slot.mod!.rarity}
-                      </span>
-                      <span>•</span>
-                      <span>Rank {slot.mod!.rank}</span>
-                    </div>
-
-                    {/* Drain & Polarity */}
-                    <div className="flex items-center gap-1 mt-1">
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          "text-[10px] px-1 py-0 h-4 font-mono",
-                          polarity &&
-                            slot.mod!.polarity === polarity &&
-                            "bg-green-500/10 text-green-600 hover:bg-green-500/20",
-                          polarity &&
-                            slot.mod!.polarity !== polarity &&
-                            "bg-red-500/10 text-red-600 hover:bg-red-500/20"
-                        )}
-                      >
-                        {drain}
-                      </Badge>
-                      {polarity && (
-                        <PolarityIcon
-                          polarity={polarity}
-                          size="xs"
-                          className="opacity-50"
-                        />
-                      )}
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              /* Empty State */
-              <div className="flex items-center justify-center w-full h-full">
-                <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
-              </div>
-            )}
+            <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
           </div>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          {hasMod ? (
-            <div className="text-sm">
-              <p className="font-medium">{slot.mod!.name}</p>
-              <p className="text-muted-foreground">
-                Rank {slot.mod!.rank}/{slot.mod!.fusionLimit} • Drain: {drain}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Right-click to remove
-              </p>
-            </div>
-          ) : (
-            <p>Click to add a mod</p>
-          )}
+          <p>Click to add a mod</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

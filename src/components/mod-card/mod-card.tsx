@@ -96,21 +96,23 @@ export interface ModCardProps {
   isDisabled?: boolean;
   onClick?: () => void;
   className?: string;
+  setCount?: number;
 }
 
-// Helper to get first stat at a given rank
-function getModStat(mod: Mod, rank: number): string | null {
-  if (!mod.levelStats || mod.levelStats.length === 0) return null;
+// Helper to get stats at a given rank
+function getModStats(mod: Mod, rank: number): string[] {
+  if (!mod.levelStats || mod.levelStats.length === 0) return [];
   const levelIndex = Math.min(rank, mod.levelStats.length - 1);
-  const stats = mod.levelStats[levelIndex]?.stats;
-  return stats?.[0] ?? null;
+  return mod.levelStats[levelIndex]?.stats ?? [];
 }
 
 export function ModCard({
   mod,
   rank: externalRank,
   onRankChange,
+  isSelected,
   className,
+  setCount = 0,
 }: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const maxRank = mod.fusionLimit ?? 0;
@@ -161,7 +163,8 @@ export function ModCard({
       <div
         className={cn(
           "transition-opacity duration-200",
-          isHovered ? "opacity-0" : "opacity-100"
+          isHovered ? "opacity-0" : "opacity-100",
+          isSelected && "filter drop-shadow-[0_0_6px_rgba(255,255,255,0.7)]"
         )}
       >
         <CompactModCard
@@ -188,6 +191,7 @@ export function ModCard({
           rarity={rarity}
           rank={currentRank}
           isMaxRank={isMaxRank}
+          setCount={setCount}
         />
       </div>
     </div>
@@ -281,9 +285,43 @@ function CompactModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
 // EXPANDED MOD CARD (Vertical frames, on hover)
 // =============================================================================
 
-function ExpandedModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
-  const stat = getModStat(mod, rank); // Show stats for current rank
+interface ExpandedModCardProps extends FrameCardProps {
+  setCount?: number;
+}
+
+function ExpandedModCard({
+  mod,
+  rarity,
+  rank,
+  isMaxRank,
+  setCount = 0,
+}: ExpandedModCardProps) {
+  const stats = getModStats(mod, rank); // Show stats for current rank
   const maxRank = mod.fusionLimit ?? 0;
+  const compatLabel =
+    mod.compatName ||
+    (mod.type ? mod.type.replace(" Mod", "").toUpperCase() : "");
+
+  // Format stats: replace \n with <br/> and join multiple stats
+  const formattedStats = stats
+    .map((s) => s.replace(/\\n/g, "<br/>"))
+    .join("<br/>");
+
+  // Set Bonus Logic
+  const setStats = mod.modSetStats || [];
+  const maxSetSize = setStats.length;
+
+  const currentBonusIndex = Math.min(Math.max(0, setCount - 1), maxSetSize - 1);
+  const currentBonus =
+    setStats.length > 0
+      ? setStats[currentBonusIndex].replace(/\\n/g, "<br/>")
+      : null;
+
+  const showMax = maxSetSize > 1 && setCount < maxSetSize;
+  const maxBonus =
+    setStats.length > 0
+      ? setStats[maxSetSize - 1].replace(/\\n/g, "<br/>")
+      : null;
 
   return (
     <div className="relative w-[184px] h-[285px]">
@@ -324,11 +362,65 @@ function ExpandedModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
             {mod.name}
           </span>
           {/* Stat */}
-          {stat && (
-            <span
-              className="text-[11px] text-gray-300 text-center leading-tight mt-1"
-              dangerouslySetInnerHTML={{ __html: stat }}
-            />
+          {formattedStats && (
+            <div className="flex flex-col items-center gap-1 mt-1 w-full px-1">
+              <span
+                className="text-[11px] text-gray-300 text-center leading-tight"
+                dangerouslySetInnerHTML={{ __html: formattedStats }}
+              />
+
+              {/* Set Bonuses */}
+              {setStats.length > 0 && (
+                <div className="flex flex-col gap-1 mt-2 w-full border-t border-white/10 pt-1">
+                  {/* Header with dots */}
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                      Set ({setCount || 0}/{maxSetSize})
+                    </span>
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: maxSetSize }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-1 h-1 rounded-full border border-white/30",
+                            i < setCount ? "bg-white" : "bg-transparent"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Current Bonus */}
+                  <div className="flex flex-col gap-0.5">
+                    {setCount > 0 && setCount < maxSetSize && (
+                      <span className="text-[8px] text-gray-500 text-center uppercase">
+                        Current
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        "text-[9px] text-center leading-tight",
+                        setCount > 0 ? "text-gray-300" : "text-gray-500"
+                      )}
+                      dangerouslySetInnerHTML={{ __html: currentBonus! }}
+                    />
+                  </div>
+
+                  {/* Max Bonus Preview */}
+                  {showMax && maxBonus && (
+                    <div className="flex flex-col gap-0.5 mt-1 opacity-60">
+                      <span className="text-[8px] text-gray-500 text-center uppercase">
+                        Max ({maxSetSize})
+                      </span>
+                      <span
+                        className="text-[9px] text-gray-500 text-center leading-tight"
+                        dangerouslySetInnerHTML={{ __html: maxBonus }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           )}
           {/* Lower Tab with Compatibility Badge */}
           <div className="relative mt-4 w-[80%]">
@@ -337,9 +429,9 @@ function ExpandedModCard({ mod, rarity, rank, isMaxRank }: FrameCardProps) {
               alt=""
               className="w-full"
             />
-            {mod.compatName && (
+            {compatLabel && (
               <span className="absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-wider text-white">
-                {mod.compatName}
+                {compatLabel}
               </span>
             )}
           </div>

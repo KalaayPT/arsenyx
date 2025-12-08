@@ -68,10 +68,23 @@ export function getAllMods(): Mod[] {
 
       return true;
     })
-    .map((mod) => ({
-      ...mod,
-      polarity: normalizePolarity(mod.polarity as unknown as string),
-    }));
+    .map((mod) => {
+      // Find set bonus stats if applicable
+      let modSetStats: string[] | undefined;
+      if (mod.modSet) {
+        const setMod = allMods.find((m) => m.uniqueName === mod.modSet);
+        if (setMod && setMod.stats) {
+          // @ts-expect-error - stats is not in Mod type but exists in JSON
+          modSetStats = setMod.stats as string[];
+        }
+      }
+
+      return {
+        ...mod,
+        polarity: normalizePolarity(mod.polarity as unknown as string),
+        modSetStats,
+      };
+    });
 }
 
 /**

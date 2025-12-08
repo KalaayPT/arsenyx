@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { ItemSidebar } from "./item-sidebar";
 import { ModGrid } from "./mod-grid";
-import { ModSearchPanel } from "./mod-search-panel";
+import { ModSearchGrid } from "./mod-search-grid";
 import { useBuildKeyboard } from "./use-build-keyboard";
 import {
   getCapacityStatus,
@@ -75,6 +75,7 @@ function createInitialSlots(): ModSlot[] {
 function createInitialBuildState(
   item: BrowseableItem,
   category: BrowseCategory,
+  compatibleMods: Mod[],
   importedBuild?: Partial<BuildState>
 ): BuildState {
   const isWarframe = category === "warframes" || category === "necramechs";
@@ -84,12 +85,12 @@ function createInitialBuildState(
     itemName: item.name,
     itemCategory: category,
     itemImageName: item.imageName,
-    hasReactor: false,
+    hasReactor: true,
     exilusSlot: { id: "exilus-0", type: "exilus" },
     normalSlots: createInitialSlots(),
     arcaneSlots: [],
-    baseCapacity: 30,
-    currentCapacity: 30,
+    baseCapacity: 60,
+    currentCapacity: 60,
   };
 
   // Add aura slot for warframes
@@ -100,7 +101,7 @@ function createInitialBuildState(
 
   // Apply imported build data if available
   if (importedBuild) {
-    return {
+    const hydratedState = {
       ...baseState,
       ...importedBuild,
       // Ensure these are always from base state
@@ -109,6 +110,42 @@ function createInitialBuildState(
       itemCategory: category,
       itemImageName: item.imageName,
     };
+
+    // Hydrate mods with full data (including levelStats)
+    const hydrateSlot = (slot: ModSlot) => {
+      if (slot.mod) {
+        const fullMod = compatibleMods.find(
+          (m) => m.uniqueName === slot.mod!.uniqueName
+        );
+        if (fullMod) {
+          slot.mod = {
+            ...slot.mod,
+            name: fullMod.name,
+            imageName: fullMod.imageName,
+            polarity: fullMod.polarity,
+            baseDrain: fullMod.baseDrain,
+            fusionLimit: fullMod.fusionLimit,
+            rarity: fullMod.rarity,
+            compatName: fullMod.compatName,
+            type: fullMod.type,
+            levelStats: fullMod.levelStats,
+            modSet: fullMod.modSet,
+            modSetStats: fullMod.modSetStats,
+          };
+        }
+      }
+      return slot;
+    };
+
+    if (hydratedState.auraSlot) {
+      hydratedState.auraSlot = hydrateSlot(hydratedState.auraSlot);
+    }
+    if (hydratedState.exilusSlot) {
+      hydratedState.exilusSlot = hydrateSlot(hydratedState.exilusSlot);
+    }
+    hydratedState.normalSlots = hydratedState.normalSlots.map(hydrateSlot);
+
+    return hydratedState;
   }
 
   return baseState;
@@ -126,7 +163,7 @@ export function BuildContainer({
 }: BuildContainerProps) {
   // Build state
   const [buildState, setBuildState] = useState<BuildState>(() =>
-    createInitialBuildState(item, category, importedBuild)
+    createInitialBuildState(item, category, compatibleMods, importedBuild)
   );
 
   // Active slot for mod placement
@@ -205,6 +242,11 @@ export function BuildContainer({
         fusionLimit: mod.fusionLimit,
         rank,
         rarity: mod.rarity,
+        compatName: mod.compatName,
+        type: mod.type,
+        levelStats: mod.levelStats,
+        modSet: mod.modSet,
+        modSetStats: mod.modSetStats,
       };
 
       setBuildState((prev) => {
@@ -303,10 +345,10 @@ export function BuildContainer({
 
   // Clear build
   const handleClearBuild = useCallback(() => {
-    setBuildState(createInitialBuildState(item, category));
+    setBuildState(createInitialBuildState(item, category, compatibleMods));
     setActiveSlotId(null);
     setIsSearchOpen(false);
-  }, [item, category]);
+  }, [item, category, compatibleMods]);
 
   // Get all used mod names for duplicate checking
   const usedModNames = useMemo((): string[] => {
@@ -336,12 +378,11 @@ export function BuildContainer({
     },
     onCopyBuild: handleCopyBuild,
     onClearBuild: handleClearBuild,
-    onToggleReactor: handleToggleReactor,
     hasAuraSlot: isWarframeOrNecramech,
   });
 
   return (
-    <div className="container py-6 max-w-[1600px]">
+    <div className="container py-6 max-w-[1400px]">
       {/* Header Card */}
       <div className="bg-card border rounded-lg p-4 mb-4">
         <div className="flex gap-4 items-center">
@@ -382,7 +423,7 @@ export function BuildContainer({
         </div>
       </div>
 
-      {/* Main Content: 3-column layout */}
+      {/* Main Content: Sidebar + Vertical Stack */}
       <div className="flex gap-4 items-start">
         {/* Left Sidebar (Stats) */}
         <div className="w-[260px] shrink-0 bg-card border rounded-lg">
@@ -397,30 +438,31 @@ export function BuildContainer({
           />
         </div>
 
-        {/* Center: Mod Grid */}
-        <div className="flex-1 bg-card border rounded-lg p-4 min-h-[600px]">
-          <ModGrid
-            auraSlot={buildState.auraSlot}
-            exilusSlot={buildState.exilusSlot}
-            normalSlots={buildState.normalSlots}
-            activeSlotId={activeSlotId}
-            onSelectSlot={handleSelectSlot}
-            onRemoveMod={handleRemoveMod}
-            onApplyForma={handleApplyForma}
-            isWarframe={isWarframeOrNecramech}
-          />
-        </div>
+        {/* Main Content: Vertical Stack */}
+        <div className="flex-1 flex flex-col gap-4 min-w-0">
+          {/* Mod Slots Grid */}
+          <div className="bg-card border rounded-lg p-4">
+            <ModGrid
+              auraSlot={buildState.auraSlot}
+              exilusSlot={buildState.exilusSlot}
+              normalSlots={buildState.normalSlots}
+              activeSlotId={activeSlotId}
+              onSelectSlot={handleSelectSlot}
+              onRemoveMod={handleRemoveMod}
+              onApplyForma={handleApplyForma}
+              isWarframe={isWarframeOrNecramech}
+            />
+          </div>
 
-        {/* Right: Mod Search Panel */}
-        <div className="w-[320px] shrink-0 h-[600px]">
-          <ModSearchPanel
-            isOpen={true}
-            onClose={() => setIsSearchOpen(false)}
-            onSelectMod={handlePlaceMod}
-            availableMods={compatibleMods}
-            slotType={getSlotType(activeSlotId)}
-            usedModNames={usedModNames}
-          />
+          {/* Mod Search Grid */}
+          <div className="bg-card border rounded-lg p-4">
+            <ModSearchGrid
+              availableMods={compatibleMods}
+              slotType={getSlotType(activeSlotId)}
+              usedModNames={usedModNames}
+              onSelectMod={handlePlaceMod}
+            />
+          </div>
         </div>
       </div>
     </div>

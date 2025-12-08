@@ -204,6 +204,8 @@ export interface Mod {
   isPrime?: boolean;
   isExilus?: boolean;
   levelStats?: Array<{ stats: string[] }>;
+  modSet?: string;
+  modSetStats?: string[];
   transmutable?: boolean;
   drops?: Array<{
     chance: number;
@@ -257,6 +259,11 @@ export interface PlacedMod {
   fusionLimit: number;
   rank: number; // Current rank (0 to fusionLimit)
   rarity: string;
+  compatName?: string;
+  type?: string;
+  levelStats?: Array<{ stats: string[] }>;
+  modSet?: string;
+  modSetStats?: string[];
 }
 
 export interface PlacedArcane {
