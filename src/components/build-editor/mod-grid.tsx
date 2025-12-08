@@ -240,7 +240,8 @@ function ModSlotCard({
         className={cn(
           "relative flex items-start justify-center transition-all rounded-lg overflow-visible group",
           className,
-          isOver && "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
+          isOver &&
+            "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
         )}
       >
         <div
@@ -274,7 +275,8 @@ function ModSlotCard({
               isActive
                 ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
                 : "hover:ring-1 hover:ring-primary/50",
-              isOver && "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+              isOver &&
+                "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
               className
             )}
             onClick={onSelect}
