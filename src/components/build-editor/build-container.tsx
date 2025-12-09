@@ -630,7 +630,7 @@ export function BuildContainer({
       </div>
       <DragOverlay>
         {activeDragItem ? (
-          <div className="opacity-90 scale-105 cursor-grabbing shadow-2xl rounded-lg overflow-hidden">
+          <div className="opacity-90 scale-105 cursor-grabbing shadow-2xl rounded-lg">
             <CompactModCard
               mod={activeDragItem.mod}
               rarity={activeDragItem.mod.rarity || "Common"}
