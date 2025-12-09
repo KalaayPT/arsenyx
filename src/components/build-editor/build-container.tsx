@@ -10,7 +10,6 @@ import {
   PointerSensor,
   DragStartEvent,
   DragEndEvent,
-  DragCancelEvent,
   DragOverEvent,
 } from "@dnd-kit/core";
 import { ItemSidebar } from "./item-sidebar";
@@ -190,7 +189,7 @@ export function BuildContainer({
 
   // Drag and Drop State
   const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
-  const lastOverRef = useRef<{ id: string; data: any } | null>(null);
+  const lastOverRef = useRef<{ id: string; data: { type: string; slotId?: string } } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -310,10 +309,11 @@ export function BuildContainer({
 
   const handleDragOver = (event: DragOverEvent) => {
     const { over } = event;
-    if (over?.data?.current?.type === "slot") {
+    const overCurrent = over?.data?.current as { type?: string; slotId?: string } | undefined;
+    if (overCurrent?.type === "slot") {
       lastOverRef.current = {
-        id: String(over.id),
-        data: over.data.current,
+        id: String(over!.id),
+        data: { type: overCurrent.type, slotId: overCurrent.slotId },
       };
     }
   };
@@ -327,20 +327,21 @@ export function BuildContainer({
     if (!over) return;
 
     const activeData = active.data.current;
-    const overData =
-      "data" in over && (over as any).data?.current !== undefined
-        ? (over as any).data.current
-        : (over as any).data;
+    // Extract overData - handle both DragOverEvent's over object and our cached lastOverRef
+    const rawOverData = "data" in over && typeof over.data === "object" && over.data !== null && "current" in over.data
+      ? (over.data as { current?: unknown }).current
+      : (over as { data?: unknown }).data;
+    const overData = rawOverData as { type?: string; slotId?: string; mod?: PlacedMod } | undefined;
 
     if (!activeData || !overData) return;
 
     // Case 1: Search Mod -> Slot
-    if (activeData.type === "search-mod" && overData.type === "slot") {
+    if (activeData.type === "search-mod" && overData.type === "slot" && overData.slotId) {
       placeModInSlot(activeData.mod, activeData.rank, overData.slotId);
     }
 
     // Case 2: Placed Mod -> Slot (Swap/Move)
-    if (activeData.type === "placed-mod" && overData.type === "slot") {
+    if (activeData.type === "placed-mod" && overData.type === "slot" && overData.slotId) {
       const sourceSlotId = activeData.slotId;
       const targetSlotId = overData.slotId;
 
@@ -350,7 +351,7 @@ export function BuildContainer({
     }
   };
 
-  const handleDragCancel = (event: DragCancelEvent) => {
+  const handleDragCancel = () => {
     setActiveDragItem(null);
     lastOverRef.current = null;
   };

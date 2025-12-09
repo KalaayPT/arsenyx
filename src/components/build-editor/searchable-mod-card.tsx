@@ -57,7 +57,7 @@ export function SearchableModCard({
       {...attributes}
       data-index={dataIndex}
       className={cn(
-        "relative flex flex-col items-center cursor-pointer transition-all rounded-lg p-2 group touch-none",
+        "relative flex flex-col items-center cursor-pointer transition-all rounded-lg p-2 group touch-none select-none",
         "bg-card/30 border border-transparent",
         isDisabled && "opacity-40 grayscale cursor-not-allowed"
       )}

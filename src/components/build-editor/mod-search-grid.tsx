@@ -148,10 +148,10 @@ export function ModSearchGrid({
   ]);
 
   // Compute bounded selected index
-  const boundedSelectedIndex = Math.min(
-    selectedIndex,
-    Math.max(0, filteredMods.length - 1)
-  );
+  // When list is empty, default to 0 so we're ready when results reappear
+  const boundedSelectedIndex = filteredMods.length === 0
+    ? 0
+    : Math.min(selectedIndex, filteredMods.length - 1);
 
   // Check if a mod is already used
   const isModUsed = useCallback(
@@ -169,17 +169,21 @@ export function ModSearchGrid({
     [isModUsed, onSelectMod]
   );
 
-  // Keyboard navigation for grid
+  // Keyboard navigation for grid - only handle arrow keys when not focused on input
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       const grid = gridRef.current;
       if (!grid) return;
 
+      const isInputFocused = e.target === inputRef.current;
+
       switch (e.key) {
         case "ArrowDown":
+          // Allow natural input behavior when focused on input
+          if (isInputFocused) return;
           e.preventDefault();
           // If in top row (even index), go to bottom row (index + 1)
-          if (boundedSelectedIndex % 2 === 0) {
+          if (filteredMods.length > 0 && boundedSelectedIndex % 2 === 0) {
             const nextIndex = boundedSelectedIndex + 1;
             if (nextIndex < filteredMods.length) {
               setSelectedIndex(nextIndex);
@@ -187,6 +191,8 @@ export function ModSearchGrid({
           }
           break;
         case "ArrowUp":
+          // Allow natural input behavior when focused on input
+          if (isInputFocused) return;
           e.preventDefault();
           // If in bottom row (odd index), go to top row (index - 1)
           if (boundedSelectedIndex % 2 !== 0) {
@@ -194,23 +200,31 @@ export function ModSearchGrid({
           }
           break;
         case "ArrowRight":
+          // Allow natural input behavior (caret movement, text selection)
+          if (isInputFocused) return;
           e.preventDefault();
           // Go to next column (index + 2)
-          setSelectedIndex((prev) =>
-            Math.min(prev + 2, filteredMods.length - 1)
-          );
+          if (filteredMods.length > 0) {
+            setSelectedIndex((prev) =>
+              Math.min(prev + 2, filteredMods.length - 1)
+            );
+          }
           break;
         case "ArrowLeft":
+          // Allow natural input behavior (caret movement, text selection)
+          if (isInputFocused) return;
           e.preventDefault();
           // Go to prev column (index - 2)
           setSelectedIndex((prev) => Math.max(prev - 2, 0));
           break;
         case "Enter":
           e.preventDefault();
-          const selectedMod = filteredMods[boundedSelectedIndex];
-          if (selectedMod && !isModUsed(selectedMod)) {
-            // Use max rank by default when pressing Enter
-            handleSelectMod(selectedMod, selectedMod.fusionLimit ?? 0);
+          if (filteredMods.length > 0) {
+            const selectedMod = filteredMods[boundedSelectedIndex];
+            if (selectedMod && !isModUsed(selectedMod)) {
+              // Use max rank by default when pressing Enter
+              handleSelectMod(selectedMod, selectedMod.fusionLimit ?? 0);
+            }
           }
           break;
       }

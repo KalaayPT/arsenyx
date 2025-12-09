@@ -15,8 +15,6 @@ import { PolarityIcon } from "@/components/icons";
 import type { Mod, SlotType } from "@/lib/warframe/types";
 
 interface ModSearchPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
   onSelectMod: (mod: Mod) => void;
   availableMods: Mod[];
   slotType: SlotType;
@@ -137,10 +135,10 @@ export function ModSearchPanel({
   ]);
 
   // Compute bounded selected index (auto-resets when filtered list shrinks)
-  const boundedSelectedIndex = Math.min(
-    selectedIndex,
-    Math.max(0, filteredMods.length - 1)
-  );
+  // When list is empty, default to 0 so we're ready when results reappear
+  const boundedSelectedIndex = filteredMods.length === 0
+    ? 0
+    : Math.min(selectedIndex, filteredMods.length - 1);
 
   // Scroll selected item into view
   useEffect(() => {
@@ -169,23 +167,43 @@ export function ModSearchPanel({
     [usedModNames]
   );
 
-  // Keyboard navigation
+  // Keyboard navigation - only handle when not focused on input (allows caret movement)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      const isInputFocused = e.target === inputRef.current;
+
       switch (e.key) {
         case "ArrowDown":
+          // Only handle if not in input, or if at end of input text
+          if (isInputFocused) {
+            const input = inputRef.current;
+            // Allow natural arrow behavior in input unless at the end
+            if (input && input.selectionStart !== input.value.length) {
+              return; // Let the input handle it
+            }
+          }
           e.preventDefault();
-          setSelectedIndex((prev) =>
-            Math.min(prev + 1, filteredMods.length - 1)
-          );
+          if (filteredMods.length > 0) {
+            setSelectedIndex((prev) =>
+              Math.min(prev + 1, filteredMods.length - 1)
+            );
+          }
           break;
         case "ArrowUp":
+          if (isInputFocused) {
+            const input = inputRef.current;
+            // Allow natural arrow behavior in input unless at the start
+            if (input && input.selectionStart !== 0) {
+              return; // Let the input handle it
+            }
+          }
           e.preventDefault();
           setSelectedIndex((prev) => Math.max(prev - 1, 0));
           break;
         case "Enter":
           e.preventDefault();
           if (
+            filteredMods.length > 0 &&
             filteredMods[boundedSelectedIndex] &&
             !isModUsed(filteredMods[boundedSelectedIndex])
           ) {

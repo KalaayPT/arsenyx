@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useState, useEffect, useCallback, useRef } from "react";
+import { memo, useState, useEffect, useLayoutEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -267,7 +267,7 @@ function ModCardComponent({
     }
   };
 
-  const startOverlayFadeOut = () => {
+  const startOverlayFadeOut = useCallback(() => {
     clearFadeTimeout();
     setIsFadingOverlay(true);
     fadeTimeoutRef.current = window.setTimeout(() => {
@@ -275,7 +275,7 @@ function ModCardComponent({
       setIsFadingOverlay(false);
       fadeTimeoutRef.current = null;
     }, 150);
-  };
+  }, []);
 
   // Handle keyboard events for rank adjustment
   useEffect(() => {
@@ -295,7 +295,7 @@ function ModCardComponent({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isHovered, disableHover, currentRank, handleRankChange]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (disableHover) return;
     clearFadeTimeout();
     clearHoverTimeout();
@@ -310,24 +310,27 @@ function ModCardComponent({
         left: rect.left + rect.width / 2,
       });
     }
-  };
+  }, [disableHover]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (disableHover) return;
     clearHoverTimeout(); // Cancel pending overlay show
     setIsHovered(false);
     if (showOverlay) {
       startOverlayFadeOut();
     }
-  };
+  }, [disableHover, showOverlay, startOverlayFadeOut]);
 
   // When hover rendering is disabled during drag, gracefully fade the overlay
-  useEffect(() => {
+  // Using useLayoutEffect because this needs to sync with visual state before paint
+  // The cascading render here is intentional - we need to immediately clear visual hover state when drag starts
+  useLayoutEffect(() => {
     if (disableHover && showOverlay) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: must sync hover state with parent's disableHover prop
       setIsHovered(false);
       startOverlayFadeOut();
     }
-  }, [disableHover, showOverlay]);
+  }, [disableHover, showOverlay, startOverlayFadeOut]);
 
   // Close overlay on any scroll to prevent position desync
   useEffect(() => {
@@ -341,7 +344,7 @@ function ModCardComponent({
     // Listen on capture phase to catch all scroll events
     window.addEventListener("scroll", handleScroll, true);
     return () => window.removeEventListener("scroll", handleScroll, true);
-  }, [showOverlay]);
+  }, [showOverlay, startOverlayFadeOut]);
 
   useEffect(() => {
     return () => {
@@ -353,7 +356,7 @@ function ModCardComponent({
   return (
     <div
       ref={cardRef}
-      className={cn("relative w-[184px] h-[64px]", className)}
+      className={cn("relative w-[184px] h-[64px] select-none", className)}
       onMouseEnter={disableHover ? undefined : handleMouseEnter}
       onMouseLeave={disableHover ? undefined : handleMouseLeave}
     >
@@ -433,7 +436,7 @@ export function CompactModCard({
   const maxRank = mod.fusionLimit ?? 0;
 
   return (
-    <div className="relative w-[184px] h-[64px] flex items-center justify-center">
+    <div className="relative w-[184px] h-[64px] flex items-center justify-center select-none">
       {/* Drain & Polarity Badge */}
       <ModDrainBadge mod={mod} rank={rank} rarity={rarity} />
       {/* Mod Image */}
@@ -553,7 +556,7 @@ function ExpandedModCard({
       : null;
 
   return (
-    <div className="relative w-[184px] h-[285px]">
+    <div className="relative w-[184px] h-[285px] select-none">
       {/* Drain & Polarity Badge */}
       <ModDrainBadge mod={mod} rank={rank} rarity={rarity} />
       {/* Top Frame */}
