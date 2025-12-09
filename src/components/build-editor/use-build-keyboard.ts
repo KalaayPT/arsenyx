@@ -30,14 +30,21 @@ export function useBuildKeyboard({
 }: UseBuildKeyboardOptions) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Ignore if typing in an input (except for Escape)
+      // Ignore if typing in an input, textarea, or contenteditable
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-        // Only handle Escape in inputs - deselect active slot
+      const isEditable =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable ||
+        target.closest('[contenteditable="true"]') !== null;
+
+      // Also ignore if a dialog is open
+      const dialogOpen = document.querySelector('[role="dialog"]') !== null;
+
+      if (isEditable || dialogOpen) {
+        // Only handle Escape to close/deselect
         if (e.key === "Escape") {
-          e.preventDefault();
           onCloseSearch();
-          (target as HTMLInputElement).blur();
         }
         return;
       }

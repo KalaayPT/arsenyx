@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, useId } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -201,11 +201,8 @@ export function BuildContainer({
   // Copy notification
   const [showCopied, setShowCopied] = useState(false);
 
-  // Guide and Description state
-  const [guideData, setGuideData] = useState<{ guide: string | null; description: string | null }>({
-    guide: null,
-    description: null,
-  });
+  // Guide state
+  const [guideData, setGuideData] = useState<string | null>(null);
 
   // Drag and Drop State
   const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
@@ -221,6 +218,9 @@ export function BuildContainer({
       },
     })
   );
+
+  // Stable ID for DndContext to prevent hydration mismatch
+  const dndContextId = useId();
 
   // Place a mod in a specific slot
   const placeModInSlot = useCallback(
@@ -432,11 +432,7 @@ export function BuildContainer({
     try {
       const savedGuide = localStorage.getItem(guideKey);
       if (savedGuide) {
-        const parsed = JSON.parse(savedGuide);
-        setGuideData({
-          guide: parsed.guide ?? null,
-          description: parsed.description ?? null,
-        });
+        setGuideData(savedGuide);
       }
     } catch {
       // Ignore parse errors
@@ -666,6 +662,7 @@ export function BuildContainer({
 
   return (
     <DndContext
+      id={dndContextId}
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
@@ -729,9 +726,8 @@ export function BuildContainer({
             <div className="self-start flex items-center gap-2">
               <GuideEditorDialog
                 buildId={item.uniqueName}
-                initialGuide={guideData.guide}
-                initialDescription={guideData.description}
-                onSaved={(payload) => setGuideData(payload)}
+                initialGuide={guideData}
+                onSaved={(payload) => setGuideData(payload.guide)}
               />
               <Button
                 variant="default"
