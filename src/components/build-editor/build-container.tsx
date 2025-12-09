@@ -669,7 +669,7 @@ export function BuildContainer({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="container py-6 max-w-[1400px]">
+      <div className="container py-6">
         {/* Header Card */}
         <div className="bg-card border rounded-lg p-4 mb-4">
           <div className="flex gap-4 items-center justify-between">
