@@ -121,7 +121,18 @@ interface ModDrainBadgeProps {
 
 function ModDrainBadge({ mod, rank, rarity, drainOverride, matchState = "neutral" }: ModDrainBadgeProps) {
   const drain = drainOverride ?? (mod.baseDrain + rank);
-  const color = RARITY_COLOR_MAP[rarity];
+  const badgeColor =
+    matchState === "match"
+      ? "#4ade80" // Green for matching polarity
+      : matchState === "mismatch"
+        ? "#f87171" // Red for mismatched polarity
+        : RARITY_COLOR_MAP[rarity];
+  const glow =
+    matchState === "match"
+      ? "0 0 8px rgba(74, 222, 128, 0.45)"
+      : matchState === "mismatch"
+        ? "0 0 8px rgba(248, 113, 113, 0.45)"
+        : undefined;
 
   return (
     <div className="absolute top-[7px] right-[2px] z-30 flex items-center justify-center">
@@ -140,7 +151,11 @@ function ModDrainBadge({ mod, rank, rarity, drainOverride, matchState = "neutral
         {/* Drain Value */}
         <span
           className="text-[12px] font-bold leading-none tracking-tighter"
-          style={{ fontFamily: "Roboto, sans-serif", color: color }}
+          style={{
+            fontFamily: "Roboto, sans-serif",
+            color: badgeColor,
+            textShadow: glow,
+          }}
         >
           {drain}
         </span>
@@ -149,7 +164,7 @@ function ModDrainBadge({ mod, rank, rarity, drainOverride, matchState = "neutral
         <div
           className="relative w-[13px] h-[13px]"
           style={{
-            backgroundColor: color,
+            backgroundColor: badgeColor,
             maskImage: `url(${getPolarityIcon(mod.polarity)})`,
             maskSize: "contain",
             maskRepeat: "no-repeat",
