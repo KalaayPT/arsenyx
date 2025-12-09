@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -13,6 +14,7 @@ import {
   DragOverEvent,
 } from "@dnd-kit/core";
 import { ItemSidebar } from "./item-sidebar";
+import { GuideEditorDialog } from "./guide-editor-dialog";
 import { ModGrid } from "./mod-grid";
 import { ModSearchGrid } from "./mod-search-grid";
 import { CompactModCard, type ModRarity } from "@/components/mod-card";
@@ -36,7 +38,8 @@ import type {
   BrowseableItem,
   Mod,
 } from "@/lib/warframe/types";
-import { Hexagon, Diamond, Gem } from "lucide-react";
+import { Hexagon, Diamond, Gem, Save, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type DragItem =
   | { type: "search-mod"; mod: Mod; rank: number }
@@ -198,9 +201,18 @@ export function BuildContainer({
   // Copy notification
   const [showCopied, setShowCopied] = useState(false);
 
+  // Guide and Description state
+  const [guideData, setGuideData] = useState<{ guide: string | null; description: string | null }>({
+    guide: null,
+    description: null,
+  });
+
   // Drag and Drop State
   const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
   const lastOverRef = useRef<{ id: string; data: { type: string; slotId?: string } } | null>(null);
+
+  // Router for navigation
+  const router = useRouter();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -414,6 +426,23 @@ export function BuildContainer({
     }
   }, [item.uniqueName, item.name, item.imageName, category, importedBuild]);
 
+  // Load guide data from localStorage on mount
+  useEffect(() => {
+    const guideKey = `arsenix_build_guide_${item.uniqueName}`;
+    try {
+      const savedGuide = localStorage.getItem(guideKey);
+      if (savedGuide) {
+        const parsed = JSON.parse(savedGuide);
+        setGuideData({
+          guide: parsed.guide ?? null,
+          description: parsed.description ?? null,
+        });
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [item.uniqueName]);
+
   // Toggle reactor/catalyst
   const handleToggleReactor = useCallback(() => {
     setBuildState((prev) => ({
@@ -580,6 +609,32 @@ export function BuildContainer({
     setActiveSlotId(null);
   }, [item, category, compatibleMods]);
 
+  // Save build (placeholder for future POST)
+  const handleSaveBuild = useCallback(async () => {
+    // TODO: Implement POST to save build to backend
+    // For now, just copy to clipboard as a placeholder
+    const success = await copyBuildToClipboard(buildState);
+    if (success) {
+      setShowCopied(true);
+      setTimeout(() => setShowCopied(false), 2000);
+    }
+  }, [buildState]);
+
+  // Cancel and go back (clears localStorage)
+  const handleCancel = useCallback(() => {
+    // Clear build from localStorage
+    const buildKey = `${STORAGE_KEY_PREFIX}${item.uniqueName}`;
+    const guideKey = `arsenix_build_guide_${item.uniqueName}`;
+    try {
+      localStorage.removeItem(buildKey);
+      localStorage.removeItem(guideKey);
+    } catch {
+      // Ignore storage errors
+    }
+    // Navigate back
+    router.back();
+  }, [item.uniqueName, router]);
+
   // Get all used mod names for duplicate checking
   const usedModNames = useMemo((): string[] => {
     const names: string[] = [];
@@ -620,53 +675,82 @@ export function BuildContainer({
       <div className="container py-6 max-w-[1400px]">
         {/* Header Card */}
         <div className="bg-card border rounded-lg p-4 mb-4">
-          <div className="flex gap-4 items-center">
-            <div className="relative w-24 h-24 bg-muted/10 rounded-md flex items-center justify-center overflow-hidden">
-              <Image
-                src={getImageUrl(item.imageName)}
-                alt={item.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex flex-col justify-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
-              <span className="text-sm text-muted-foreground">
-                {categoryLabel}
-              </span>
-              <div className="flex items-center gap-3">
-                {/* Capacity indicator */}
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    "gap-1.5 px-2 py-0.5 font-semibold text-xs",
-                    capacityStatus.isOverCapacity
-                      ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
-                      : "bg-muted/50 hover:bg-muted"
-                  )}
-                >
-                  <Hexagon className="w-3 h-3 fill-current" />
-                  {capacityStatus.remaining}/{capacityStatus.max}
-                </Badge>
-                {/* Endo cost indicator */}
-                <Badge
-                  variant="secondary"
-                  className="gap-1.5 px-2 py-0.5 font-semibold text-xs bg-muted/50 hover:bg-muted"
-                >
-                  <Diamond className="w-3 h-3 fill-current" />
-                  {totalEndoCost.toLocaleString()}
-                </Badge>
-                {/* Forma count indicator */}
-                {formaCount > 0 && (
+          <div className="flex gap-4 items-center justify-between">
+            <div className="flex gap-4 items-center">
+              <div className="relative w-24 h-24 bg-muted/10 rounded-md flex items-center justify-center overflow-hidden">
+                <Image
+                  src={getImageUrl(item.imageName)}
+                  alt={item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex flex-col justify-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
+                <span className="text-sm text-muted-foreground">
+                  {categoryLabel}
+                </span>
+                <div className="flex items-center gap-3">
+                  {/* Capacity indicator */}
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "gap-1.5 px-2 py-0.5 font-semibold text-xs",
+                      capacityStatus.isOverCapacity
+                        ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
+                        : "bg-muted/50 hover:bg-muted"
+                    )}
+                  >
+                    <Hexagon className="w-3 h-3 fill-current" />
+                    {capacityStatus.remaining}/{capacityStatus.max}
+                  </Badge>
+                  {/* Endo cost indicator */}
                   <Badge
                     variant="secondary"
                     className="gap-1.5 px-2 py-0.5 font-semibold text-xs bg-muted/50 hover:bg-muted"
                   >
-                    <Gem className="w-3 h-3" />
-                    {formaCount}
+                    <Diamond className="w-3 h-3 fill-current" />
+                    {totalEndoCost.toLocaleString()}
                   </Badge>
-                )}
+                  {/* Forma count indicator */}
+                  {formaCount > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="gap-1.5 px-2 py-0.5 font-semibold text-xs bg-muted/50 hover:bg-muted"
+                    >
+                      <Gem className="w-3 h-3" />
+                      {formaCount}
+                    </Badge>
+                  )}
+                </div>
               </div>
+            </div>
+            {/* Build Actions - Top Right */}
+            <div className="self-start flex items-center gap-2">
+              <GuideEditorDialog
+                buildId={item.uniqueName}
+                initialGuide={guideData.guide}
+                initialDescription={guideData.description}
+                onSaved={(payload) => setGuideData(payload)}
+              />
+              <Button
+                variant="default"
+                size="sm"
+                className="gap-2"
+                onClick={handleSaveBuild}
+              >
+                <Save className="w-4 h-4" />
+                {showCopied ? "Saved!" : "Save"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleCancel}
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </Button>
             </div>
           </div>
         </div>
