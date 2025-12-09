@@ -14,9 +14,11 @@ import type { Mod } from "@/lib/warframe/types";
 function RankCompleteLine({
   rarity,
   className,
+  disableAnimation = false,
 }: {
   rarity: ModRarity;
   className?: string;
+  disableAnimation?: boolean;
 }) {
   return (
     <div className={cn("overflow-hidden", className)}>
@@ -28,15 +30,15 @@ function RankCompleteLine({
         style={{
           maskImage:
             "linear-gradient(90deg, transparent 0%, white 50%, transparent 100%)",
-          maskSize: "0% 100%",
+          maskSize: disableAnimation ? "200% 100%" : "0% 100%",
           maskPosition: "center",
           maskRepeat: "no-repeat",
           WebkitMaskImage:
             "linear-gradient(90deg, transparent 0%, white 50%, transparent 100%)",
-          WebkitMaskSize: "0% 100%",
+          WebkitMaskSize: disableAnimation ? "200% 100%" : "0% 100%",
           WebkitMaskPosition: "center",
           WebkitMaskRepeat: "no-repeat",
-          animation: "rankReveal 0.4s ease-out forwards",
+          animation: disableAnimation ? "none" : "rankReveal 0.4s ease-out forwards",
         }}
       />
       <style jsx>{`
@@ -63,13 +65,13 @@ type ModRarity = "Common" | "Uncommon" | "Rare" | "Legendary" | "Peculiar";
 
 // Map rarity to asset folder and prefix
 const RARITY_ASSET_MAP: Record<ModRarity, { folder: string; prefix: string }> =
-  {
-    Common: { folder: "common", prefix: "Bronze" },
-    Uncommon: { folder: "uncommon", prefix: "Silver" },
-    Rare: { folder: "rare", prefix: "Gold" },
-    Legendary: { folder: "legendary", prefix: "Legendary" },
-    Peculiar: { folder: "legendary", prefix: "Legendary" }, // Peculiar uses Legendary assets
-  };
+{
+  Common: { folder: "common", prefix: "Bronze" },
+  Uncommon: { folder: "uncommon", prefix: "Silver" },
+  Rare: { folder: "rare", prefix: "Gold" },
+  Legendary: { folder: "legendary", prefix: "Legendary" },
+  Peculiar: { folder: "legendary", prefix: "Legendary" }, // Peculiar uses Legendary assets
+};
 
 // Map rarity to text color
 const RARITY_COLOR_MAP: Record<ModRarity, string> = {
@@ -155,6 +157,7 @@ function ModCardComponent({
   const [showOverlay, setShowOverlay] = useState(false);
   const [isFadingOverlay, setIsFadingOverlay] = useState(false);
   const fadeTimeoutRef = useRef<number | null>(null);
+  const hoverTimeoutRef = useRef<number | null>(null);
 
   const maxRank = mod.fusionLimit ?? 0;
   const [internalRank, setInternalRank] = useState(maxRank);
@@ -180,6 +183,13 @@ function ModCardComponent({
     if (fadeTimeoutRef.current) {
       window.clearTimeout(fadeTimeoutRef.current);
       fadeTimeoutRef.current = null;
+    }
+  };
+
+  const clearHoverTimeout = () => {
+    if (hoverTimeoutRef.current) {
+      window.clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
     }
   };
 
@@ -214,23 +224,32 @@ function ModCardComponent({
   const handleMouseEnter = () => {
     if (disableHover) return;
     clearFadeTimeout();
-    setShowOverlay(true);
-    setIsFadingOverlay(false);
-
-    if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.top + rect.height / 2,
-        left: rect.left + rect.width / 2,
-      });
-    }
+    clearHoverTimeout();
     setIsHovered(true);
+
+    // Delay showing overlay to prevent jitter on quick swipes
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      setShowOverlay(true);
+      setIsFadingOverlay(false);
+
+      if (cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        setCoords({
+          top: rect.top + rect.height / 2,
+          left: rect.left + rect.width / 2,
+        });
+      }
+      hoverTimeoutRef.current = null;
+    }, 50);
   };
 
   const handleMouseLeave = () => {
     if (disableHover) return;
+    clearHoverTimeout(); // Cancel pending overlay show
     setIsHovered(false);
-    startOverlayFadeOut();
+    if (showOverlay) {
+      startOverlayFadeOut();
+    }
   };
 
   // When hover rendering is disabled during drag, gracefully fade the overlay
@@ -241,8 +260,25 @@ function ModCardComponent({
     }
   }, [disableHover, showOverlay]);
 
+  // Close overlay on any scroll to prevent position desync
   useEffect(() => {
-    return () => clearFadeTimeout();
+    if (!showOverlay) return;
+
+    const handleScroll = () => {
+      setIsHovered(false);
+      startOverlayFadeOut();
+    };
+
+    // Listen on capture phase to catch all scroll events
+    window.addEventListener("scroll", handleScroll, true);
+    return () => window.removeEventListener("scroll", handleScroll, true);
+  }, [showOverlay]);
+
+  useEffect(() => {
+    return () => {
+      clearFadeTimeout();
+      clearHoverTimeout();
+    };
   }, []);
 
   return (
@@ -252,6 +288,8 @@ function ModCardComponent({
       onMouseEnter={disableHover ? undefined : handleMouseEnter}
       onMouseLeave={disableHover ? undefined : handleMouseLeave}
     >
+
+
       {/* Compact card - hidden when hovered */}
       <div
         className={cn(
@@ -279,14 +317,14 @@ function ModCardComponent({
               left: coords.left,
               transform: "translate(-50%, -50%)",
             }}
-            >
-              <div
-                className={cn(
-                  "transition-all duration-200 ease-out origin-center",
-                  "drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] shadow-2xl",
-                  "animate-in fade-in zoom-in-75 duration-200",
-                  isFadingOverlay ? "opacity-0 duration-150" : "opacity-100"
-                )}
+          >
+            <div
+              className={cn(
+                "transition-all duration-200 ease-out origin-center",
+                "drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] shadow-2xl",
+                "animate-in fade-in zoom-in-75 duration-200",
+                isFadingOverlay ? "opacity-0 duration-150" : "opacity-100"
+              )}
             >
               <ExpandedModCard
                 mod={mod}
@@ -312,6 +350,8 @@ export interface CompactModCardProps {
   rarity: ModRarity;
   rank: number;
   isMaxRank: boolean;
+  /** Skip animation for instant render (used in drag overlay) */
+  disableAnimation?: boolean;
 }
 
 export function CompactModCard({
@@ -319,6 +359,7 @@ export function CompactModCard({
   rarity,
   rank,
   isMaxRank,
+  disableAnimation = false,
 }: CompactModCardProps) {
   const maxRank = mod.fusionLimit ?? 0;
 
@@ -369,6 +410,7 @@ export function CompactModCard({
         <RankCompleteLine
           rarity={rarity}
           className="absolute -bottom-[28px] left-1/2 -translate-x-1/2 z-25 w-[calc(100%-8px)]"
+          disableAnimation={disableAnimation}
         />
       )}
 
@@ -385,8 +427,8 @@ export function CompactModCard({
               style={
                 i < rank
                   ? {
-                      boxShadow: "0 0 2px 0.5px rgba(120, 180, 255, 0.6)",
-                    }
+                    boxShadow: "0 0 2px 0.5px rgba(120, 180, 255, 0.6)",
+                  }
                   : undefined
               }
             />
@@ -594,8 +636,8 @@ function ExpandedModCard({
               style={
                 i < rank
                   ? {
-                      boxShadow: "0 0 2px 0.5px rgba(120, 180, 255, 0.6)",
-                    }
+                    boxShadow: "0 0 2px 0.5px rgba(120, 180, 255, 0.6)",
+                  }
                   : undefined
               }
             />
@@ -609,7 +651,59 @@ function ExpandedModCard({
 export const ModCard = memo(ModCardComponent);
 
 // =============================================================================
+// DRAG GHOST COMPONENT - Lightweight drag preview
+// =============================================================================
+
+const RARITY_BORDER_MAP: Record<ModRarity, string> = {
+  Common: "border-amber-700",
+  Uncommon: "border-gray-400",
+  Rare: "border-yellow-500",
+  Legendary: "border-purple-400",
+  Peculiar: "border-purple-400",
+};
+
+const RARITY_BG_MAP: Record<ModRarity, string> = {
+  Common: "bg-amber-950/90",
+  Uncommon: "bg-gray-800/90",
+  Rare: "bg-yellow-950/90",
+  Legendary: "bg-purple-950/90",
+  Peculiar: "bg-purple-950/90",
+};
+
+export interface DragGhostProps {
+  mod: { name: string; rarity?: string };
+  rarity?: string;
+}
+
+/**
+ * Lightweight drag preview that doesn't load images.
+ * Uses CSS styling for rarity indication.
+ */
+export function DragGhost({ mod, rarity }: DragGhostProps) {
+  const modRarity = (rarity || mod.rarity || "Common") as ModRarity;
+
+  return (
+    <div
+      className={cn(
+        "w-[184px] h-[64px] rounded-lg border-2 flex items-center justify-center px-3",
+        "backdrop-blur-sm shadow-xl cursor-grabbing",
+        RARITY_BORDER_MAP[modRarity],
+        RARITY_BG_MAP[modRarity]
+      )}
+    >
+      <span
+        className="text-sm font-medium text-center truncate"
+        style={{ color: RARITY_COLOR_MAP[modRarity] }}
+      >
+        {mod.name}
+      </span>
+    </div>
+  );
+}
+
+// =============================================================================
 // EXPORTS
 // =============================================================================
 
 export type { ModRarity };
+

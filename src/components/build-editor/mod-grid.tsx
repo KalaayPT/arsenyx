@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -23,6 +23,7 @@ interface ModGridProps {
   activeSlotId: string | null;
   onSelectSlot: (slotId: string) => void;
   onRemoveMod: (slotId: string) => void;
+  onChangeRank: (slotId: string, rank: number) => void;
   onApplyForma: (slotId: string, polarity: Polarity) => void;
   isWarframe: boolean;
 }
@@ -34,6 +35,7 @@ export function ModGrid({
   activeSlotId,
   onSelectSlot,
   onRemoveMod,
+  onChangeRank,
   isWarframe,
 }: ModGridProps) {
   const [activeTab, setActiveTab] = useState<"mods" | "shards">("mods");
@@ -91,6 +93,7 @@ export function ModGrid({
                 isActive={activeSlotId === auraSlot.id}
                 onSelect={() => onSelectSlot(auraSlot.id)}
                 onRemove={() => onRemoveMod(auraSlot.id)}
+                onChangeRank={(rank) => onChangeRank(auraSlot.id, rank)}
                 label="Aura"
                 className="w-[184px] h-[100px]"
                 setCount={
@@ -103,6 +106,7 @@ export function ModGrid({
               isActive={activeSlotId === exilusSlot.id}
               onSelect={() => onSelectSlot(exilusSlot.id)}
               onRemove={() => onRemoveMod(exilusSlot.id)}
+              onChangeRank={(rank) => onChangeRank(exilusSlot.id, rank)}
               label="Exilus"
               className="w-[184px] h-[100px]"
               setCount={
@@ -120,6 +124,7 @@ export function ModGrid({
                 isActive={activeSlotId === slot.id}
                 onSelect={() => onSelectSlot(slot.id)}
                 onRemove={() => onRemoveMod(slot.id)}
+                onChangeRank={(rank) => onChangeRank(slot.id, rank)}
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
               />
@@ -135,6 +140,7 @@ export function ModGrid({
                 isActive={activeSlotId === slot.id}
                 onSelect={() => onSelectSlot(slot.id)}
                 onRemove={() => onRemoveMod(slot.id)}
+                onChangeRank={(rank) => onChangeRank(slot.id, rank)}
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
               />
@@ -169,17 +175,19 @@ interface ModSlotCardProps {
   isActive: boolean;
   onSelect: () => void;
   onRemove: () => void;
+  onChangeRank: (rank: number) => void;
   slotNumber?: number;
   className?: string;
   label?: string;
   setCount?: number;
 }
 
-function ModSlotCard({
+const ModSlotCard = memo(function ModSlotCard({
   slot,
   isActive,
   onSelect,
   onRemove,
+  onChangeRank,
   className,
   label,
   setCount = 0,
@@ -208,29 +216,29 @@ function ModSlotCard({
 
   const style = transform
     ? {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0 : 1,
-        willChange: "transform",
-      }
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0 : 1,
+      willChange: "transform",
+    }
     : undefined;
 
   // Convert PlacedMod to Mod format for ModCard
   const modForCard: Mod | null = hasMod
     ? {
-        uniqueName: slot.mod!.uniqueName,
-        name: slot.mod!.name,
-        imageName: slot.mod!.imageName,
-        polarity: slot.mod!.polarity,
-        rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
-        baseDrain: slot.mod!.baseDrain,
-        fusionLimit: slot.mod!.fusionLimit,
-        compatName: slot.mod!.compatName,
-        type: slot.mod!.type || "",
-        levelStats: slot.mod!.levelStats,
-        modSet: slot.mod!.modSet,
-        modSetStats: slot.mod!.modSetStats,
-        tradable: false,
-      }
+      uniqueName: slot.mod!.uniqueName,
+      name: slot.mod!.name,
+      imageName: slot.mod!.imageName,
+      polarity: slot.mod!.polarity,
+      rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
+      baseDrain: slot.mod!.baseDrain,
+      fusionLimit: slot.mod!.fusionLimit,
+      compatName: slot.mod!.compatName,
+      type: slot.mod!.type || "",
+      levelStats: slot.mod!.levelStats,
+      modSet: slot.mod!.modSet,
+      modSetStats: slot.mod!.modSetStats,
+      tradable: false,
+    }
     : null;
 
   // When a mod is present, render without the tooltip to avoid overlay/callout
@@ -242,17 +250,17 @@ function ModSlotCard({
           "relative flex items-start justify-center transition-all rounded-lg overflow-visible group",
           className,
           isOver &&
-            "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
+          "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
         )}
       >
         <div
           ref={setDraggableRef}
           {...listeners}
-        {...attributes}
-        style={style}
-        className="cursor-grab active:cursor-grabbing"
-        onClick={onSelect}
-        onContextMenu={(e: React.MouseEvent) => {
+          {...attributes}
+          style={style}
+          className="cursor-grab active:cursor-grabbing"
+          onClick={onSelect}
+          onContextMenu={(e: React.MouseEvent) => {
             e.preventDefault();
             onRemove();
           }}
@@ -260,6 +268,7 @@ function ModSlotCard({
           <ModCard
             mod={modForCard}
             rank={slot.mod!.rank}
+            onRankChange={onChangeRank}
             setCount={setCount}
             disableHover={isDragging}
           />
@@ -282,7 +291,7 @@ function ModSlotCard({
                 ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
                 : "hover:ring-1 hover:ring-primary/50",
               isOver &&
-                "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+              "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
               className
             )}
             onClick={onSelect}
@@ -310,7 +319,7 @@ function ModSlotCard({
       </Tooltip>
     </TooltipProvider>
   );
-}
+});
 
 // Re-export PolarityIcon from icons for backwards compatibility
 export { PolarityIcon } from "@/components/icons";

@@ -16,7 +16,7 @@ import {
 import { ItemSidebar } from "./item-sidebar";
 import { ModGrid } from "./mod-grid";
 import { ModSearchGrid } from "./mod-search-grid";
-import { CompactModCard } from "@/components/mod-card";
+import { CompactModCard, type ModRarity } from "@/components/mod-card";
 import { useBuildKeyboard } from "./use-build-keyboard";
 import {
   getCapacityStatus,
@@ -489,6 +489,38 @@ export function BuildContainer({
     });
   }, []);
 
+  // Change rank of a mod in a slot
+  const handleChangeRank = useCallback((slotId: string, newRank: number) => {
+    setBuildState((prev) => {
+      const newState = { ...prev };
+
+      const updateModRank = (slot: ModSlot | undefined) => {
+        if (!slot?.mod) return slot;
+        const clampedRank = Math.max(0, Math.min(newRank, slot.mod.fusionLimit));
+        return {
+          ...slot,
+          mod: { ...slot.mod, rank: clampedRank },
+        };
+      };
+
+      if (slotId.startsWith("aura") && newState.auraSlot) {
+        newState.auraSlot = updateModRank(newState.auraSlot);
+      } else if (slotId.startsWith("exilus")) {
+        newState.exilusSlot = updateModRank(newState.exilusSlot)!;
+      } else {
+        const slotIndex = parseInt(slotId.replace("normal-", ""));
+        if (!isNaN(slotIndex)) {
+          newState.normalSlots = [...newState.normalSlots];
+          newState.normalSlots[slotIndex] = updateModRank(
+            newState.normalSlots[slotIndex]
+          )!;
+        }
+      }
+
+      return newState;
+    });
+  }, []);
+
   // Apply forma to a slot
   const handleApplyForma = useCallback((slotId: string, polarity: Polarity) => {
     setBuildState((prev) => {
@@ -551,7 +583,7 @@ export function BuildContainer({
 
   useBuildKeyboard({
     onSelectSlot: handleSelectSlot,
-    onOpenSearch: () => {},
+    onOpenSearch: () => { },
     onCloseSearch: () => {
       setActiveSlotId(null);
     },
@@ -638,6 +670,7 @@ export function BuildContainer({
                 activeSlotId={activeSlotId}
                 onSelectSlot={handleSelectSlot}
                 onRemoveMod={handleRemoveMod}
+                onChangeRank={handleChangeRank}
                 onApplyForma={handleApplyForma}
                 isWarframe={isWarframeOrNecramech}
               />
@@ -655,17 +688,22 @@ export function BuildContainer({
           </div>
         </div>
       </div>
-      <DragOverlay>
+      <DragOverlay dropAnimation={null}>
         {activeDragItem ? (
-          <div className="opacity-90 scale-105 cursor-grabbing shadow-2xl rounded-lg">
+          <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
             <CompactModCard
-              mod={activeDragItem.mod}
-              rarity={activeDragItem.mod.rarity || "Common"}
-              rank={activeDragItem.rank ?? activeDragItem.mod.rank}
+              mod={activeDragItem.mod as Mod}
+              rarity={(activeDragItem.mod.rarity || "Common") as ModRarity}
+              rank={
+                activeDragItem.rank ??
+                ("rank" in activeDragItem.mod ? activeDragItem.mod.rank : 0)
+              }
               isMaxRank={
-                (activeDragItem.rank ?? activeDragItem.mod.rank) >=
+                (activeDragItem.rank ??
+                  ("rank" in activeDragItem.mod ? activeDragItem.mod.rank : 0)) >=
                 (activeDragItem.mod.fusionLimit ?? 0)
               }
+              disableAnimation
             />
           </div>
         ) : null}

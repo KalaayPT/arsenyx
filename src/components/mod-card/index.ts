@@ -1,2 +1,2 @@
-export { ModCard, CompactModCard } from "./mod-card";
-export type { ModCardProps, ModRarity } from "./mod-card";
+export { ModCard, CompactModCard, DragGhost } from "./mod-card";
+export type { ModCardProps, ModRarity, DragGhostProps } from "./mod-card";
