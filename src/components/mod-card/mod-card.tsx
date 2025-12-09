@@ -480,7 +480,17 @@ export function CompactModCard({
           src={getImageUrl(mod.imageName)}
           alt={mod.name}
           fill
-          className="object-cover object-top"
+          className="object-cover object-top transition-[filter] duration-150 ease-in-out"
+          style={{
+            filter: "grayscale(0.7) brightness(0.5)",
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-25"
+          style={{
+            backgroundColor: RARITY_COLOR_MAP[rarity],
+            mixBlendMode: "hard-light",
+          }}
         />
       </div>
       {/* Top Frame */}
@@ -494,7 +504,7 @@ export function CompactModCard({
       />
       {/* Mod Name */}
       <span
-        className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 text-[16px] font-normal text-center max-w-[180px] whitespace-nowrap"
+        className="absolute top-[65%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-[16px] font-normal text-center max-w-[180px] whitespace-nowrap"
         style={{
           fontFamily: "Roboto, sans-serif",
           color: RARITY_COLOR_MAP[rarity],

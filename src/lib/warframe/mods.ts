@@ -62,13 +62,17 @@ export function getAllMods(): Mod[] {
       if (!mod.compatName && !mod.type) return false;
 
       // Filter out variant mods (duplicates with different stats)
-      // - Beginner: Tutorial versions with lower ranks (ends with "Beginner")
-      // - Expert: Special event versions with higher ranks (ends with "Expert")
+      // - Beginner: Tutorial versions with lower ranks (in /Beginner/ path)
+      // - Intermediate: Mid-tier tutorial versions (ends with "Intermediate")
+      // - Expert: Higher-rank duplicates (ends with "Expert") BUT keep if name contains "Primed"
+      //           because Primed mods are stored with Expert suffix in WFCD data
       // - Nemesis: Duplicate entries from Nemesis system
       // - SubMod: Internal sub-components of other mods (ends with "SubMod")
       const uniqueName = mod.uniqueName ?? "";
       if (uniqueName.includes("/Beginner/")) return false;
-      if (uniqueName.endsWith("Expert")) return false;
+      if (uniqueName.endsWith("Intermediate")) return false;
+      // Expert mods are duplicates UNLESS they're Primed mods (Primed versions use Expert suffix)
+      if (uniqueName.endsWith("Expert") && !mod.name.includes("Primed")) return false;
       if (uniqueName.includes("/Nemesis/")) return false;
       if (uniqueName.endsWith("SubMod")) return false;
 

@@ -82,6 +82,11 @@ function categorizeItem(item: BrowseableItem): BrowseCategory[] {
   const categories: BrowseCategory[] = [];
 
   if (itemCategory === "Warframes") {
+    // Helminth is included in the Warframes dataset but is not a playable frame
+    if (item.name === "Helminth") {
+      return [];
+    }
+
     if (isNecramech(item)) {
       categories.push("necramechs");
     } else {

@@ -7,17 +7,6 @@ import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe/images";
 import type { BuildState } from "@/lib/warframe/types";
 import type { CapacityStatus } from "@/lib/warframe/capacity";
-import {
-  Zap,
-  Heart,
-  Shield,
-  Wind,
-  Timer,
-  Activity,
-  Maximize,
-  BicepsFlexed,
-  ShieldPlus,
-} from "lucide-react";
 
 interface ItemStats {
   health?: number;
@@ -124,27 +113,22 @@ export function ItemSidebar({
         <StatRow
           label="Energy"
           value={itemStats?.energy?.toString() ?? "—"}
-          icon={<Zap className="w-3 h-3" />}
         />
         <StatRow
           label="Health"
           value={itemStats?.health?.toString() ?? "—"}
-          icon={<Heart className="w-3 h-3" />}
         />
         <StatRow
           label="Shield"
           value={itemStats?.shield?.toString() ?? "—"}
-          icon={<Shield className="w-3 h-3" />}
         />
         <StatRow
           label="Armor"
           value={itemStats?.armor?.toString() ?? "—"}
-          icon={<ShieldPlus className="w-3 h-3" />}
         />
         <StatRow
           label="Sprint Speed"
           value={itemStats?.sprintSpeed?.toFixed(2) ?? "—"}
-          icon={<Wind className="w-3 h-3" />}
         />
       </div>
 
@@ -156,22 +140,18 @@ export function ItemSidebar({
           <StatRow
             label="Duration"
             value="100%"
-            icon={<Timer className="w-3 h-3" />}
           />
           <StatRow
             label="Efficiency"
             value="100%"
-            icon={<Activity className="w-3 h-3" />}
           />
           <StatRow
             label="Range"
             value="100%"
-            icon={<Maximize className="w-3 h-3" />}
           />
           <StatRow
             label="Strength"
             value="100%"
-            icon={<BicepsFlexed className="w-3 h-3" />}
           />
         </div>
       )}
@@ -182,16 +162,13 @@ export function ItemSidebar({
 function StatRow({
   label,
   value,
-  icon,
 }: {
   label: string;
   value: string;
-  icon?: React.ReactNode;
 }) {
   return (
     <div className="flex justify-between items-center text-xs">
       <div className="flex items-center gap-2 text-muted-foreground">
-        {icon}
         <span>{label}</span>
       </div>
       <span className="font-medium tabular-nums">{value}</span>
