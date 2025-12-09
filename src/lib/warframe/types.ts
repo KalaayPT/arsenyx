@@ -44,6 +44,7 @@ export interface Warframe extends BaseItem {
   sprintSpeed?: number;
   abilities?: Ability[];
   aura?: string;
+  polarities?: string[];
   passiveDescription?: string;
   sex?: "Male" | "Female";
   exalted?: string[];
@@ -299,6 +300,9 @@ export interface BuildState {
   buildName?: string;
   createdAt?: string;
   updatedAt?: string;
+
+  // Forma tracking (computed from slot polarity changes)
+  formaCount: number;
 }
 
 // Mod compatibility categories for filtering

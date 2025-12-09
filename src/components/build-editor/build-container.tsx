@@ -20,7 +20,9 @@ import { useBuildKeyboard } from "./use-build-keyboard";
 import {
   getCapacityStatus,
   calculateTotalEndoCost,
+  calculateFormaCount,
 } from "@/lib/warframe/capacity";
+import { normalizePolarity } from "@/lib/warframe/mods";
 import { copyBuildToClipboard } from "@/lib/build-codec";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +36,7 @@ import type {
   BrowseableItem,
   Mod,
 } from "@/lib/warframe/types";
-import { Hexagon, Diamond } from "lucide-react";
+import { Hexagon, Diamond, Gem } from "lucide-react";
 
 type DragItem =
   | { type: "search-mod"; mod: Mod; rank: number }
@@ -77,12 +79,12 @@ function extractItemStats(item: BrowseableItem): ItemStats {
   };
 }
 
-// Create initial mod slots
-function createInitialSlots(): ModSlot[] {
-  // In the future, different categories may have different default polarities
+// Create initial mod slots with optional innate polarities
+function createInitialSlots(polarities?: string[]): ModSlot[] {
   return Array.from({ length: 8 }, (_, i) => ({
     id: `normal-${i}`,
     type: "normal" as const,
+    innatePolarity: polarities?.[i] ? normalizePolarity(polarities[i]) : undefined,
   }));
 }
 
@@ -95,6 +97,10 @@ function createInitialBuildState(
 ): BuildState {
   const isWarframe = category === "warframes" || category === "necramechs";
 
+  // Extract polarities from item data (weapons, warframes have these)
+  const itemPolarities = (item as { polarities?: string[] }).polarities;
+  const auraPolarity = (item as { aura?: string }).aura;
+
   const baseState: BuildState = {
     itemUniqueName: item.uniqueName,
     itemName: item.name,
@@ -102,15 +108,20 @@ function createInitialBuildState(
     itemImageName: item.imageName,
     hasReactor: true,
     exilusSlot: { id: "exilus-0", type: "exilus" },
-    normalSlots: createInitialSlots(),
+    normalSlots: createInitialSlots(itemPolarities),
     arcaneSlots: [],
     baseCapacity: 60,
     currentCapacity: 60,
+    formaCount: 0,
   };
 
-  // Add aura slot for warframes
+  // Add aura slot for warframes with innate aura polarity
   if (isWarframe) {
-    baseState.auraSlot = { id: "aura-0", type: "aura" };
+    baseState.auraSlot = {
+      id: "aura-0",
+      type: "aura",
+      innatePolarity: auraPolarity ? normalizePolarity(auraPolarity) : undefined,
+    };
     baseState.arcaneSlots = [];
   }
 
@@ -359,6 +370,11 @@ export function BuildContainer({
   // Calculate capacity and endo cost
   const capacityStatus = getCapacityStatus(buildState);
   const totalEndoCost = calculateTotalEndoCost(buildState);
+  const formaCount = calculateFormaCount(
+    buildState.normalSlots,
+    buildState.auraSlot,
+    buildState.exilusSlot
+  );
 
   // Auto-save to localStorage (debounced to avoid chatty writes while dragging)
   useEffect(() => {
@@ -522,7 +538,7 @@ export function BuildContainer({
     });
   }, []);
 
-  // Apply forma to a slot
+  // Apply forma to a slot (or clear to blank with "universal")
   const handleApplyForma = useCallback((slotId: string, polarity: Polarity) => {
     setBuildState((prev) => {
       const newState = { ...prev };
@@ -640,6 +656,16 @@ export function BuildContainer({
                   <Diamond className="w-3 h-3 fill-current" />
                   {totalEndoCost.toLocaleString()}
                 </Badge>
+                {/* Forma count indicator */}
+                {formaCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="gap-1.5 px-2 py-0.5 font-semibold text-xs bg-muted/50 hover:bg-muted"
+                  >
+                    <Gem className="w-3 h-3" />
+                    {formaCount}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>

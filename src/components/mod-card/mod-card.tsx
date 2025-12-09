@@ -115,10 +115,26 @@ interface ModDrainBadgeProps {
   mod: Mod;
   rank: number;
   rarity: ModRarity;
+  drainOverride?: number;
+  matchState?: "match" | "mismatch" | "neutral";
 }
 
-function ModDrainBadge({ mod, rank, rarity }: ModDrainBadgeProps) {
-  const drain = mod.baseDrain + rank;
+function ModDrainBadge({ mod, rank, rarity, drainOverride, matchState = "neutral" }: ModDrainBadgeProps) {
+  const drain = drainOverride ?? (mod.baseDrain + rank);
+
+  // Color based on polarity match state
+  const drainColor = matchState === "match"
+    ? "#4ade80" // green-400 for matching polarity
+    : matchState === "mismatch"
+      ? "#f87171" // red-400 for mismatching polarity
+      : RARITY_COLOR_MAP[rarity]; // default rarity color
+
+  // Polarity icon filter for coloring
+  const polarityFilter = matchState === "match"
+    ? "brightness(0) saturate(100%) invert(76%) sepia(43%) saturate(512%) hue-rotate(88deg) brightness(96%) contrast(88%)" // green
+    : matchState === "mismatch"
+      ? "brightness(0) saturate(100%) invert(56%) sepia(86%) saturate(1058%) hue-rotate(327deg) brightness(98%) contrast(97%)" // red
+      : "brightness(0) invert(1)"; // white/default
 
   return (
     <div className="absolute top-[7px] right-[2px] z-30 flex items-center justify-center">
@@ -137,7 +153,7 @@ function ModDrainBadge({ mod, rank, rarity }: ModDrainBadgeProps) {
         {/* Drain Value */}
         <span
           className="text-[12px] font-bold leading-none tracking-tighter"
-          style={{ color: RARITY_COLOR_MAP[rarity] }}
+          style={{ color: drainColor }}
         >
           {drain}
         </span>
@@ -152,7 +168,7 @@ function ModDrainBadge({ mod, rank, rarity }: ModDrainBadgeProps) {
               "object-contain",
             )}
             style={{
-              filter: "brightness(0) invert(1)" // Ensure it's white/bright to stand out against dark backer
+              filter: polarityFilter
             }}
           />
         </div>
@@ -176,6 +192,10 @@ export interface ModCardProps {
   setCount?: number;
   /** Skip heavy hover/portal rendering (used while dragging) */
   disableHover?: boolean;
+  /** Computed drain from slot (accounts for polarity) */
+  drainOverride?: number;
+  /** Polarity match state for color feedback */
+  matchState?: "match" | "mismatch" | "neutral";
 }
 
 // Helper to get stats at a given rank
@@ -221,6 +241,8 @@ function ModCardComponent({
   className,
   setCount = 0,
   disableHover = false,
+  drainOverride,
+  matchState = "neutral",
 }: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -375,6 +397,8 @@ function ModCardComponent({
           rarity={rarity}
           rank={currentRank}
           isMaxRank={isMaxRank}
+          drainOverride={drainOverride}
+          matchState={matchState}
         />
       </div>
 
@@ -404,6 +428,8 @@ function ModCardComponent({
                 rank={currentRank}
                 isMaxRank={isMaxRank}
                 setCount={setCount}
+                drainOverride={drainOverride}
+                matchState={matchState}
               />
             </div>
           </div>,
@@ -424,6 +450,10 @@ export interface CompactModCardProps {
   isMaxRank: boolean;
   /** Skip animation for instant render (used in drag overlay) */
   disableAnimation?: boolean;
+  /** Computed drain from slot (accounts for polarity) */
+  drainOverride?: number;
+  /** Polarity match state for color feedback */
+  matchState?: "match" | "mismatch" | "neutral";
 }
 
 export function CompactModCard({
@@ -432,13 +462,15 @@ export function CompactModCard({
   rank,
   isMaxRank,
   disableAnimation = false,
+  drainOverride,
+  matchState = "neutral",
 }: CompactModCardProps) {
   const maxRank = mod.fusionLimit ?? 0;
 
   return (
     <div className="relative w-[184px] h-[64px] flex items-center justify-center select-none">
       {/* Drain & Polarity Badge */}
-      <ModDrainBadge mod={mod} rank={rank} rarity={rarity} />
+      <ModDrainBadge mod={mod} rank={rank} rarity={rarity} drainOverride={drainOverride} matchState={matchState} />
       {/* Mod Image */}
       <div className="absolute top-[4px] left-[3px] right-[3px] -bottom-4 z-10 overflow-hidden rounded-b-[5px]">
         <Image
@@ -459,12 +491,11 @@ export function CompactModCard({
       />
       {/* Mod Name */}
       <span
-        className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-30 text-[16px] font-normal text-center max-w-[180px] whitespace-nowrap"
+        className="absolute top-[48px] left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-[16px] font-normal text-center max-w-[180px] whitespace-nowrap"
         style={{
           fontFamily: "Roboto, sans-serif",
           color: RARITY_COLOR_MAP[rarity],
-          textShadow:
-            "0 0 8px rgba(0,0,0,1), 0 0 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,1)",
+          textShadow: "1px 1px 0px #000000",
         }}
       >
         {mod.name}
@@ -527,6 +558,8 @@ function ExpandedModCard({
   rank,
   isMaxRank,
   setCount = 0,
+  drainOverride,
+  matchState = "neutral",
 }: ExpandedModCardProps) {
   const stats = getModStats(mod, rank, setCount); // Show stats for current rank
   const maxRank = mod.fusionLimit ?? 0;
@@ -558,7 +591,7 @@ function ExpandedModCard({
   return (
     <div className="relative w-[184px] h-[285px] select-none">
       {/* Drain & Polarity Badge */}
-      <ModDrainBadge mod={mod} rank={rank} rarity={rarity} />
+      <ModDrainBadge mod={mod} rank={rank} rarity={rarity} drainOverride={drainOverride} matchState={matchState} />
       {/* Top Frame */}
       <Image
         src={getModAssetUrl(rarity, "FrameTop")}
