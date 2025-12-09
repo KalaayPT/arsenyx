@@ -226,21 +226,16 @@ function ModCardComponent({
     clearFadeTimeout();
     clearHoverTimeout();
     setIsHovered(true);
+    setShowOverlay(true);
+    setIsFadingOverlay(false);
 
-    // Delay showing overlay to prevent jitter on quick swipes
-    hoverTimeoutRef.current = window.setTimeout(() => {
-      setShowOverlay(true);
-      setIsFadingOverlay(false);
-
-      if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        setCoords({
-          top: rect.top + rect.height / 2,
-          left: rect.left + rect.width / 2,
-        });
-      }
-      hoverTimeoutRef.current = null;
-    }, 50);
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.top + rect.height / 2,
+        left: rect.left + rect.width / 2,
+      });
+    }
   };
 
   const handleMouseLeave = () => {
