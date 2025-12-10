@@ -340,7 +340,7 @@ const ModSlotCard = memo(function ModSlotCard({
                 rank={slot.mod!.rank}
                 onRankChange={onChangeRank}
                 setCount={setCount}
-                disableHover={isDragging}
+                disableHover={isDragging || polarityOpen}
                 drainOverride={drain}
                 matchState={matchState}
               />

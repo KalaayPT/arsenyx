@@ -299,7 +299,7 @@ function ModCardComponent({
       setShowOverlay(false);
       setIsFadingOverlay(false);
       fadeTimeoutRef.current = null;
-    }, 150);
+    }, 100);
   }, []);
 
   // Handle keyboard events for rank adjustment
@@ -324,27 +324,40 @@ function ModCardComponent({
     if (disableHover) return;
     clearFadeTimeout();
     clearHoverTimeout();
-    setIsHovered(true);
-    setShowOverlay(true);
-    setIsFadingOverlay(false);
 
-    if (cardRef.current) {
+    // Debounce hover activation - only show expanded view if hovering for 80ms+
+    // This prevents jitter when quickly swiping across multiple cards
+    hoverTimeoutRef.current = window.setTimeout(() => {
+      if (!cardRef.current) return;
+
+      // Double-check we're still actually hovering before activating
+      if (!cardRef.current.matches(":hover")) return;
+
+      setIsHovered(true);
+      setShowOverlay(true);
+      setIsFadingOverlay(false);
+
       const rect = cardRef.current.getBoundingClientRect();
       setCoords({
         top: rect.top + rect.height / 2,
         left: rect.left + rect.width / 2,
       });
-    }
+    }, 80);
   }, [disableHover]);
 
   const handleMouseLeave = useCallback(() => {
     if (disableHover) return;
-    clearHoverTimeout(); // Cancel pending overlay show
+    clearHoverTimeout(); // Cancel pending hover activation
     setIsHovered(false);
     if (showOverlay) {
+      // If we're leaving quickly, skip the fade animation
+      if (isFadingOverlay) {
+        // Already fading, let it continue
+        return;
+      }
       startOverlayFadeOut();
     }
-  }, [disableHover, showOverlay, startOverlayFadeOut]);
+  }, [disableHover, showOverlay, isFadingOverlay, startOverlayFadeOut]);
 
   // When hover rendering is disabled during drag, gracefully fade the overlay
   // Using useLayoutEffect because this needs to sync with visual state before paint
@@ -422,7 +435,7 @@ function ModCardComponent({
                 "transition-all duration-200 ease-out origin-center",
                 "drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] shadow-2xl",
                 "animate-in fade-in zoom-in-75 duration-200",
-                isFadingOverlay ? "opacity-0 duration-150" : "opacity-100"
+                isFadingOverlay ? "opacity-0 duration-100" : "opacity-100"
               )}
             >
               <ExpandedModCard
