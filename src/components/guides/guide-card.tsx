@@ -41,7 +41,7 @@ export function GuideCard({ guide }: GuideCardProps) {
                         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
                     </div>
                 )}
-                <CardHeader className="pb-3">
+                <CardHeader className="gap-1">
                     <div className="flex items-center gap-2 mb-2">
                         <Badge
                             variant="secondary"

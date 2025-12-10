@@ -1,12 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Plus, Star, Users, ExternalLink } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { GuideList } from "@/components/guides";
+import { GuidesContent } from "@/components/guides/guides-content";
 import { getGuides, getAllTags } from "@/lib/guides";
 import { CURATED_RESOURCES } from "@/lib/guides/curated-resources";
 
@@ -23,6 +19,13 @@ export default function GuidesPage() {
     const guides = getGuides();
     const allTags = getAllTags();
 
+    // Split guides: promoted guides go to Curated, rest to Community
+    const curatedGuides = guides.filter((g) => g.isCurated);
+    const communityGuides = guides.filter((g) => !g.isCurated);
+
+    // Show curated section if there are external resources OR promoted guides
+    const hasCuratedContent = CURATED_RESOURCES.length > 0 || curatedGuides.length > 0;
+
     return (
         <div className="relative min-h-screen flex flex-col">
             <Header />
@@ -36,65 +39,15 @@ export default function GuidesPage() {
                         </p>
                     </div>
 
-                    {/* Curated Section */}
-                    {CURATED_RESOURCES.length > 0 && (
-                        <section className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <Star className="h-5 w-5 text-yellow-500" />
-                                <h2 className="text-xl font-semibold">Curated</h2>
-                            </div>
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {CURATED_RESOURCES.map((resource) => (
-                                    <a
-                                        key={resource.id}
-                                        href={resource.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group"
-                                    >
-                                        <Card className="h-full transition-colors hover:bg-accent/50">
-                                            <CardHeader>
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div className="flex items-center gap-2">
-                                                        {resource.icon && (
-                                                            <span className="text-xl">{resource.icon}</span>
-                                                        )}
-                                                        <CardTitle className="text-lg group-hover:underline">
-                                                            {resource.title}
-                                                        </CardTitle>
-                                                    </div>
-                                                    <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
-                                                </div>
-                                                <CardDescription>{resource.description}</CardDescription>
-                                            </CardHeader>
-                                        </Card>
-                                    </a>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* Community Section */}
-                    <section className="space-y-4">
-                        <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-muted-foreground" />
-                            <h2 className="text-xl font-semibold">Community</h2>
-                        </div>
-                        <Suspense>
-                            <GuideList
-                                initialGuides={guides}
-                                allTags={allTags}
-                                newGuideButton={
-                                    <Button asChild className="gap-2 shrink-0">
-                                        <Link href="/guides/new">
-                                            <Plus className="h-4 w-4" />
-                                            New Guide
-                                        </Link>
-                                    </Button>
-                                }
-                            />
-                        </Suspense>
-                    </section>
+                    {/* Search and New Guide - Always at top */}
+                    <Suspense>
+                        <GuidesContent
+                            curatedResources={CURATED_RESOURCES}
+                            curatedGuides={curatedGuides}
+                            communityGuides={communityGuides}
+                            hasCuratedContent={hasCuratedContent}
+                        />
+                    </Suspense>
                 </div>
             </main>
             <Footer />
