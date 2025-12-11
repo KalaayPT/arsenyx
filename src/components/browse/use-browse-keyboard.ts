@@ -6,7 +6,7 @@ import { BROWSE_CATEGORIES } from "@/lib/warframe/categories";
 
 /**
  * Hook to add keyboard navigation to the browse page
- * - Number keys 1-6 switch categories
+ * - Number keys 1-7 switch categories
  * - Arrow keys navigate the item grid
  * - Enter opens the focused item
  */
@@ -35,8 +35,8 @@ export function useBrowseKeyboard() {
         activeElement?.tagName === "INPUT" ||
         activeElement?.tagName === "TEXTAREA";
 
-      // Number keys 1-6 for category switching (not in inputs)
-      if (!isInputFocused && e.key >= "1" && e.key <= "6") {
+      // Number keys 1-7 for category switching (not in inputs)
+      if (!isInputFocused && e.key >= "1" && e.key <= "7") {
         e.preventDefault();
         switchCategory(parseInt(e.key, 10) - 1);
         return;

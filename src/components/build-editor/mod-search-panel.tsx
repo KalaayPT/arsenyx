@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/warframe/images";
 import { Input } from "@/components/ui/input";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -243,10 +244,10 @@ export function ModSearchPanel({
             className="pl-9 pr-16 bg-muted/50 border-0"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-muted-foreground">
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">
-              Ctrl
-            </kbd>
-            <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">S</kbd>
+            <KbdGroup>
+              <Kbd className="px-1.5 py-0.5 h-auto border-0">Ctrl</Kbd>
+              <Kbd className="px-1.5 py-0.5 h-auto border-0">S</Kbd>
+            </KbdGroup>
           </div>
         </div>
 

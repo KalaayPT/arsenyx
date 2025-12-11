@@ -60,6 +60,14 @@ export const BROWSE_CATEGORIES: CategoryConfig[] = [
     description: "Sentinels, Kubrows, Kavats, and more",
     iconKey: "pawPrint",
   },
+  {
+    id: "archwing",
+    label: "Archwing",
+    labelPlural: "Archwing",
+    wfcdCategories: ["Archwing", "Arch-Gun", "Arch-Melee"],
+    description: "Archwings and their weapons for space combat",
+    iconKey: "rocket",
+  },
 ];
 
 /**

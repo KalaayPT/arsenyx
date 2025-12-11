@@ -17,6 +17,9 @@ const DATA_FILES = [
   "Pets.json",
   "Mods.json",
   "Arcanes.json",
+  "Archwing.json",
+  "Arch-Gun.json",
+  "Arch-Melee.json",
 ];
 
 const SOURCE_DIR = join(process.cwd(), "node_modules/@wfcd/items/data/json");

@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Icons } from "@/components/icons";
 import type { SortOption } from "@/lib/warframe/types";
 
 interface SortDropdownProps {
@@ -24,8 +23,7 @@ const sortLabels: Record<SortOption, string> = {
 
 export function SortDropdown({ sortOption, onSortChange }: SortDropdownProps) {
   return (
-    <div className="flex items-center gap-2 shrink-0">
-      <Icons.arrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
+    <div className="shrink-0">
       <Select value={sortOption} onValueChange={onSortChange}>
         <SelectTrigger className="w-[140px]">
           <SelectValue />

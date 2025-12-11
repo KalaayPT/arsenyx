@@ -9,6 +9,9 @@ import SecondaryData from "@/data/warframe/Secondary.json";
 import MeleeData from "@/data/warframe/Melee.json";
 import SentinelsData from "@/data/warframe/Sentinels.json";
 import PetsData from "@/data/warframe/Pets.json";
+import ArchwingData from "@/data/warframe/Archwing.json";
+import ArchGunData from "@/data/warframe/Arch-Gun.json";
+import ArchMeleeData from "@/data/warframe/Arch-Melee.json";
 
 import type {
   BrowseCategory,
@@ -28,6 +31,9 @@ const allItems: BrowseableItem[] = [
   ...(MeleeData as BrowseableItem[]),
   ...(SentinelsData as BrowseableItem[]),
   ...(PetsData as BrowseableItem[]),
+  ...(ArchwingData as BrowseableItem[]),
+  ...(ArchGunData as BrowseableItem[]),
+  ...(ArchMeleeData as BrowseableItem[]),
 ];
 
 // Precomputed caches to avoid repeated expensive work per request
@@ -41,6 +47,7 @@ const categoryCounts: Record<BrowseCategory, number> = {
   melee: 0,
   necramechs: 0,
   companions: 0,
+  archwing: 0,
 };
 
 /**
@@ -101,6 +108,13 @@ function categorizeItem(item: BrowseableItem): BrowseCategory[] {
   if (itemCategory === "Melee") categories.push("melee");
   if (itemCategory === "Sentinels" || itemCategory === "Pets") {
     categories.push("companions");
+  }
+  if (
+    itemCategory === "Archwing" ||
+    itemCategory === "Arch-Gun" ||
+    itemCategory === "Arch-Melee"
+  ) {
+    categories.push("archwing");
   }
 
   return categories;

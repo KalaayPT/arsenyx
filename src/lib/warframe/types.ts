@@ -7,7 +7,8 @@ export type BrowseCategory =
   | "secondary"
   | "melee"
   | "necramechs"
-  | "companions";
+  | "companions"
+  | "archwing";
 
 export type WfcdCategory =
   | "Warframes"
@@ -15,7 +16,10 @@ export type WfcdCategory =
   | "Secondary"
   | "Melee"
   | "Sentinels"
-  | "Pets";
+  | "Pets"
+  | "Archwing"
+  | "Arch-Gun"
+  | "Arch-Melee";
 
 // Base item interface with common fields
 export interface BaseItem {
