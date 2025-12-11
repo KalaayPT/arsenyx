@@ -15,6 +15,7 @@ import type {
   BrowseItem,
   BrowseFilters,
   BrowseableItem,
+  SortOption,
 } from "./types";
 import { BROWSE_CATEGORIES } from "./categories";
 import { slugify } from "./slugs";
@@ -71,6 +72,7 @@ function toBrowseItem(
     isPrime: item.isPrime ?? item.name.includes("Prime"),
     vaulted: item.vaulted,
     type: (item as { type?: string }).type,
+    releaseDate: item.releaseDate,
   };
 }
 
@@ -123,9 +125,8 @@ for (const item of allItems) {
   }
 }
 
-// Sort lists and count once
+// Count items per category (sorting now happens client-side)
 for (const [category, list] of itemsByCategory.entries()) {
-  list.sort((a, b) => a.name.localeCompare(b.name));
   categoryCounts[category] = list.length;
 }
 
@@ -173,6 +174,41 @@ export function filterItems(
   }
 
   return result;
+}
+
+/**
+ * Sort items based on sort option
+ */
+export function sortItems(
+  items: BrowseItem[],
+  sortOption: SortOption = "name-asc"
+): BrowseItem[] {
+  const result = [...items]; // Don't mutate input
+
+  switch (sortOption) {
+    case "name-asc":
+      return result.sort((a, b) => a.name.localeCompare(b.name));
+
+    case "name-desc":
+      return result.sort((a, b) => b.name.localeCompare(a.name));
+
+    case "date-desc": // Newest first
+      return result.sort((a, b) => {
+        const dateA = a.releaseDate || "9999-12-31"; // No date = sort to end
+        const dateB = b.releaseDate || "9999-12-31";
+        return dateB.localeCompare(dateA); // Descending
+      });
+
+    case "date-asc": // Oldest first
+      return result.sort((a, b) => {
+        const dateA = a.releaseDate || "9999-12-31"; // No date = sort to end
+        const dateB = b.releaseDate || "9999-12-31";
+        return dateA.localeCompare(dateB); // Ascending
+      });
+
+    default:
+      return result.sort((a, b) => a.name.localeCompare(b.name));
+  }
 }
 
 /**

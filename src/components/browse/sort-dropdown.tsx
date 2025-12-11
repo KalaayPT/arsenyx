@@ -1,0 +1,42 @@
+"use client";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Icons } from "@/components/icons";
+import type { SortOption } from "@/lib/warframe/types";
+
+interface SortDropdownProps {
+  sortOption: SortOption;
+  onSortChange: (value: SortOption) => void;
+}
+
+const sortLabels: Record<SortOption, string> = {
+  "name-asc": "Name A-Z",
+  "name-desc": "Name Z-A",
+  "date-desc": "Newest First",
+  "date-asc": "Oldest First",
+};
+
+export function SortDropdown({ sortOption, onSortChange }: SortDropdownProps) {
+  return (
+    <div className="flex items-center gap-2 shrink-0">
+      <Icons.arrowUpDown className="h-4 w-4 text-muted-foreground hidden sm:block" />
+      <Select value={sortOption} onValueChange={onSortChange}>
+        <SelectTrigger className="w-[140px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end">
+          <SelectItem value="name-asc">{sortLabels["name-asc"]}</SelectItem>
+          <SelectItem value="name-desc">{sortLabels["name-desc"]}</SelectItem>
+          <SelectItem value="date-desc">{sortLabels["date-desc"]}</SelectItem>
+          <SelectItem value="date-asc">{sortLabels["date-asc"]}</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}

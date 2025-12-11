@@ -160,7 +160,11 @@ export interface BrowseItem {
   isPrime?: boolean;
   vaulted?: boolean;
   type?: string;
+  releaseDate?: string; // Format: "YYYY-MM-DD"
 }
+
+// Sort options for browse page
+export type SortOption = "name-asc" | "name-desc" | "date-desc" | "date-asc";
 
 // Filter options for browse page
 export interface BrowseFilters {
@@ -169,6 +173,7 @@ export interface BrowseFilters {
   masteryMax?: number;
   primeOnly?: boolean;
   hideVaulted?: boolean;
+  sort?: SortOption;
 }
 
 // =============================================================================

@@ -22,6 +22,7 @@ import {
   Shield,
   ChevronLeft,
   Filter,
+  ArrowUpDown,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -70,6 +71,7 @@ export const Icons = {
   shield: Shield,
   chevronLeft: ChevronLeft,
   filter: Filter,
+  arrowUpDown: ArrowUpDown,
 };
 
 // =============================================================================

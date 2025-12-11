@@ -6,7 +6,9 @@ import { ItemGrid } from "./item-grid";
 import { SearchBar } from "./search-bar";
 import { CategoryTabs } from "./category-tabs";
 import { FilterDropdown } from "./filter-dropdown";
-import type { BrowseItem, BrowseCategory } from "@/lib/warframe/types";
+import { SortDropdown } from "./sort-dropdown";
+import { sortItems } from "@/lib/warframe/items";
+import type { BrowseItem, BrowseCategory, SortOption } from "@/lib/warframe/types";
 
 interface BrowseContainerProps {
   initialItems: BrowseItem[];
@@ -39,10 +41,23 @@ export function BrowseContainer({
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [pendingSearch, setPendingSearch] = useState(initialQuery);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>(() => {
+    const param = searchParams.get("sort");
+    const validOptions: SortOption[] = [
+      "name-asc",
+      "name-desc",
+      "date-desc",
+      "date-asc",
+    ];
+    return validOptions.includes(param as SortOption)
+      ? (param as SortOption)
+      : "name-asc";
+  });
 
-  // Filter items client-side for instant feedback
-  const filteredItems = useMemo(() => {
-    return initialItems.filter((item) => {
+  // Filter and sort items client-side for instant feedback
+  const filteredAndSortedItems = useMemo(() => {
+    // First filter
+    let result = initialItems.filter((item) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
@@ -68,7 +83,10 @@ export function BrowseContainer({
 
       return true;
     });
-  }, [initialItems, searchQuery, masteryMax, primeOnly, hideVaulted]);
+
+    // Then sort
+    return sortItems(result, sortOption);
+  }, [initialItems, searchQuery, masteryMax, primeOnly, hideVaulted, sortOption]);
 
   // Update URL params (debounced, doesn't block UI)
   const syncToUrl = useCallback(
@@ -110,11 +128,20 @@ export function BrowseContainer({
     syncToUrl({ vaulted: newValue ? "hide" : null });
   }, [hideVaulted, syncToUrl]);
 
+  const handleSortChange = useCallback(
+    (value: SortOption) => {
+      setSortOption(value);
+      syncToUrl({ sort: value === "name-asc" ? null : value });
+    },
+    [syncToUrl]
+  );
+
   const handleClearFilters = useCallback(() => {
     setMasteryMax(30);
     setPrimeOnly(false);
     setHideVaulted(false);
-    syncToUrl({ mastery: null, prime: null, vaulted: null });
+    setSortOption("name-asc");
+    syncToUrl({ mastery: null, prime: null, vaulted: null, sort: null });
   }, [syncToUrl]);
 
   const handleSearchChange = useCallback((value: string) => {
@@ -152,16 +179,22 @@ export function BrowseContainer({
           className="flex-1"
           onSearchChange={handleSearchChange}
         />
-        <FilterDropdown
-          masteryMax={masteryMax}
-          primeOnly={primeOnly}
-          hideVaulted={hideVaulted}
-          activeFilterCount={activeFilterCount}
-          onMasteryChange={handleMasteryChange}
-          onPrimeToggle={handlePrimeToggle}
-          onVaultedToggle={handleVaultedToggle}
-          onClearFilters={handleClearFilters}
-        />
+        <div className="flex gap-3">
+          <SortDropdown
+            sortOption={sortOption}
+            onSortChange={handleSortChange}
+          />
+          <FilterDropdown
+            masteryMax={masteryMax}
+            primeOnly={primeOnly}
+            hideVaulted={hideVaulted}
+            activeFilterCount={activeFilterCount}
+            onMasteryChange={handleMasteryChange}
+            onPrimeToggle={handlePrimeToggle}
+            onVaultedToggle={handleVaultedToggle}
+            onClearFilters={handleClearFilters}
+          />
+        </div>
       </div>
 
       {/* Category Tabs */}
@@ -169,12 +202,13 @@ export function BrowseContainer({
 
       {/* Results info */}
       <div className="text-sm text-muted-foreground">
-        {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
+        {filteredAndSortedItems.length}{" "}
+        {filteredAndSortedItems.length === 1 ? "item" : "items"}
         {searchQuery && ` matching "${searchQuery}"`}
       </div>
 
       {/* Item Grid */}
-      <ItemGrid items={filteredItems} />
+      <ItemGrid items={filteredAndSortedItems} />
     </div>
   );
 }
