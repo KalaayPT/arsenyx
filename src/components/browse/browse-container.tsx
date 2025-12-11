@@ -57,7 +57,7 @@ export function BrowseContainer({
   // Filter and sort items client-side for instant feedback
   const filteredAndSortedItems = useMemo(() => {
     // First filter
-    let result = initialItems.filter((item) => {
+    const result = initialItems.filter((item) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();

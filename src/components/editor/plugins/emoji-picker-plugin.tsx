@@ -74,7 +74,6 @@ export function EmojiPickerPlugin() {
   const [editor] = useLexicalComposerContext()
   const [queryString, setQueryString] = useState<string | null>(null)
   const [emojis, setEmojis] = useState<Array<Emoji>>([])
-  const [isOpen, setIsOpen] = useState(false)
   useEffect(() => {
     import("../utils/emoji-list").then((file) => setEmojis(file.default))
   }, [])
@@ -83,11 +82,11 @@ export function EmojiPickerPlugin() {
     () =>
       emojis != null
         ? emojis.map(
-            ({ emoji, aliases, tags }) =>
-              new EmojiOption(aliases[0], emoji, {
-                keywords: [...aliases, ...tags],
-              })
-          )
+          ({ emoji, aliases, tags }) =>
+            new EmojiOption(aliases[0], emoji, {
+              keywords: [...aliases, ...tags],
+            })
+        )
         : [],
     [emojis]
   )
@@ -103,8 +102,8 @@ export function EmojiPickerPlugin() {
           ? new RegExp(queryString, "gi").exec(option.title) ||
             option.keywords != null
             ? option.keywords.some((keyword: string) =>
-                new RegExp(queryString, "gi").exec(keyword)
-              )
+              new RegExp(queryString, "gi").exec(keyword)
+            )
             : false
           : emojiOptions
       })
@@ -142,63 +141,57 @@ export function EmojiPickerPlugin() {
       onSelectOption={onSelectOption}
       triggerFn={checkForTriggerMatch}
       options={options}
-      onOpen={() => {
-        setIsOpen(true)
-      }}
-      onClose={() => {
-        setIsOpen(false)
-      }}
+
       menuRenderFn={(
         anchorElementRef,
         { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex }
       ) => {
         return anchorElementRef.current && options.length
           ? createPortal(
-              <div className="fixed z-10 w-[200px] rounded-md shadow-md">
-                <Command
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowUp") {
-                      e.preventDefault()
-                      setHighlightedIndex(
-                        selectedIndex !== null
-                          ? (selectedIndex - 1 + options.length) %
-                              options.length
-                          : options.length - 1
-                      )
-                    } else if (e.key === "ArrowDown") {
-                      e.preventDefault()
-                      setHighlightedIndex(
-                        selectedIndex !== null
-                          ? (selectedIndex + 1) % options.length
-                          : 0
-                      )
-                    }
-                  }}
-                >
-                  <CommandList>
-                    <CommandGroup>
-                      {options.map((option, index) => (
-                        <CommandItem
-                          key={option.key}
-                          value={option.title}
-                          onSelect={() => {
-                            selectOptionAndCleanUp(option)
-                          }}
-                          className={`flex items-center gap-2 ${
-                            selectedIndex === index
-                              ? "bg-accent"
-                              : "!bg-transparent"
+            <div className="fixed z-10 w-[200px] rounded-md shadow-md">
+              <Command
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault()
+                    setHighlightedIndex(
+                      selectedIndex !== null
+                        ? (selectedIndex - 1 + options.length) %
+                        options.length
+                        : options.length - 1
+                    )
+                  } else if (e.key === "ArrowDown") {
+                    e.preventDefault()
+                    setHighlightedIndex(
+                      selectedIndex !== null
+                        ? (selectedIndex + 1) % options.length
+                        : 0
+                    )
+                  }
+                }}
+              >
+                <CommandList>
+                  <CommandGroup>
+                    {options.map((option, index) => (
+                      <CommandItem
+                        key={option.key}
+                        value={option.title}
+                        onSelect={() => {
+                          selectOptionAndCleanUp(option)
+                        }}
+                        className={`flex items-center gap-2 ${selectedIndex === index
+                          ? "bg-accent"
+                          : "!bg-transparent"
                           }`}
-                        >
-                          {option.emoji} {option.title}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </div>,
-              anchorElementRef.current
-            )
+                      >
+                        {option.emoji} {option.title}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>,
+            anchorElementRef.current
+          )
           : null
       }}
     />

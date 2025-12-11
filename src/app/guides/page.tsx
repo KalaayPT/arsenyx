@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { GuidesContent } from "@/components/guides/guides-content";
-import { getGuides, getAllTags } from "@/lib/guides";
+import { getGuides } from "@/lib/guides";
 import { CURATED_RESOURCES } from "@/lib/guides/curated-resources";
 
 export const metadata: Metadata = {
@@ -17,7 +17,6 @@ export const revalidate = 3600;
 
 export default function GuidesPage() {
     const guides = getGuides();
-    const allTags = getAllTags();
 
     // Split guides: promoted guides go to Curated, rest to Community
     const curatedGuides = guides.filter((g) => g.isCurated);

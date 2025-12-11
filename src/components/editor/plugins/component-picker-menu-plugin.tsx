@@ -85,9 +85,8 @@ function ComponentPickerMenu({
                 onSelect={() => {
                   selectOptionAndCleanUp(option)
                 }}
-                className={`flex items-center gap-2 ${
-                  selectedIndex === index ? "bg-accent" : "!bg-transparent"
-                }`}
+                className={`flex items-center gap-2 ${selectedIndex === index ? "bg-accent" : "!bg-transparent"
+                  }`}
               >
                 {option.icon}
                 {option.title}
@@ -134,7 +133,7 @@ export function ComponentPickerMenuPlugin({
           option.keywords.some((keyword) => regex.test(keyword))
       ),
     ]
-  }, [editor, queryString, showModal])
+  }, [baseOptions, dynamicOptionsFn, queryString])
 
   const onSelectOption = useCallback(
     (
@@ -149,7 +148,7 @@ export function ComponentPickerMenuPlugin({
         closeMenu()
       })
     },
-    [editor]
+    [editor, showModal]
   )
 
   return (
@@ -166,14 +165,14 @@ export function ComponentPickerMenuPlugin({
         ) => {
           return anchorElementRef.current && options.length
             ? createPortal(
-                <ComponentPickerMenu
-                  options={options}
-                  selectedIndex={selectedIndex}
-                  selectOptionAndCleanUp={selectOptionAndCleanUp}
-                  setHighlightedIndex={setHighlightedIndex}
-                />,
-                anchorElementRef.current
-              )
+              <ComponentPickerMenu
+                options={options}
+                selectedIndex={selectedIndex}
+                selectOptionAndCleanUp={selectOptionAndCleanUp}
+                setHighlightedIndex={setHighlightedIndex}
+              />,
+              anchorElementRef.current
+            )
             : null
         }}
       />

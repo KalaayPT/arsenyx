@@ -56,8 +56,7 @@ function TweetComponent({
 }: TweetComponentProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
 
-  const previousTweetIDRef = useRef<string>("")
-  const [isTweetLoading, setIsTweetLoading] = useState(false)
+  const [isTweetLoading, setIsTweetLoading] = useState(true)
 
   const createTweet = useCallback(async () => {
     try {
@@ -78,27 +77,20 @@ function TweetComponent({
   }, [onError, onLoad, tweetID])
 
   useEffect(() => {
-    if (tweetID !== previousTweetIDRef.current) {
-      setIsTweetLoading(true)
-
-      if (isTwitterScriptLoading) {
-        const script = document.createElement("script")
-        script.src = WIDGET_SCRIPT_URL
-        script.async = true
-        document.body?.appendChild(script)
-        script.onload = createTweet
-        if (onError) {
-          script.onerror = onError as OnErrorEventHandler
-        }
-      } else {
-        createTweet()
+    if (isTwitterScriptLoading) {
+      const script = document.createElement("script")
+      script.src = WIDGET_SCRIPT_URL
+      script.async = true
+      document.body?.appendChild(script)
+      script.onload = createTweet
+      if (onError) {
+        script.onerror = onError as OnErrorEventHandler
       }
-
-      if (previousTweetIDRef) {
-        previousTweetIDRef.current = tweetID
-      }
+    } else {
+      // Defer creation to avoid sync setState in effect
+      setTimeout(() => createTweet(), 0)
     }
-  }, [createTweet, onError, tweetID])
+  }, [createTweet, onError])
 
   return (
     <BlockWithAlignableContents
@@ -196,6 +188,7 @@ export class TweetNode extends DecoratorBlockNode {
     }
     return (
       <TweetComponent
+        key={this.__id}
         className={className}
         format={this.__format}
         loadingComponent="Loading..."

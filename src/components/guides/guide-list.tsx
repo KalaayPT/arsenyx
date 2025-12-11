@@ -8,11 +8,10 @@ import type { GuideListItem } from "@/lib/guides";
 
 interface GuideListProps {
     initialGuides: GuideListItem[];
-    allTags: string[];
     newGuideButton?: ReactNode;
 }
 
-export function GuideList({ initialGuides, allTags, newGuideButton }: GuideListProps) {
+export function GuideList({ initialGuides, newGuideButton }: GuideListProps) {
     const [search, setSearch] = useState("");
 
     // Filter guides by search

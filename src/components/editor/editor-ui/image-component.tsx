@@ -1,7 +1,7 @@
 import * as React from "react"
+import NextImage from "next/image"
 import { JSX, Suspense, useCallback, useEffect, useRef, useState } from "react"
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin"
-import { useCollaborationContext } from "@lexical/react/LexicalCollaborationContext"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary"
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin"
@@ -83,11 +83,11 @@ function LazyImage({
 }): JSX.Element {
   useSuspenseImage(src)
   return (
-    <img
+    <NextImage
       className={className || undefined}
       src={src}
       alt={altText}
-      ref={imageRef}
+      ref={imageRef as React.Ref<HTMLImageElement>}
       style={{
         height,
         maxWidth,
@@ -95,18 +95,21 @@ function LazyImage({
       }}
       onError={onError}
       draggable="false"
+      width={typeof width === 'number' ? width : 500}
+      height={typeof height === 'number' ? height : 500}
     />
   )
 }
 
 function BrokenImage(): JSX.Element {
   return (
-    <img
-      src={""}
+    <NextImage
+      src="/images/placeholder.svg" // Changed to a placeholder image or similar
+      alt="Broken Image"
+      width={200}
+      height={200}
       style={{
-        height: 200,
         opacity: 0.2,
-        width: 200,
       }}
       draggable="false"
     />
@@ -141,7 +144,6 @@ export default function ImageComponent({
   const [isSelected, setSelected, clearSelection] =
     useLexicalNodeSelection(nodeKey)
   const [isResizing, setIsResizing] = useState<boolean>(false)
-  const { isCollabActive } = useCollaborationContext()
   const [editor] = useLexicalComposerContext()
   const [selection, setSelection] = useState<BaseSelection | null>(null)
   const activeEditorRef = useRef<LexicalEditor | null>(null)
@@ -375,11 +377,10 @@ export default function ImageComponent({
             <BrokenImage />
           ) : (
             <LazyImage
-              className={`max-w-full cursor-default ${
-                isFocused
-                  ? `${$isNodeSelection(selection) ? "draggable cursor-grab active:cursor-grabbing" : ""} focused ring-primary ring-2 ring-offset-2`
-                  : null
-              }`}
+              className={`max-w-full cursor-default ${isFocused
+                ? `${$isNodeSelection(selection) ? "draggable cursor-grab active:cursor-grabbing" : ""} focused ring-primary ring-2 ring-offset-2`
+                : null
+                }`}
               src={src}
               altText={altText}
               imageRef={imageRef}

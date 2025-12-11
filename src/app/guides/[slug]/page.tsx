@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Pencil, Share2, Copy } from "lucide-react";
@@ -30,7 +30,6 @@ export async function generateStaticParams() {
 // Generate metadata for SEO
 export async function generateMetadata(
     { params }: { params: Promise<{ slug: string }> },
-    parent: ResolvingMetadata
 ): Promise<Metadata> {
     const { slug } = await params;
     const guide = getGuideBySlug(slug);

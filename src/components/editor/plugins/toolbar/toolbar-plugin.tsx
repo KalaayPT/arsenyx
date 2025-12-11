@@ -19,7 +19,7 @@ export function ToolbarPlugin({
 
   const [modal, showModal] = useEditorModal()
 
-  const $updateToolbar = () => {}
+  const $updateToolbar = () => { }
 
   useEffect(() => {
     return activeEditor.registerCommand(
@@ -30,7 +30,7 @@ export function ToolbarPlugin({
       },
       COMMAND_PRIORITY_CRITICAL
     )
-  }, [editor])
+  }, [activeEditor])
 
   return (
     <ToolbarContext
