@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getSlotPolarity, calculateModDrain, getMatchState, type MatchState } from "@/lib/warframe/capacity";
 import { ModCard } from "@/components/mod-card";
-import type { ModSlot, Polarity, Mod } from "@/lib/warframe/types";
+import type { ModSlot, Polarity, Mod, PlacedMod } from "@/lib/warframe/types";
 import { Plus } from "lucide-react";
 import { PolarityIcon } from "@/components/icons";
 
@@ -34,6 +34,7 @@ interface ModGridProps {
   onChangeRank: (slotId: string, rank: number) => void;
   onApplyForma: (slotId: string, polarity: Polarity) => void;
   isWarframe: boolean;
+  draggedMod?: Mod | PlacedMod;
 }
 
 export function ModGrid({
@@ -46,6 +47,7 @@ export function ModGrid({
   onChangeRank,
   onApplyForma,
   isWarframe,
+  draggedMod,
 }: ModGridProps) {
   const [activeTab, setActiveTab] = useState<"mods" | "shards">("mods");
 
@@ -109,6 +111,7 @@ export function ModGrid({
                 setCount={
                   auraSlot.mod?.modSet ? setCounts[auraSlot.mod.modSet] : 0
                 }
+                draggedMod={draggedMod}
               />
             )}
             <ModSlotCard
@@ -123,6 +126,7 @@ export function ModGrid({
               setCount={
                 exilusSlot.mod?.modSet ? setCounts[exilusSlot.mod.modSet] : 0
               }
+              draggedMod={draggedMod}
             />
           </div>
 
@@ -139,6 +143,7 @@ export function ModGrid({
                 onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
+                draggedMod={draggedMod}
               />
             ))}
           </div>
@@ -156,6 +161,7 @@ export function ModGrid({
                 onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
+                draggedMod={draggedMod}
               />
             ))}
           </div>
@@ -194,6 +200,7 @@ interface ModSlotCardProps {
   className?: string;
   label?: string;
   setCount?: number;
+  draggedMod?: Mod | PlacedMod;
 }
 
 const ModSlotCard = memo(function ModSlotCard({
@@ -206,15 +213,41 @@ const ModSlotCard = memo(function ModSlotCard({
   className,
   label,
   setCount = 0,
+  draggedMod,
 }: ModSlotCardProps) {
   const [polarityOpen, setPolarityOpen] = useState(false);
   const hasMod = !!slot.mod;
   const polarity = getSlotPolarity(slot);
 
+  // Determine if this slot should be disabled for the current drag
+  const isDropDisabled = useMemo(() => {
+    if (!draggedMod) return false;
+
+    // Aura slot check
+    if (slot.type === "aura" && slot.id.startsWith("aura")) {
+      const isAura =
+        draggedMod.type?.toLowerCase().includes("aura") ||
+        draggedMod.compatName?.toLowerCase() === "aura";
+      return !isAura;
+    }
+
+    // Exilus slot check
+    if (slot.type === "exilus" && slot.id.startsWith("exilus")) {
+      return !draggedMod.isExilus;
+    }
+
+    // Normal slots accept everything (except maybe Aura?)
+    // Technically Aura mods can go in normal slots in game, but users usually don't want to.
+    // Logic in BuildContainer doesn't restrict Aura->Normal.
+    // If we want to be strict, we can add logic here, but keeping it permissive for normal slots is safer.
+    return false;
+  }, [draggedMod, slot.type, slot.id]);
+
   // Droppable for the slot
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: `slot-${slot.id}`,
     data: { slotId: slot.id, type: "slot" },
+    disabled: isDropDisabled,
   });
 
   // Draggable for the placed mod

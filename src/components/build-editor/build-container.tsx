@@ -160,6 +160,7 @@ function createInitialBuildState(
             levelStats: fullMod.levelStats,
             modSet: fullMod.modSet,
             modSetStats: fullMod.modSetStats,
+            isExilus: fullMod.isExilus,
           };
         }
       }
@@ -239,6 +240,7 @@ export function BuildContainer({
         levelStats: mod.levelStats,
         modSet: mod.modSet,
         modSetStats: mod.modSetStats,
+        isExilus: mod.isExilus,
       };
 
       setBuildState((prev) => {
@@ -357,6 +359,27 @@ export function BuildContainer({
     const overData = rawOverData as { type?: string; slotId?: string; mod?: PlacedMod } | undefined;
 
     if (!activeData || !overData) return;
+
+    // Validate slot restrictions
+    if (overData.type === "slot" && overData.slotId) {
+      // Find full mod data to ensure we have correct flags (isExilus etc) in case placed mod state is stale
+      const mod = activeData.mod;
+      const fullMod = compatibleMods.find((m) => m.uniqueName === mod.uniqueName) || mod;
+
+      // Aura slot restriction
+      if (overData.slotId.startsWith("aura")) {
+        const isAura =
+          fullMod.type?.toLowerCase().includes("aura") ||
+          fullMod.compatName?.toLowerCase() === "aura";
+        if (!isAura) return;
+      }
+
+      // Exilus slot restriction
+      if (overData.slotId.startsWith("exilus")) {
+        // Exilus slots can only accept Exilus mods
+        if (!fullMod.isExilus) return;
+      }
+    }
 
     // Case 1: Search Mod -> Slot
     if (activeData.type === "search-mod" && overData.type === "slot" && overData.slotId) {
@@ -769,6 +792,7 @@ export function BuildContainer({
                 onChangeRank={handleChangeRank}
                 onApplyForma={handleApplyForma}
                 isWarframe={isWarframeOrNecramech}
+                draggedMod={activeDragItem?.mod}
               />
             </div>
 

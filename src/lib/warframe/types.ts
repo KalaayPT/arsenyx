@@ -275,6 +275,7 @@ export interface PlacedMod {
   levelStats?: Array<{ stats: string[] }>;
   modSet?: string;
   modSetStats?: string[];
+  isExilus?: boolean;
 }
 
 export interface PlacedArcane {
