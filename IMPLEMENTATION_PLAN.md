@@ -144,10 +144,22 @@ model User {
   builds        Build[]
   votes         BuildVote[]
   favorites     BuildFavorite[]
+  guideVotes    GuideVote[]
+  guideFavorites GuideFavorite[]
   guides        Guide[]
   apiKeys       ApiKey[]
 
+  role          Role      @default(USER)
+
   @@map("users")
+}
+
+enum Role {
+  USER
+  VERIFIED
+  DEVELOPER
+  MODERATOR
+  ADMIN
 }
 
 model Account {
@@ -329,7 +341,9 @@ model Build {
 
   // Denormalized counts for performance
   voteCount    Int             @default(0)
-  favoriteCount Int            @default(0)
+  voteCount     Int             @default(0)
+  favoriteCount Int             @default(0)
+  viewCount     Int             @default(0)
 
   // Forking
   forkedFromId String?
@@ -503,8 +517,13 @@ model Guide {
   status        String       @default("draft")  // "draft" | "published"
   isCurated     Boolean      @default(false)    // Featured/official guides
 
+  isCurated     Boolean      @default(false)    // Featured/official guides
+
   // Computed
   readingTime   Int          @default(1)        // Minutes
+  viewCount     Int          @default(0)
+  voteCount     Int          @default(0)
+  favoriteCount Int          @default(0)
 
   // Timestamps
   createdAt     DateTime     @default(now())
@@ -513,6 +532,8 @@ model Guide {
 
   // Relations
   embeds        GuideEmbed[]
+  votes         GuideVote[]
+  favorites     GuideFavorite[]
 
   @@index([category])
   @@index([status])
@@ -538,6 +559,38 @@ model GuideEmbed {
 
   @@unique([guideId, buildId])
   @@map("guide_embeds")
+}
+
+model GuideVote {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  value     Int      @default(1)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, guideId])
+  @@map("guide_votes")
+}
+
+model GuideFavorite {
+  id        String   @id @default(cuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, guideId])
+  @@map("guide_favorites")
 }
 
 // =============================================================================
@@ -665,8 +718,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/auth/signin",
     verifyRequest: "/auth/verify",
     error: "/auth/error",
+  pages: {
+    signIn: "/auth/signin",
+    verifyRequest: "/auth/verify",
+    error: "/auth/error",
   },
 });
+
+/*
+  Role-Based Access Control (RBAC):
+  - ADMIN: Full access, can manage API keys and user roles.
+  - MODERATOR: Can moderate content (delete/ban) and has DEVELOPER access.
+  - DEVELOPER: Can manage API keys/access restricted APIs. No moderation powers.
+  - VERIFIED: Trusted builder. Can upload custom cover images for guides. Validated badge.
+  - USER: Standard access. Can create builds/guides but restricted from uploading custom images.
+*/
 ```
 
 ### 4.2 Auth Route Handler
