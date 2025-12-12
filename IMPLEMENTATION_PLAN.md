@@ -340,7 +340,6 @@ model Build {
   hasShards    Boolean         @default(false)
 
   // Denormalized counts for performance
-  voteCount    Int             @default(0)
   voteCount     Int             @default(0)
   favoriteCount Int             @default(0)
   viewCount     Int             @default(0)
