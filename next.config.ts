@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
         hostname: "wiki.warframe.com",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
     ],
   },
 };

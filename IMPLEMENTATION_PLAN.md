@@ -1952,15 +1952,15 @@ export async function POST(request: Request) {
 
 Error codes for reference:
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `UNAUTHORIZED` | 401 | Missing or invalid authentication |
-| `FORBIDDEN` | 403 | Authenticated but not allowed |
-| `NOT_FOUND` | 404 | Resource doesn't exist |
-| `VALIDATION_ERROR` | 400 | Request body validation failed |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `CONFLICT` | 409 | Resource already exists (e.g., duplicate username) |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| Code               | HTTP Status | Description                                        |
+| ------------------ | ----------- | -------------------------------------------------- |
+| `UNAUTHORIZED`     | 401         | Missing or invalid authentication                  |
+| `FORBIDDEN`        | 403         | Authenticated but not allowed                      |
+| `NOT_FOUND`        | 404         | Resource doesn't exist                             |
+| `VALIDATION_ERROR` | 400         | Request body validation failed                     |
+| `RATE_LIMITED`     | 429         | Too many requests                                  |
+| `CONFLICT`         | 409         | Resource already exists (e.g., duplicate username) |
+| `INTERNAL_ERROR`   | 500         | Unexpected server error                            |
 
 ---
 
@@ -2109,12 +2109,12 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 
 ### 12.3 Development vs Production
 
-| Variable       | Development                    | Production             |
-| -------------- | ------------------------------ | ---------------------- |
-| `DATABASE_URL` | Docker local                   | Neon connection string |
-| `NEXTAUTH_URL` | `http://localhost:3000`        | `https://arsenix.app`  |
-| `USE_DATABASE` | `false` initially, then `true` | `true`                 |
-| Preview envs   | Neon branch per PR (unique `DATABASE_URL`) | - |
+| Variable       | Development                                | Production             |
+| -------------- | ------------------------------------------ | ---------------------- |
+| `DATABASE_URL` | Docker local                               | Neon connection string |
+| `NEXTAUTH_URL` | `http://localhost:3000`                    | `https://arsenix.app`  |
+| `USE_DATABASE` | `false` initially, then `true`             | `true`                 |
+| Preview envs   | Neon branch per PR (unique `DATABASE_URL`) | -                      |
 
 ---
 
@@ -2122,15 +2122,15 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 
 ### Sprint 1: Foundation (Database + Auth)
 
-1. [ ] Set up Docker Compose for local Postgres
-2. [ ] Initialize Prisma with schema
-3. [ ] Run migrations, verify schema
-4. [ ] Write WFCD sync script
-5. [ ] Seed database with current data
-6. [ ] Add data access layer with feature flag
-7. [ ] Set up NextAuth with GitHub provider
-8. [ ] Create auth pages
-9. [ ] Add session provider and auth UI
+1. [x] Set up Docker Compose for local Postgres
+2. [x] Initialize Prisma with schema
+3. [x] Run migrations, verify schema
+4. [x] Write WFCD sync script
+5. [x] Seed database with current data
+6. [x] Add data access layer with feature flag
+7. [x] Set up NextAuth with GitHub provider
+8. [x] Create auth pages
+9. [x] Add session provider and auth UI
 
 ### Sprint 2: Build Persistence
 
@@ -2263,12 +2263,12 @@ bun add -D prisma-test-utils  # Or use Prisma's built-in test utilities
 
 ### C.2 Test Categories
 
-| Category | Tool | Purpose |
-|----------|------|---------|
-| Unit tests | Vitest | Pure functions, utilities, data transformations |
-| Integration tests | Vitest + Prisma | Database operations, server actions |
-| Component tests | Vitest + Testing Library | React components in isolation |
-| E2E tests | Playwright | Full user flows |
+| Category          | Tool                     | Purpose                                         |
+| ----------------- | ------------------------ | ----------------------------------------------- |
+| Unit tests        | Vitest                   | Pure functions, utilities, data transformations |
+| Integration tests | Vitest + Prisma          | Database operations, server actions             |
+| Component tests   | Vitest + Testing Library | React components in isolation                   |
+| E2E tests         | Playwright               | Full user flows                                 |
 
 ### C.3 What to Test
 
@@ -2452,13 +2452,13 @@ jobs:
 
 ### C.6 Test Coverage Goals
 
-| Area | Target | Notes |
-|------|--------|-------|
-| Utility functions | 90%+ | Pure functions, easy to test |
-| DB operations | 80%+ | Focus on edge cases, auth checks |
-| API routes | 70%+ | Test error handling, validation |
-| Components | 50%+ | Focus on interactive components |
-| E2E | Critical paths | Auth, build CRUD, voting |
+| Area              | Target         | Notes                            |
+| ----------------- | -------------- | -------------------------------- |
+| Utility functions | 90%+           | Pure functions, easy to test     |
+| DB operations     | 80%+           | Focus on edge cases, auth checks |
+| API routes        | 70%+           | Test error handling, validation  |
+| Components        | 50%+           | Focus on interactive components  |
+| E2E               | Critical paths | Auth, build CRUD, voting         |
 
 Don't aim for 100% coverage - focus on:
 1. Business logic (capacity calculations, sync logic)

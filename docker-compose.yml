@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: arsenix-db
+    environment:
+      POSTGRES_USER: arsenix
+      POSTGRES_PASSWORD: arsenix_dev
+      POSTGRES_DB: arsenix
+    ports:
+      - "5432:5432"
+    volumes:
+      - arsenix_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arsenix -d arsenix"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  arsenix_postgres_data:

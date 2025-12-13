@@ -9,4 +9,7 @@ export * from "./images";
 export * from "./slugs";
 
 // Server-only exports should be imported directly:
-// import { getItemsByCategory, ... } from "@/lib/warframe/items";
+// - Static JSON (default): import { getItemsByCategory, ... } from "@/lib/warframe/items";
+// - Unified API with feature flag: import { getItemsByCategory, ... } from "@/lib/warframe/data";
+//
+// Set USE_DATABASE=true in .env to use database queries instead of static JSON

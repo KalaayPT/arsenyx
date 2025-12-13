@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserMenu } from "@/components/auth";
 import { SITE_CONFIG, NAV_ITEMS, ROUTES } from "@/lib/constants";
 
 export function Header() {
@@ -41,10 +42,7 @@ export function Header() {
             <span className="sr-only">Notifications</span>
           </Button>
           <ThemeToggle />
-          <Button variant="ghost" size="icon">
-            <Icons.user className="h-4 w-4" />
-            <span className="sr-only">Profile</span>
-          </Button>
+          <UserMenu />
         </div>
       </div>
     </header>
