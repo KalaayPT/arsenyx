@@ -680,7 +680,7 @@ function ExpandedModCard({
           />
         </div>
         {/* Text Content */}
-        <div className="relative z-20 flex flex-col items-center px-2 pt-3 pb-2">
+        <div className="relative z-20 flex flex-col items-center px-2 pt-1.5 pb-2">
           {/* Mod Name */}
           <span
             className="text-[14px] font-normal text-center leading-tight"
@@ -751,7 +751,7 @@ function ExpandedModCard({
             </div>
           )}
           {/* Lower Tab with Compatibility Badge */}
-          <div className="relative mt-4 w-[80%] h-[32px]">
+          <div className="relative mt-1 w-[80%] h-[22px]">
             <Image
               src={getModAssetUrl(rarity, "LowerTab")}
               alt=""
