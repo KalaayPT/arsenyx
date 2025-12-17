@@ -2137,7 +2137,7 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 1. [x] Create build CRUD server actions
 2. [x] Update BuildContainer to persist to DB
 3. [x] Add localStorage fallback for guests
-4. [ ] Implement build visibility (public/private/unlisted) - API ready, needs UI selector
+4. [x] Implement build visibility (public/private/unlisted) - API ready, needs UI selector
 5. [x] Add slug-based build URLs
 6. [x] Create build browse/list pages
 7. [ ] Add localStorage migration flow on sign-in
