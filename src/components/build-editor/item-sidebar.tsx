@@ -94,7 +94,7 @@ export function ItemSidebar({
                 key={i}
                 className={cn(
                   "w-10 h-10 rounded bg-muted border overflow-hidden relative transition-colors",
-                  displayAbility.isHelminth ? "border-destructive ring-1 ring-destructive" : "border-border",
+                  displayAbility.isHelminth ? "border-destructive" : "border-border",
                   !readOnly && "hover:border-primary hover:cursor-pointer"
                 )}
                 title={
