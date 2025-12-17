@@ -308,7 +308,7 @@ export function getAllArcanes(): Arcane[] {
  * Get arcanes for a specific slot type (Warframe, Operator, etc.)
  */
 export function getArcanesForSlot(
-  slotType: "warframe" | "operator" | "primary" | "secondary" | "melee"
+  slotType: "warframe" | "operator" | "primary" | "secondary" | "melee" | "weapon"
 ): Arcane[] {
   const allArcanesData = getAllArcanes();
 
@@ -332,6 +332,17 @@ export function getArcanesForSlot(
       case "melee":
         // Melee arcanes include Zaw arcanes (Exodia) and new melee arcanes (Melee Duplicate, etc.)
         return type.includes("melee") || type.includes("exodia");
+      case "weapon":
+        // All weapon arcanes (primary, secondary, melee)
+        return (
+          type.includes("primary") ||
+          type.includes("residua") ||
+          type.includes("fractal") ||
+          type.includes("secondary") ||
+          type.includes("pax") ||
+          type.includes("melee") ||
+          type.includes("exodia")
+        );
       default:
         return false;
     }

@@ -66,7 +66,7 @@ export interface BuildWithUser {
 export interface GetBuildsOptions {
     page?: number;
     limit?: number;
-    sortBy?: "newest" | "votes" | "views" | "updated";
+    sortBy?: "newest" | "votes" | "views" | "updated" | "popular";
     category?: string;
 }
 
@@ -178,6 +178,7 @@ export async function createBuild(
     return {
         ...build,
         buildData: build.buildData as unknown as BuildState,
+        buildGuide: build.buildGuide as BuildWithUser["buildGuide"],
     };
 }
 
@@ -235,6 +236,7 @@ export async function getBuildBySlug(
     return {
         ...build,
         buildData: build.buildData as unknown as BuildState,
+        buildGuide: build.buildGuide as BuildWithUser["buildGuide"],
     };
 }
 
@@ -286,6 +288,7 @@ export async function getBuildById(
     return {
         ...build,
         buildData: build.buildData as unknown as BuildState,
+        buildGuide: build.buildGuide as BuildWithUser["buildGuide"],
     };
 }
 
@@ -354,6 +357,7 @@ export async function getUserBuilds(
         builds: builds.map((b) => ({
             ...b,
             buildData: b.buildData as unknown as BuildState,
+            buildGuide: b.buildGuide as BuildWithUser["buildGuide"],
         })),
         total,
     };
@@ -426,6 +430,7 @@ export async function getPublicBuildsForItem(
         builds: builds.map((b) => ({
             ...b,
             buildData: b.buildData as unknown as BuildState,
+            buildGuide: b.buildGuide as BuildWithUser["buildGuide"],
         })),
         total,
     };
@@ -488,6 +493,7 @@ export async function getPublicBuilds(
         builds: builds.map((b) => ({
             ...b,
             buildData: b.buildData as unknown as BuildState,
+            buildGuide: b.buildGuide as BuildWithUser["buildGuide"],
         })),
         total,
     };
@@ -580,6 +586,7 @@ export async function updateBuild(
     return {
         ...build,
         buildData: build.buildData as unknown as BuildState,
+        buildGuide: build.buildGuide as BuildWithUser["buildGuide"],
     };
 }
 
@@ -654,9 +661,10 @@ function canViewBuild(
  * Get Prisma orderBy clause from sort option
  */
 function getOrderBy(
-    sortBy: "newest" | "votes" | "views" | "updated"
+    sortBy: "newest" | "votes" | "views" | "updated" | "popular"
 ): Prisma.BuildOrderByWithRelationInput {
     switch (sortBy) {
+        case "popular":
         case "votes":
             return { voteCount: "desc" };
         case "views":

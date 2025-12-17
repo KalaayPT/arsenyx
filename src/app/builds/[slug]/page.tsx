@@ -195,7 +195,7 @@ export default async function BuildPage({ params }: BuildPageProps) {
                 {/* Build Guide */}
                 <BuildGuideSection
                     buildId={build.id}
-                    initialContent={build.buildGuide?.content}
+                    initialContent={build.buildGuide?.content ?? null}
                     updatedAt={build.buildGuide?.updatedAt}
                     isOwner={isOwner}
                 />

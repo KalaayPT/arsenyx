@@ -47,7 +47,7 @@ export const getItemByUniqueNameFromDb = unstable_cache(
     if (!item) return null;
 
     // Return the full WFCD data stored in the data JSON field
-    return item.data as BrowseableItem;
+    return item.data as unknown as BrowseableItem;
   },
   ["item-by-unique-name"],
   { revalidate: 3600, tags: ["items"] }
@@ -68,7 +68,7 @@ export async function getItemBySlugFromDb(
 
   for (const item of items) {
     if (slugify(item.name) === slug) {
-      return item.data as BrowseableItem;
+      return item.data as unknown as BrowseableItem;
     }
   }
 

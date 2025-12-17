@@ -632,19 +632,6 @@ export function BuildContainer({
     }
   }, [item.uniqueName, item.name, item.imageName, category, importedBuild]);
 
-  // Load guide data from localStorage on mount
-  useEffect(() => {
-    const guideKey = `arsenix_build_guide_${item.uniqueName}`;
-    try {
-      const savedGuide = localStorage.getItem(guideKey);
-      if (savedGuide) {
-        setGuideData(savedGuide);
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }, [item.uniqueName]);
-
   // Toggle reactor/catalyst
   const handleToggleReactor = useCallback(() => {
     setBuildState((prev) => ({

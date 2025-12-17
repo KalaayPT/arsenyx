@@ -98,7 +98,7 @@ export function ItemSidebar({
                   !readOnly && "hover:border-primary hover:cursor-pointer"
                 )}
                 title={
-                  displayAbility.isHelminth
+                  displayAbility.isHelminth && "source" in displayAbility
                     ? `${displayAbility.name} (Subsumed from ${displayAbility.source})`
                     : originalAbility.name
                 }

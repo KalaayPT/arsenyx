@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
+import { SerializedEditorState } from "lexical";
 import { GuideReader } from "@/components/guides/guide-reader";
 import { GuideEditorDialog } from "@/components/build-editor/guide-editor-dialog";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export function BuildGuideSection({
                     {content ? (
                         <GuideReader
                             key={lastUpdated?.toISOString()}
-                            content={content}
+                            content={content as unknown as SerializedEditorState}
                         />
                     ) : (
                         <div className="text-center py-8 text-muted-foreground">
