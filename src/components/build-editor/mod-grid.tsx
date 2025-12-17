@@ -181,7 +181,7 @@ export function ModGrid({
 
           {/* Row 4: Arcanes */}
           {isWarframe && (
-            <div className="flex gap-4 w-full justify-center mt-2">
+            <div className="flex gap-6 w-full justify-center mt-2">
               <ArcaneSlotCard
                 arcane={arcaneSlots[0]}
                 slotIndex={0}
@@ -189,7 +189,7 @@ export function ModGrid({
                 onSelect={() => onSelectSlot("arcane-0")}
                 onRemove={() => onRemoveArcane?.(0)}
                 onChangeRank={(rank) => onChangeArcaneRank?.(0, rank)}
-                className="w-[120px] h-[140px]"
+                className="w-[140px] h-[100px]"
                 draggedArcane={draggedArcane}
                 fullArcaneData={arcaneSlots[0] ? arcaneDataMap?.get(arcaneSlots[0].uniqueName) : undefined}
               />
@@ -200,7 +200,7 @@ export function ModGrid({
                 onSelect={() => onSelectSlot("arcane-1")}
                 onRemove={() => onRemoveArcane?.(1)}
                 onChangeRank={(rank) => onChangeArcaneRank?.(1, rank)}
-                className="w-[120px] h-[140px]"
+                className="w-[140px] h-[100px]"
                 draggedArcane={draggedArcane}
                 fullArcaneData={arcaneSlots[1] ? arcaneDataMap?.get(arcaneSlots[1].uniqueName) : undefined}
               />

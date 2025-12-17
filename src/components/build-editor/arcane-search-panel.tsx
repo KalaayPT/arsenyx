@@ -242,17 +242,17 @@ export function ArcaneSearchPanel({
       {/* Arcane Grid - Horizontal scrolling with 2 rows */}
       <div
         ref={gridRef}
-        className="grid gap-3 overflow-x-auto overflow-y-hidden pt-4 pb-12 px-2 max-w-full"
+        className="grid gap-3 overflow-x-auto overflow-y-hidden pt-2 pb-8 px-2 max-w-full"
         style={{
           gridTemplateRows: "repeat(2, min-content)",
           gridAutoFlow: "column",
-          gridAutoColumns: "130px",
+          gridAutoColumns: "110px",
         }}
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
         {filteredArcanes.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-muted-foreground text-sm w-[130px]">
+          <div className="flex items-center justify-center h-24 text-muted-foreground text-sm w-[110px]">
             No arcanes found
           </div>
         ) : (

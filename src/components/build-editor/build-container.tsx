@@ -19,7 +19,7 @@ import { ModGrid } from "./mod-grid";
 import { ModSearchGrid } from "./mod-search-grid";
 import { ArcaneSearchPanel } from "./arcane-search-panel";
 import { CompactModCard, type ModRarity } from "@/components/mod-card";
-import { CompactArcaneCard, type ArcaneRarity } from "@/components/arcane-card";
+import { ArcaneDragGhost } from "@/components/arcane-card";
 import { useBuildKeyboard } from "./use-build-keyboard";
 import {
   getCapacityStatus,
@@ -987,23 +987,11 @@ export function BuildContainer({
           </div>
         ) : activeDragItem && activeDragItem.type === "search-arcane" ? (
           <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
-            <CompactArcaneCard
-              arcane={activeDragItem.arcane}
-              rarity={(activeDragItem.arcane.rarity || "Common") as ArcaneRarity}
-              rank={activeDragItem.rank}
-              isMaxRank={activeDragItem.rank >= 5}
-              disableAnimation
-            />
+            <ArcaneDragGhost arcane={activeDragItem.arcane} />
           </div>
         ) : activeDragItem && activeDragItem.type === "placed-arcane" ? (
           <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
-            <CompactArcaneCard
-              arcane={arcaneDataMap.get(activeDragItem.arcane.uniqueName) ?? activeDragItem.arcane as unknown as Arcane}
-              rarity={(activeDragItem.arcane.rarity || "Common") as ArcaneRarity}
-              rank={activeDragItem.arcane.rank}
-              isMaxRank={activeDragItem.arcane.rank >= 5}
-              disableAnimation
-            />
+            <ArcaneDragGhost arcane={activeDragItem.arcane} />
           </div>
         ) : null}
       </DragOverlay>
