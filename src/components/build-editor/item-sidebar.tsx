@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe/images";
-import type { BuildState } from "@/lib/warframe/types";
+import type { BuildState, HelminthAbility } from "@/lib/warframe/types";
 import type { CapacityStatus } from "@/lib/warframe/capacity";
+import { HelminthAbilityDialog } from "./helminth-ability-dialog";
 
 interface ItemStats {
   health?: number;
@@ -25,6 +27,8 @@ interface ItemSidebarProps {
   onClearBuild: () => void;
   showCopied: boolean;
   itemStats?: ItemStats;
+  readOnly?: boolean;
+  onHelminthAbilityChange?: (slotIndex: number, ability: HelminthAbility | null) => void;
 }
 
 export function ItemSidebar({
@@ -32,7 +36,13 @@ export function ItemSidebar({
   capacityStatus,
   onToggleReactor,
   itemStats,
+  readOnly = false,
+  onHelminthAbilityChange,
 }: ItemSidebarProps) {
+  // Helminth Selection State
+  const [selectedAbilityIndex, setSelectedAbilityIndex] = useState<number | null>(null);
+  const [isHelminthDialogOpen, setIsHelminthDialogOpen] = useState(false);
+
   const isWarframeOrNecramech =
     buildState.itemCategory === "warframes" ||
     buildState.itemCategory === "necramechs";
@@ -44,33 +54,86 @@ export function ItemSidebar({
   // Get abilities from item stats
   const abilities = itemStats?.abilities ?? [];
 
+  const handleAbilityClick = (index: number) => {
+    if (readOnly) return;
+    setSelectedAbilityIndex(index);
+    setIsHelminthDialogOpen(true);
+  };
+
+  const handleHelminthSelect = (ability: HelminthAbility | null) => {
+    if (selectedAbilityIndex !== null && onHelminthAbilityChange) {
+      onHelminthAbilityChange(selectedAbilityIndex, ability);
+    }
+    setIsHelminthDialogOpen(false);
+  };
+
+  // Helper to get ability to display (replaced or original)
+  const getDisplayAbility = (index: number, originalAbility: any) => {
+    if (
+      buildState.helminthAbility &&
+      buildState.helminthAbility.slotIndex === index
+    ) {
+      return {
+        ...buildState.helminthAbility.ability,
+        isHelminth: true,
+      };
+    }
+    return { ...originalAbility, isHelminth: false };
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Abilities */}
       {isWarframeOrNecramech && abilities.length > 0 && (
-        <div className="p-3 flex gap-3">
-          {abilities.slice(0, 4).map((ability, i) => (
-            <div
-              key={i}
-              className="w-8 h-8 rounded bg-muted border overflow-hidden relative"
-              title={ability.name}
-            >
-              {ability.imageName ? (
-                <Image
-                  src={getImageUrl(ability.imageName)}
-                  alt={ability.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                  {i + 1}
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="p-3 flex justify-around">
+          {abilities.slice(0, 4).map((originalAbility, i) => {
+            const displayAbility = getDisplayAbility(i, originalAbility);
+
+            return (
+              <button
+                key={i}
+                className={cn(
+                  "w-10 h-10 rounded bg-muted border overflow-hidden relative transition-colors",
+                  displayAbility.isHelminth ? "border-destructive ring-1 ring-destructive" : "border-border",
+                  !readOnly && "hover:border-primary hover:cursor-pointer"
+                )}
+                title={
+                  displayAbility.isHelminth
+                    ? `${displayAbility.name} (Subsumed from ${displayAbility.source})`
+                    : originalAbility.name
+                }
+                onClick={() => handleAbilityClick(i)}
+                disabled={readOnly}
+              >
+                {displayAbility.imageName ? (
+                  <Image
+                    src={getImageUrl(displayAbility.imageName)}
+                    alt={displayAbility.name}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                    {i + 1}
+                  </div>
+                )}
+
+              </button>
+            );
+          })}
         </div>
       )}
+
+      <HelminthAbilityDialog
+        open={isHelminthDialogOpen}
+        onOpenChange={setIsHelminthDialogOpen}
+        onSelect={handleHelminthSelect}
+        currentAbilityName={
+          selectedAbilityIndex !== null
+            ? getDisplayAbility(selectedAbilityIndex, abilities[selectedAbilityIndex]).name
+            : undefined
+        }
+      />
 
       <Separator />
 
@@ -78,11 +141,18 @@ export function ItemSidebar({
       <div className="p-3 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Reactor</span>
-          <Switch
-            checked={buildState.hasReactor}
-            onCheckedChange={onToggleReactor}
-            className="scale-75 origin-right"
-          />
+          {!readOnly && (
+            <Switch
+              checked={buildState.hasReactor}
+              onCheckedChange={onToggleReactor}
+              className="scale-75 origin-right"
+            />
+          )}
+          {readOnly && (
+            <span className="text-sm font-medium">
+              {buildState.hasReactor ? "Yes" : "No"}
+            </span>
+          )}
         </div>
 
         <div className="space-y-1">

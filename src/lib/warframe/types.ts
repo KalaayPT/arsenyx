@@ -313,6 +313,20 @@ export interface BuildState {
 
   // Forma tracking (computed from slot polarity changes)
   formaCount: number;
+
+  // Helminth ability replacement (only for warframes)
+  helminthAbility?: {
+    slotIndex: number; // 0-3, which ability slot was replaced
+    ability: HelminthAbility;
+  };
+}
+
+export interface HelminthAbility {
+  uniqueName: string;
+  name: string;
+  imageName?: string;
+  source: string; // "Helminth" or source Warframe name
+  description?: string;
 }
 
 // Mod compatibility categories for filtering

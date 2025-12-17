@@ -64,6 +64,8 @@ interface ModGridProps {
   draggedArcane?: Arcane | PlacedArcane;
   /** Full arcane data for hydrating placed arcanes (for levelStats display) */
   arcaneDataMap?: Map<string, Arcane>;
+  /** Read-only mode - disables all interactions */
+  readOnly?: boolean;
 }
 
 export function ModGrid({
@@ -82,6 +84,7 @@ export function ModGrid({
   onChangeArcaneRank,
   draggedArcane,
   arcaneDataMap,
+  readOnly = false,
 }: ModGridProps) {
   const [activeTab, setActiveTab] = useState<"mods" | "shards">("mods");
 
@@ -146,6 +149,7 @@ export function ModGrid({
                   auraSlot.mod?.modSet ? setCounts[auraSlot.mod.modSet] : 0
                 }
                 draggedMod={draggedMod}
+                readOnly={readOnly}
               />
             )}
             <ModSlotCard
@@ -161,6 +165,7 @@ export function ModGrid({
                 exilusSlot.mod?.modSet ? setCounts[exilusSlot.mod.modSet] : 0
               }
               draggedMod={draggedMod}
+              readOnly={readOnly}
             />
           </div>
 
@@ -178,6 +183,7 @@ export function ModGrid({
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
                 draggedMod={draggedMod}
+                readOnly={readOnly}
               />
             ))}
           </div>
@@ -196,6 +202,7 @@ export function ModGrid({
                 className="w-[184px] h-[100px]"
                 setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
                 draggedMod={draggedMod}
+                readOnly={readOnly}
               />
             ))}
           </div>
@@ -217,6 +224,7 @@ export function ModGrid({
                     ? arcaneDataMap?.get(arcaneSlots[0].uniqueName)
                     : undefined
                 }
+                readOnly={readOnly}
               />
               <ArcaneSlotCard
                 arcane={arcaneSlots[1]}
@@ -232,6 +240,7 @@ export function ModGrid({
                     ? arcaneDataMap?.get(arcaneSlots[1].uniqueName)
                     : undefined
                 }
+                readOnly={readOnly}
               />
             </div>
           )}
@@ -261,6 +270,7 @@ interface ModSlotCardProps {
   label?: string;
   setCount?: number;
   draggedMod?: Mod | PlacedMod;
+  readOnly?: boolean;
 }
 
 const ModSlotCard = memo(function ModSlotCard({
@@ -274,6 +284,7 @@ const ModSlotCard = memo(function ModSlotCard({
   label,
   setCount = 0,
   draggedMod,
+  readOnly = false,
 }: ModSlotCardProps) {
   const [polarityOpen, setPolarityOpen] = useState(false);
   const hasMod = !!slot.mod;
@@ -303,14 +314,14 @@ const ModSlotCard = memo(function ModSlotCard({
     return false;
   }, [draggedMod, slot.type, slot.id]);
 
-  // Droppable for the slot
+  // Droppable for the slot (disabled in read-only mode)
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: `slot-${slot.id}`,
     data: { slotId: slot.id, type: "slot" },
-    disabled: isDropDisabled,
+    disabled: isDropDisabled || readOnly,
   });
 
-  // Draggable for the placed mod
+  // Draggable for the placed mod (disabled in read-only mode)
   const {
     attributes,
     listeners,
@@ -320,7 +331,7 @@ const ModSlotCard = memo(function ModSlotCard({
   } = useDraggable({
     id: `placed-${slot.id}`,
     data: { slotId: slot.id, mod: slot.mod, type: "placed-mod" },
-    disabled: !hasMod,
+    disabled: !hasMod || readOnly,
   });
 
   const style = transform
@@ -407,7 +418,7 @@ const ModSlotCard = memo(function ModSlotCard({
   // When a mod is present, render with polarity popover
   if (hasMod && modForCard) {
     return (
-      <Popover open={polarityOpen} onOpenChange={setPolarityOpen}>
+      <Popover open={readOnly ? false : polarityOpen} onOpenChange={readOnly ? undefined : setPolarityOpen}>
         <PopoverTrigger asChild>
           <div
             ref={setDroppableRef}
@@ -421,11 +432,12 @@ const ModSlotCard = memo(function ModSlotCard({
           >
             <div
               ref={setDraggableRef}
-              {...listeners}
-              {...attributes}
+              {...(readOnly ? {} : listeners)}
+              {...(readOnly ? {} : attributes)}
               style={style}
-              className="cursor-grab active:cursor-grabbing"
+              className={readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
               onClick={(e) => {
+                if (readOnly) return;
                 if (e.shiftKey) {
                   setPolarityOpen(true);
                 } else {
@@ -434,13 +446,14 @@ const ModSlotCard = memo(function ModSlotCard({
               }}
               onContextMenu={(e: React.MouseEvent) => {
                 e.preventDefault();
+                if (readOnly) return;
                 onRemove();
               }}
             >
               <ModCard
                 mod={modForCard}
                 rank={slot.mod!.rank}
-                onRankChange={onChangeRank}
+                onRankChange={readOnly ? undefined : onChangeRank}
                 setCount={setCount}
                 disableHover={isDragging || polarityOpen}
                 drainOverride={drain}
@@ -449,59 +462,72 @@ const ModSlotCard = memo(function ModSlotCard({
             </div>
           </div>
         </PopoverTrigger>
-        {polaritySelectorContent}
+        {!readOnly && polaritySelectorContent}
       </Popover>
     );
   }
 
-  // Empty slot with polarity selector
+  // Empty slot content (shared between tooltip and non-tooltip versions)
+  const emptySlotContent = (
+    <div
+      ref={setDroppableRef}
+      className={cn(
+        "relative flex items-center justify-center transition-all rounded-lg overflow-visible group",
+        readOnly ? "cursor-default" : "cursor-pointer",
+        "bg-card border border-dashed border-border/60",
+        !readOnly && isActive
+          ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+          : !readOnly && "hover:ring-1 hover:ring-primary/50",
+        isOver &&
+        "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+        className
+      )}
+      style={{ isolation: "isolate" }}
+      onClick={(e) => {
+        if (readOnly) return;
+        if (e.shiftKey) {
+          setPolarityOpen(true);
+        } else {
+          onSelect();
+        }
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (readOnly) return;
+        setPolarityOpen(true);
+      }}
+    >
+      {/* Polarity Icon (Background) */}
+      {polarity && (
+        <div className="absolute right-2 top-2 opacity-30 pointer-events-none">
+          <PolarityIcon polarity={polarity} size="sm" />
+        </div>
+      )}
+
+      {/* Label (Aura/Exilus) */}
+      {label && (
+        <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
+          {label}
+        </span>
+      )}
+
+      {!readOnly && <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />}
+    </div>
+  );
+
+  // In read-only mode, just render the slot without tooltip/popover
+  if (readOnly) {
+    return emptySlotContent;
+  }
+
+  // Empty slot with polarity selector and tooltip
   return (
     <Popover open={polarityOpen} onOpenChange={setPolarityOpen}>
       <TooltipProvider>
         <Tooltip>
           <PopoverTrigger asChild>
             <TooltipTrigger asChild>
-              <div
-                ref={setDroppableRef}
-                className={cn(
-                  "relative flex items-center justify-center cursor-pointer transition-all rounded-lg overflow-visible group",
-                  "bg-card border border-dashed border-border/60",
-                  isActive
-                    ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                    : "hover:ring-1 hover:ring-primary/50",
-                  isOver &&
-                  "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
-                  className
-                )}
-                style={{ isolation: "isolate" }}
-                onClick={(e) => {
-                  if (e.shiftKey) {
-                    setPolarityOpen(true);
-                  } else {
-                    onSelect();
-                  }
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  setPolarityOpen(true);
-                }}
-              >
-                {/* Polarity Icon (Background) */}
-                {polarity && (
-                  <div className="absolute right-2 top-2 opacity-30 pointer-events-none">
-                    <PolarityIcon polarity={polarity} size="sm" />
-                  </div>
-                )}
-
-                {/* Label (Aura/Exilus) */}
-                {label && (
-                  <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider">
-                    {label}
-                  </span>
-                )}
-
-                <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
-              </div>
+              {emptySlotContent}
             </TooltipTrigger>
           </PopoverTrigger>
           <TooltipContent side="bottom">

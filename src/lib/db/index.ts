@@ -7,7 +7,7 @@
  * Set USE_DATABASE=true in environment to use database
  */
 
-export { prisma } from "@/lib/db";
+export { prisma } from "../db";
 
 // Re-export database query functions
 export {
@@ -27,6 +27,26 @@ export {
   getArcanesForSlotFromDb,
   searchModsFromDb,
 } from "./mods";
+
+export {
+  createBuild,
+  getBuildBySlug,
+  getBuildById,
+  updateBuild,
+  deleteBuild,
+  getUserBuilds,
+  getPublicBuildsForItem,
+  getPublicBuilds,
+  incrementBuildViewCount,
+  generateSlug,
+} from "./builds";
+
+export type {
+  CreateBuildInput,
+  UpdateBuildInput,
+  BuildWithUser,
+  GetBuildsOptions,
+} from "./builds";
 
 /**
  * Check if database mode is enabled

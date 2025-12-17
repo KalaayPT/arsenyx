@@ -2134,12 +2134,12 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 
 ### Sprint 2: Build Persistence
 
-1. [ ] Create build CRUD server actions
-2. [ ] Update BuildContainer to persist to DB
-3. [ ] Add localStorage fallback for guests
-4. [ ] Implement build visibility (public/private/unlisted)
-5. [ ] Add slug-based build URLs
-6. [ ] Create build browse/list pages
+1. [x] Create build CRUD server actions
+2. [x] Update BuildContainer to persist to DB
+3. [x] Add localStorage fallback for guests
+4. [ ] Implement build visibility (public/private/unlisted) - API ready, needs UI selector
+5. [x] Add slug-based build URLs
+6. [x] Create build browse/list pages
 7. [ ] Add localStorage migration flow on sign-in
 
 ### Sprint 3: Social Features

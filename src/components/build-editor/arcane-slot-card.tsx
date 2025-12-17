@@ -25,6 +25,8 @@ interface ArcaneSlotCardProps {
   draggedArcane?: Arcane | PlacedArcane;
   /** Full arcane data for display (needed for levelStats) */
   fullArcaneData?: Arcane;
+  /** Read-only mode - disables all interactions */
+  readOnly?: boolean;
 }
 
 export const ArcaneSlotCard = memo(function ArcaneSlotCard({
@@ -37,6 +39,7 @@ export const ArcaneSlotCard = memo(function ArcaneSlotCard({
   className,
   draggedArcane,
   fullArcaneData,
+  readOnly = false,
 }: ArcaneSlotCardProps) {
   const hasArcane = !!arcane;
   const slotId = `arcane-${slotIndex}`;
@@ -48,14 +51,14 @@ export const ArcaneSlotCard = memo(function ArcaneSlotCard({
     return false;
   }, [draggedArcane]);
 
-  // Droppable for the slot
+  // Droppable for the slot (disabled in read-only mode)
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: `slot-${slotId}`,
     data: { slotId, slotIndex, type: "arcane-slot" },
-    disabled: isDropDisabled,
+    disabled: isDropDisabled || readOnly,
   });
 
-  // Draggable for the placed arcane
+  // Draggable for the placed arcane (disabled in read-only mode)
   const {
     attributes,
     listeners,
@@ -65,28 +68,28 @@ export const ArcaneSlotCard = memo(function ArcaneSlotCard({
   } = useDraggable({
     id: `placed-arcane-${slotIndex}`,
     data: { slotIndex, arcane, type: "placed-arcane" },
-    disabled: !hasArcane,
+    disabled: !hasArcane || readOnly,
   });
 
   const style = transform
     ? {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0 : 1,
-        willChange: "transform",
-      }
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0 : 1,
+      willChange: "transform",
+    }
     : undefined;
 
   // Convert PlacedArcane to Arcane format for ArcaneCard
   const arcaneForCard: Arcane | null = hasArcane
     ? {
-        uniqueName: arcane!.uniqueName,
-        name: arcane!.name,
-        imageName: arcane!.imageName,
-        rarity: (arcane!.rarity || "Common") as Arcane["rarity"],
-        type: fullArcaneData?.type || "Arcane",
-        tradable: fullArcaneData?.tradable ?? true,
-        levelStats: fullArcaneData?.levelStats,
-      }
+      uniqueName: arcane!.uniqueName,
+      name: arcane!.name,
+      imageName: arcane!.imageName,
+      rarity: (arcane!.rarity || "Common") as Arcane["rarity"],
+      type: fullArcaneData?.type || "Arcane",
+      tradable: fullArcaneData?.tradable ?? true,
+      levelStats: fullArcaneData?.levelStats,
+    }
     : null;
 
   // When an arcane is present
@@ -103,20 +106,20 @@ export const ArcaneSlotCard = memo(function ArcaneSlotCard({
       >
         <div
           ref={setDraggableRef}
-          {...listeners}
-          {...attributes}
+          {...(readOnly ? {} : listeners)}
+          {...(readOnly ? {} : attributes)}
           style={style}
-          className="cursor-grab active:cursor-grabbing"
-          onClick={onSelect}
+          className={readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+          onClick={readOnly ? undefined : onSelect}
           onContextMenu={(e: React.MouseEvent) => {
             e.preventDefault();
-            onRemove();
+            if (!readOnly) onRemove();
           }}
         >
           <ArcaneCard
             arcane={arcaneForCard}
             rank={arcane!.rank}
-            onRankChange={onChangeRank}
+            onRankChange={readOnly ? undefined : onChangeRank}
             disableHover={isDragging}
           />
         </div>

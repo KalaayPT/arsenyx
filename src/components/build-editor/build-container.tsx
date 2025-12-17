@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef, useId } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   DndContext,
   DragOverlay,
@@ -28,7 +29,9 @@ import {
 } from "@/lib/warframe/capacity";
 import { normalizePolarity } from "@/lib/warframe/mods";
 import { copyBuildToClipboard } from "@/lib/build-codec";
+import { saveBuildAction } from "@/app/actions/builds";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/warframe/images";
 import type {
   BuildState,
@@ -41,7 +44,7 @@ import type {
   Mod,
   Arcane,
 } from "@/lib/warframe/types";
-import { Diamond, Gem, Save, X } from "lucide-react";
+import { Diamond, Gem, Save, X, Loader2, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type DragItem =
@@ -57,6 +60,9 @@ interface BuildContainerProps {
   compatibleMods: Mod[];
   compatibleArcanes?: Arcane[];
   importedBuild?: Partial<BuildState>;
+  savedBuildId?: string; // If editing an existing database build
+  savedBuildSlug?: string;
+  readOnly?: boolean; // View-only mode for non-owners
 }
 
 // Extract warframe stats from item data
@@ -197,11 +203,33 @@ export function BuildContainer({
   compatibleMods,
   compatibleArcanes = [],
   importedBuild,
+  savedBuildId,
+  savedBuildSlug,
+  readOnly = false,
 }: BuildContainerProps) {
+  // Auth session
+  const { data: session, status: sessionStatus } = useSession();
+  const isAuthenticated = sessionStatus === "authenticated" && !!session?.user;
+
+  // In read-only mode, disable all editing
+  const canEdit = !readOnly;
+
   // Build state
   const [buildState, setBuildState] = useState<BuildState>(() =>
     createInitialBuildState(item, category, compatibleMods, importedBuild)
   );
+
+  // Build metadata for database persistence
+  const [buildId, setBuildId] = useState<string | undefined>(savedBuildId);
+  const [buildSlug, setBuildSlug] = useState<string | undefined>(savedBuildSlug);
+  const [buildName, setBuildName] = useState<string>(
+    importedBuild?.buildName || `${item.name} Build`
+  );
+
+  // Save status: 'idle' | 'saving' | 'saved' | 'error'
+  type SaveStatus = "idle" | "saving" | "saved" | "error";
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Active slot for mod placement
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
@@ -219,13 +247,16 @@ export function BuildContainer({
   // Router for navigation
   const router = useRouter();
 
-  const sensors = useSensors(
+  // Sensors for drag-and-drop (disabled in read-only mode)
+  const editSensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 3,
       },
     })
   );
+  const noSensors = useSensors(); // Empty sensors for read-only mode
+  const sensors = canEdit ? editSensors : noSensors;
 
   // Stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId();
@@ -558,7 +589,10 @@ export function BuildContainer({
   );
 
   // Auto-save to localStorage (debounced to avoid chatty writes while dragging)
+  // Skip in read-only mode
   useEffect(() => {
+    if (!canEdit) return; // Don't save in read-only mode
+
     const key = `${STORAGE_KEY_PREFIX}${item.uniqueName}`;
     const handle = window.setTimeout(() => {
       try {
@@ -569,7 +603,7 @@ export function BuildContainer({
     }, 300);
 
     return () => window.clearTimeout(handle);
-  }, [buildState, item.uniqueName]);
+  }, [buildState, item.uniqueName, canEdit]);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -774,16 +808,61 @@ export function BuildContainer({
     setActiveSlotId(null);
   }, [item, category, compatibleMods]);
 
-  // Save build (placeholder for future POST)
+  // Handle Helminth ability selection
+  const handleHelminthAbilityChange = useCallback((slotIndex: number, ability: any | null) => {
+    setBuildState((prev) => ({
+      ...prev,
+      helminthAbility: ability
+        ? {
+          slotIndex,
+          ability,
+        }
+        : undefined,
+    }));
+  }, []);
+
+  // Save build (authenticated: DB, guest: clipboard fallback)
   const handleSaveBuild = useCallback(async () => {
-    // TODO: Implement POST to save build to backend
-    // For now, just copy to clipboard as a placeholder
+    // For authenticated users, save to database
+    if (isAuthenticated) {
+      setSaveStatus("saving");
+      setSaveError(null);
+
+      try {
+        const result = await saveBuildAction({
+          buildId: buildId,
+          itemUniqueName: item.uniqueName,
+          name: buildName,
+          visibility: "PUBLIC", // TODO: Add visibility selector
+          buildData: { ...buildState, buildName },
+        });
+
+        if (result.success && result.build) {
+          setBuildId(result.build.id);
+          setBuildSlug(result.build.slug);
+          setSaveStatus("saved");
+          setTimeout(() => setSaveStatus("idle"), 2000);
+        } else {
+          setSaveStatus("error");
+          setSaveError(result.error || "Failed to save build");
+          setTimeout(() => setSaveStatus("idle"), 3000);
+        }
+      } catch (error) {
+        console.error("Save build error:", error);
+        setSaveStatus("error");
+        setSaveError("An unexpected error occurred");
+        setTimeout(() => setSaveStatus("idle"), 3000);
+      }
+      return;
+    }
+
+    // For guests, copy to clipboard as fallback
     const success = await copyBuildToClipboard(buildState);
     if (success) {
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
     }
-  }, [buildState]);
+  }, [isAuthenticated, buildId, item.uniqueName, buildName, buildState]);
 
   // Cancel and go back (clears localStorage)
   const handleCancel = useCallback(() => {
@@ -880,32 +959,68 @@ export function BuildContainer({
                 </div>
               </div>
             </div>
-            {/* Build Actions - Top Right */}
-            <div className="self-start flex items-center gap-2">
-              <GuideEditorDialog
-                buildId={item.uniqueName}
-                initialGuide={guideData}
-                onSaved={(payload) => setGuideData(payload.guide)}
-              />
-              <Button
-                variant="default"
-                size="sm"
-                className="gap-2"
-                onClick={handleSaveBuild}
-              >
-                <Save className="w-4 h-4" />
-                {showCopied ? "Saved!" : "Save"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleCancel}
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </Button>
-            </div>
+            {/* Build Actions - Top Right (only show when editing is allowed) */}
+            {canEdit && (
+              <div className="self-start flex items-center gap-2">
+                {/* Build Name Input (for authenticated users) */}
+                {isAuthenticated && (
+                  <Input
+                    value={buildName}
+                    onChange={(e) => setBuildName(e.target.value)}
+                    placeholder="Build name..."
+                    className="w-48 h-8 text-sm"
+                  />
+                )}
+                <GuideEditorDialog
+                  buildId={item.uniqueName}
+                  initialGuide={guideData}
+                  onSaved={(payload) => setGuideData(payload.guide)}
+                />
+                {isAuthenticated ? (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleSaveBuild}
+                    disabled={saveStatus === "saving"}
+                  >
+                    {saveStatus === "saving" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    {saveStatus === "saving"
+                      ? "Saving..."
+                      : saveStatus === "saved"
+                        ? "Saved!"
+                        : saveStatus === "error"
+                          ? "Error"
+                          : buildId
+                            ? "Update"
+                            : "Save"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    onClick={handleCopyBuild}
+                  >
+                    <Save className="w-4 h-4" />
+                    {showCopied ? "Copied!" : "Copy Link"}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleCancel}
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -921,6 +1036,8 @@ export function BuildContainer({
               onClearBuild={handleClearBuild}
               showCopied={showCopied}
               itemStats={extractItemStats(item)}
+              readOnly={!canEdit}
+              onHelminthAbilityChange={handleHelminthAbilityChange}
             />
           </div>
 
@@ -932,38 +1049,41 @@ export function BuildContainer({
                 auraSlot={buildState.auraSlot}
                 exilusSlot={buildState.exilusSlot}
                 normalSlots={buildState.normalSlots}
-                activeSlotId={activeSlotId}
-                onSelectSlot={handleSelectSlot}
-                onRemoveMod={handleRemoveMod}
-                onChangeRank={handleChangeRank}
-                onApplyForma={handleApplyForma}
+                activeSlotId={canEdit ? activeSlotId : null}
+                onSelectSlot={canEdit ? handleSelectSlot : () => { }}
+                onRemoveMod={canEdit ? handleRemoveMod : () => { }}
+                onChangeRank={canEdit ? handleChangeRank : () => { }}
+                onApplyForma={canEdit ? handleApplyForma : () => { }}
                 isWarframe={isWarframeOrNecramech}
-                draggedMod={activeDragItem?.type === "search-mod" || activeDragItem?.type === "placed-mod" ? activeDragItem.mod : undefined}
+                draggedMod={canEdit && (activeDragItem?.type === "search-mod" || activeDragItem?.type === "placed-mod") ? activeDragItem.mod : undefined}
                 arcaneSlots={buildState.arcaneSlots}
-                onRemoveArcane={handleRemoveArcane}
-                onChangeArcaneRank={handleChangeArcaneRank}
-                draggedArcane={activeDragItem?.type === "search-arcane" ? activeDragItem.arcane : activeDragItem?.type === "placed-arcane" ? activeDragItem.arcane : undefined}
+                onRemoveArcane={canEdit ? handleRemoveArcane : () => { }}
+                onChangeArcaneRank={canEdit ? handleChangeArcaneRank : () => { }}
+                draggedArcane={canEdit && (activeDragItem?.type === "search-arcane" ? activeDragItem.arcane : activeDragItem?.type === "placed-arcane" ? activeDragItem.arcane : undefined) || undefined}
                 arcaneDataMap={arcaneDataMap}
+                readOnly={!canEdit}
               />
             </div>
 
-            {/* Mod/Arcane Search Grid - switches based on active slot */}
-            <div className="bg-card border rounded-lg p-4">
-              {getSlotType(activeSlotId) === "arcane" && isWarframeOrNecramech && compatibleArcanes.length > 0 ? (
-                <ArcaneSearchPanel
-                  availableArcanes={compatibleArcanes}
-                  usedArcaneNames={usedArcaneNames}
-                  onSelectArcane={handlePlaceArcane}
-                />
-              ) : (
-                <ModSearchGrid
-                  availableMods={compatibleMods}
-                  slotType={getSlotType(activeSlotId)}
-                  usedModNames={usedModNames}
-                  onSelectMod={handlePlaceMod}
-                />
-              )}
-            </div>
+            {/* Mod/Arcane Search Grid - only show when editing */}
+            {canEdit && (
+              <div className="bg-card border rounded-lg p-4">
+                {getSlotType(activeSlotId) === "arcane" && isWarframeOrNecramech && compatibleArcanes.length > 0 ? (
+                  <ArcaneSearchPanel
+                    availableArcanes={compatibleArcanes}
+                    usedArcaneNames={usedArcaneNames}
+                    onSelectArcane={handlePlaceArcane}
+                  />
+                ) : (
+                  <ModSearchGrid
+                    availableMods={compatibleMods}
+                    slotType={getSlotType(activeSlotId)}
+                    usedModNames={usedModNames}
+                    onSelectMod={handlePlaceMod}
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
