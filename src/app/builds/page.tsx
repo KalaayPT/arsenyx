@@ -110,14 +110,15 @@ const CATEGORY_OPTIONS = [
 
 const SORT_OPTIONS = [
     { value: "newest", label: "Newest" },
-    { value: "popular", label: "Most Popular" },
+    { value: "votes", label: "Most Voted" },
+    { value: "views", label: "Most Viewed" },
     { value: "updated", label: "Recently Updated" },
 ];
 
 export default async function BuildsPage({ searchParams }: BuildsPageProps) {
     const params = await searchParams;
     const category = params.category || undefined;
-    const sortBy = (params.sort as "newest" | "popular" | "updated") || "newest";
+    const sortBy = (params.sort as "newest" | "votes" | "views" | "updated") || "newest";
     const page = parseInt(params.page || "1", 10);
     const limit = 24;
 
@@ -149,16 +150,16 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
                     </div>
 
                     {/* Filters */}
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                         {/* Category Filter */}
-                        <Tabs value={category || ""} className="w-full">
-                            <TabsList className="h-auto p-1 flex-wrap justify-start bg-muted/50">
+                        <Tabs value={category || ""} className="w-full xl:w-auto">
+                            <TabsList className="h-auto p-1 flex-wrap justify-start bg-muted/50 w-full xl:w-auto">
                                 {CATEGORY_OPTIONS.map((opt) => (
                                     <TabsTrigger
                                         key={opt.value}
                                         value={opt.value}
                                         asChild
-                                        className="data-[state=active]:bg-background gap-2"
+                                        className="data-[state=active]:bg-background gap-2 flex-1 xl:flex-none"
                                     >
                                         <Link
                                             href={`/builds?${new URLSearchParams({
@@ -174,24 +175,28 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
                         </Tabs>
 
                         {/* Sort Options */}
-                        <div className="flex items-center justify-end gap-2">
-                            <span className="text-sm text-muted-foreground">Sort:</span>
-                            {SORT_OPTIONS.map((opt) => (
-                                <Link
-                                    key={opt.value}
-                                    href={`/builds?${new URLSearchParams({
-                                        ...(category && { category }),
-                                        sort: opt.value,
-                                    }).toString()}`}
-                                >
-                                    <Badge
-                                        variant={sortBy === opt.value ? "default" : "outline"}
-                                        className="cursor-pointer"
-                                    >
-                                        {opt.label}
-                                    </Badge>
-                                </Link>
-                            ))}
+                        <div className="flex items-center justify-end w-full xl:w-auto">
+                            <Tabs value={sortBy} className="w-full xl:w-auto">
+                                <TabsList className="w-full xl:w-auto bg-muted/50">
+                                    {SORT_OPTIONS.map((opt) => (
+                                        <TabsTrigger
+                                            key={opt.value}
+                                            value={opt.value}
+                                            asChild
+                                            className="flex-1 xl:flex-none"
+                                        >
+                                            <Link
+                                                href={`/builds?${new URLSearchParams({
+                                                    ...(category && { category }),
+                                                    sort: opt.value,
+                                                }).toString()}`}
+                                            >
+                                                {opt.label}
+                                            </Link>
+                                        </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </Tabs>
                         </div>
                     </div>
 

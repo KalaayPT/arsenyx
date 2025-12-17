@@ -308,7 +308,7 @@ export function getAllArcanes(): Arcane[] {
  * Get arcanes for a specific slot type (Warframe, Operator, etc.)
  */
 export function getArcanesForSlot(
-  slotType: "warframe" | "operator" | "weapon"
+  slotType: "warframe" | "operator" | "primary" | "secondary" | "melee"
 ): Arcane[] {
   const allArcanesData = getAllArcanes();
 
@@ -320,12 +320,18 @@ export function getArcanesForSlot(
         return type === "arcane" || type === "warframe arcane";
       case "operator":
         return type.includes("magus") || type.includes("operator");
-      case "weapon":
-        return (
-          type.includes("exodia") ||
-          type.includes("pax") ||
-          type.includes("virtuos")
-        );
+      case "primary":
+        // Primary arcanes generally have "Primary" in type or name if type is generic
+        // Main primary arcanes are "Primary Merciless", "Primary Deadhead", etc.
+        // They often have type "Primary Arcane" or similar.
+        return type.includes("primary") || type.includes("residua") || type.includes("fractal"); // residues/fractals are kitgun arcanes but often equipable
+      case "secondary":
+        // Secondary arcanes are "Secondary Merciless", etc.
+        // Kitgun secondary arcanes are Pax
+        return type.includes("secondary") || type.includes("pax");
+      case "melee":
+        // Melee arcanes include Zaw arcanes (Exodia) and new melee arcanes (Melee Duplicate, etc.)
+        return type.includes("melee") || type.includes("exodia");
       default:
         return false;
     }

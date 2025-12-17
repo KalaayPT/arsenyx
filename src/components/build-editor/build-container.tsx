@@ -43,8 +43,9 @@ import type {
   Mod,
   Arcane,
 } from "@/lib/warframe/types";
-import { Diamond, Gem, Save, X, Loader2, LogIn } from "lucide-react";
+import { Diamond, Gem, Save, X, Loader2, LogIn, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PublishDialog, type Visibility } from "./publish-dialog";
 
 type DragItem =
   | { type: "search-mod"; mod: Mod; rank: number }
@@ -136,7 +137,10 @@ function createInitialBuildState(
       type: "aura",
       innatePolarity: auraPolarity ? normalizePolarity(auraPolarity) : undefined,
     };
-    baseState.arcaneSlots = [];
+    baseState.arcaneSlots = [undefined as unknown as PlacedArcane, undefined as unknown as PlacedArcane];
+  } else if (["primary", "secondary", "melee"].includes(category)) {
+    // Weapons have 1 arcane slot
+    baseState.arcaneSlots = [undefined as unknown as PlacedArcane];
   }
 
   // Apply imported build data if available
@@ -228,7 +232,9 @@ export function BuildContainer({
   // Save status: 'idle' | 'saving' | 'saved' | 'error'
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
 
   // Active slot for mod placement
   const [activeSlotId, setActiveSlotId] = useState<string | null>(null);
@@ -818,7 +824,7 @@ export function BuildContainer({
   }, []);
 
   // Save build (authenticated: DB, guest: clipboard fallback)
-  const handleSaveBuild = useCallback(async () => {
+  const handlePublish = useCallback(async (visibility: Visibility) => {
     // For authenticated users, save to database
     if (isAuthenticated) {
       setSaveStatus("saving");
@@ -829,7 +835,7 @@ export function BuildContainer({
           buildId: buildId,
           itemUniqueName: item.uniqueName,
           name: buildName,
-          visibility: "PUBLIC", // TODO: Add visibility selector
+          visibility: visibility,
           buildData: { ...buildState, buildName },
         });
 
@@ -837,7 +843,11 @@ export function BuildContainer({
           setBuildId(result.build.id);
           setBuildSlug(result.build.slug);
           setSaveStatus("saved");
-          setTimeout(() => setSaveStatus("idle"), 2000);
+          setPublishDialogOpen(false);
+
+          // Redirect to view page
+          router.push(`/builds/${result.build.slug}`);
+
         } else {
           setSaveStatus("error");
           setSaveError(result.error || "Failed to save build");
@@ -852,13 +862,14 @@ export function BuildContainer({
       return;
     }
 
-    // For guests, copy to clipboard as fallback
+    // For guests, copy to clipboard as fallback (should not be reached via dialog but safe to keep)
     const success = await copyBuildToClipboard(buildState);
     if (success) {
       setShowCopied(true);
       setTimeout(() => setShowCopied(false), 2000);
+      setPublishDialogOpen(false);
     }
-  }, [isAuthenticated, buildId, item.uniqueName, buildName, buildState]);
+  }, [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router]);
 
   // Cancel and go back (clears localStorage)
   const handleCancel = useCallback(() => {
@@ -972,13 +983,13 @@ export function BuildContainer({
                     variant="default"
                     size="sm"
                     className="gap-2"
-                    onClick={handleSaveBuild}
+                    onClick={() => setPublishDialogOpen(true)}
                     disabled={saveStatus === "saving"}
                   >
                     {saveStatus === "saving" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Save className="w-4 h-4" />
+                      buildId ? <Save className="w-4 h-4" /> : <UploadCloud className="w-4 h-4" />
                     )}
                     {saveStatus === "saving"
                       ? "Saving..."
@@ -988,7 +999,7 @@ export function BuildContainer({
                           ? "Error"
                           : buildId
                             ? "Update"
-                            : "Save"}
+                            : "Publish"}
                   </Button>
                 ) : (
                   <Button
@@ -1014,6 +1025,14 @@ export function BuildContainer({
             )}
           </div>
         </div>
+
+        <PublishDialog
+          open={publishDialogOpen}
+          onOpenChange={setPublishDialogOpen}
+          onPublish={handlePublish}
+          isPublishing={saveStatus === "saving"}
+          isUpdate={!!buildId}
+        />
 
         {/* Main Content: Sidebar + Vertical Stack */}
         <div className="flex gap-4 items-start">
@@ -1059,7 +1078,7 @@ export function BuildContainer({
             {/* Mod/Arcane Search Grid - only show when editing */}
             {canEdit && (
               <div className="bg-card border rounded-lg p-4">
-                {getSlotType(activeSlotId) === "arcane" && isWarframeOrNecramech && compatibleArcanes.length > 0 ? (
+                {getSlotType(activeSlotId) === "arcane" && compatibleArcanes.length > 0 ? (
                   <ArcaneSearchPanel
                     availableArcanes={compatibleArcanes}
                     usedArcaneNames={usedArcaneNames}

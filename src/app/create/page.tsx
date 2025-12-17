@@ -78,9 +78,13 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
       if (fullItem) {
         const categoryConfig = getCategoryConfig(category);
         const compatibleMods = getModsForCategory(category);
-        // Fetch arcanes for warframes/necramechs
-        const isWarframeCategory = category === "warframes" || category === "necramechs";
-        const compatibleArcanes = isWarframeCategory ? getArcanesForSlot("warframe") : [];
+        // Fetch arcanes based on category
+        let compatibleArcanes: any[] = [];
+        if (["warframes", "necramechs"].includes(category)) {
+          compatibleArcanes = getArcanesForSlot("warframe");
+        } else if (["primary", "secondary", "melee"].includes(category)) {
+          compatibleArcanes = getArcanesForSlot(category as "primary" | "secondary" | "melee");
+        }
 
         return (
           <div className="relative min-h-screen flex flex-col">
@@ -120,9 +124,13 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     const fullItem = getFullItem(category, item.uniqueName);
     const categoryConfig = getCategoryConfig(category);
     const compatibleMods = getModsForCategory(category);
-    // Fetch arcanes for warframes/necramechs
-    const isWarframeCategory = category === "warframes" || category === "necramechs";
-    const compatibleArcanes = isWarframeCategory ? getArcanesForSlot("warframe") : [];
+    // Fetch arcanes based on category
+    let compatibleArcanes: any[] = [];
+    if (["warframes", "necramechs"].includes(category)) {
+      compatibleArcanes = getArcanesForSlot("warframe");
+    } else if (["primary", "secondary", "melee"].includes(category)) {
+      compatibleArcanes = getArcanesForSlot(category as "primary" | "secondary" | "melee");
+    }
 
     return (
       <div className="relative min-h-screen flex flex-col">

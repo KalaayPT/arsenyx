@@ -66,7 +66,7 @@ export interface BuildWithUser {
 export interface GetBuildsOptions {
     page?: number;
     limit?: number;
-    sortBy?: "newest" | "popular" | "updated";
+    sortBy?: "newest" | "votes" | "views" | "updated";
     category?: string;
 }
 
@@ -654,11 +654,13 @@ function canViewBuild(
  * Get Prisma orderBy clause from sort option
  */
 function getOrderBy(
-    sortBy: "newest" | "popular" | "updated"
+    sortBy: "newest" | "votes" | "views" | "updated"
 ): Prisma.BuildOrderByWithRelationInput {
     switch (sortBy) {
-        case "popular":
+        case "votes":
             return { voteCount: "desc" };
+        case "views":
+            return { viewCount: "desc" };
         case "updated":
             return { updatedAt: "desc" };
         case "newest":

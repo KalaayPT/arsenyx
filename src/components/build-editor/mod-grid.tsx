@@ -208,40 +208,27 @@ export function ModGrid({
           </div>
 
           {/* Row 4: Arcanes */}
-          {isWarframe && (
+          {arcaneSlots.length > 0 && (
             <div className="flex gap-6 w-full justify-center mt-2">
-              <ArcaneSlotCard
-                arcane={arcaneSlots[0]}
-                slotIndex={0}
-                isActive={activeSlotId === "arcane-0"}
-                onSelect={() => onSelectSlot("arcane-0")}
-                onRemove={() => onRemoveArcane?.(0)}
-                onChangeRank={(rank) => onChangeArcaneRank?.(0, rank)}
-                className="w-[140px] h-[100px]"
-                draggedArcane={draggedArcane}
-                fullArcaneData={
-                  arcaneSlots[0]
-                    ? arcaneDataMap?.get(arcaneSlots[0].uniqueName)
-                    : undefined
-                }
-                readOnly={readOnly}
-              />
-              <ArcaneSlotCard
-                arcane={arcaneSlots[1]}
-                slotIndex={1}
-                isActive={activeSlotId === "arcane-1"}
-                onSelect={() => onSelectSlot("arcane-1")}
-                onRemove={() => onRemoveArcane?.(1)}
-                onChangeRank={(rank) => onChangeArcaneRank?.(1, rank)}
-                className="w-[140px] h-[100px]"
-                draggedArcane={draggedArcane}
-                fullArcaneData={
-                  arcaneSlots[1]
-                    ? arcaneDataMap?.get(arcaneSlots[1].uniqueName)
-                    : undefined
-                }
-                readOnly={readOnly}
-              />
+              {arcaneSlots.map((arcane, index) => (
+                <ArcaneSlotCard
+                  key={`arcane-${index}`}
+                  arcane={arcane}
+                  slotIndex={index}
+                  isActive={activeSlotId === `arcane-${index}`}
+                  onSelect={() => onSelectSlot(`arcane-${index}`)}
+                  onRemove={() => onRemoveArcane?.(index)}
+                  onChangeRank={(rank) => onChangeArcaneRank?.(index, rank)}
+                  className="w-[140px] h-[100px]"
+                  draggedArcane={draggedArcane}
+                  fullArcaneData={
+                    arcane
+                      ? arcaneDataMap?.get(arcane.uniqueName)
+                      : undefined
+                  }
+                  readOnly={readOnly}
+                />
+              ))}
             </div>
           )}
         </div>

@@ -122,7 +122,17 @@ export default async function BuildPage({ params }: BuildPageProps) {
     const categoryConfig = getCategoryConfig(category);
     const compatibleMods = getModsForCategory(category);
     const isWarframeCategory = category === "warframes" || category === "necramechs";
-    const compatibleArcanes = isWarframeCategory ? getArcanesForSlot("warframe") : [];
+
+    let compatibleArcanes: any[] = [];
+    if (isWarframeCategory) {
+        compatibleArcanes = getArcanesForSlot("warframe");
+    } else if (category === "primary") {
+        compatibleArcanes = getArcanesForSlot("primary");
+    } else if (category === "secondary") {
+        compatibleArcanes = getArcanesForSlot("secondary");
+    } else if (category === "melee") {
+        compatibleArcanes = getArcanesForSlot("melee");
+    }
 
     // Check if the current user is the owner
     const isOwner = viewerId === build.userId;
