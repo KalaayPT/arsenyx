@@ -73,7 +73,8 @@ export function calculateAuraBonus(
   auraSlotPolarity?: Polarity
 ): number {
   // Aura drain at current rank
-  const modDrain = auraMod.baseDrain + auraMod.rank;
+  // Note: aura mods have negative base drain in data, so we take abs
+  const modDrain = Math.abs(auraMod.baseDrain) + auraMod.rank;
 
   if (!auraSlotPolarity || auraSlotPolarity === "universal") {
     // No slot polarity - base bonus

@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import {
   getSlotPolarity,
   calculateModDrain,
+  calculateAuraBonus,
   getMatchState,
   type MatchState,
 } from "@/lib/warframe/capacity";
@@ -324,33 +325,37 @@ const ModSlotCard = memo(function ModSlotCard({
 
   const style = transform
     ? {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0 : 1,
-        willChange: "transform",
-      }
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0 : 1,
+      willChange: "transform",
+    }
     : undefined;
 
   // Convert PlacedMod to Mod format for ModCard
   const modForCard: Mod | null = hasMod
     ? {
-        uniqueName: slot.mod!.uniqueName,
-        name: slot.mod!.name,
-        imageName: slot.mod!.imageName,
-        polarity: slot.mod!.polarity,
-        rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
-        baseDrain: slot.mod!.baseDrain,
-        fusionLimit: slot.mod!.fusionLimit,
-        compatName: slot.mod!.compatName,
-        type: slot.mod!.type || "",
-        levelStats: slot.mod!.levelStats,
-        modSet: slot.mod!.modSet,
-        modSetStats: slot.mod!.modSetStats,
-        tradable: false,
-      }
+      uniqueName: slot.mod!.uniqueName,
+      name: slot.mod!.name,
+      imageName: slot.mod!.imageName,
+      polarity: slot.mod!.polarity,
+      rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
+      baseDrain: slot.mod!.baseDrain,
+      fusionLimit: slot.mod!.fusionLimit,
+      compatName: slot.mod!.compatName,
+      type: slot.mod!.type || "",
+      levelStats: slot.mod!.levelStats,
+      modSet: slot.mod!.modSet,
+      modSetStats: slot.mod!.modSetStats,
+      tradable: false,
+    }
     : null;
 
   // Calculate drain and match state for polarity color feedback
-  const drain = hasMod ? calculateModDrain(slot.mod!, polarity) : 0;
+  const drain = hasMod
+    ? slot.type === "aura"
+      ? calculateAuraBonus(slot.mod!, polarity)
+      : calculateModDrain(slot.mod!, polarity)
+    : 0;
   const matchState: MatchState = hasMod
     ? getMatchState(slot.mod!.polarity, polarity)
     : "neutral";
@@ -410,7 +415,7 @@ const ModSlotCard = memo(function ModSlotCard({
               "relative flex items-start justify-center transition-all rounded-lg overflow-visible group",
               className,
               isOver &&
-                "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
+              "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
             )}
             style={{ isolation: "isolate" }}
           >
@@ -465,7 +470,7 @@ const ModSlotCard = memo(function ModSlotCard({
                     ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
                     : "hover:ring-1 hover:ring-primary/50",
                   isOver &&
-                    "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+                  "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
                   className
                 )}
                 style={{ isolation: "isolate" }}
