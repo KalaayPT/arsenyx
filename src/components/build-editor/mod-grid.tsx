@@ -15,15 +15,35 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { getSlotPolarity, calculateModDrain, getMatchState, type MatchState } from "@/lib/warframe/capacity";
+import {
+  getSlotPolarity,
+  calculateModDrain,
+  getMatchState,
+  type MatchState,
+} from "@/lib/warframe/capacity";
 import { ModCard } from "@/components/mod-card";
-import type { ModSlot, Polarity, Mod, PlacedMod, PlacedArcane, Arcane } from "@/lib/warframe/types";
+import type {
+  ModSlot,
+  Polarity,
+  Mod,
+  PlacedMod,
+  PlacedArcane,
+  Arcane,
+} from "@/lib/warframe/types";
 import { Plus } from "lucide-react";
 import { ArcaneSlotCard } from "./arcane-slot-card";
 import { PolarityIcon } from "@/components/icons";
 
 // All available polarities for the selector
-const ALL_POLARITIES: Polarity[] = ["madurai", "vazarin", "naramon", "zenurik", "unairu", "penjaga", "umbra"];
+const ALL_POLARITIES: Polarity[] = [
+  "madurai",
+  "vazarin",
+  "naramon",
+  "zenurik",
+  "unairu",
+  "penjaga",
+  "umbra",
+];
 
 interface ModGridProps {
   auraSlot?: ModSlot;
@@ -191,7 +211,11 @@ export function ModGrid({
                 onChangeRank={(rank) => onChangeArcaneRank?.(0, rank)}
                 className="w-[140px] h-[100px]"
                 draggedArcane={draggedArcane}
-                fullArcaneData={arcaneSlots[0] ? arcaneDataMap?.get(arcaneSlots[0].uniqueName) : undefined}
+                fullArcaneData={
+                  arcaneSlots[0]
+                    ? arcaneDataMap?.get(arcaneSlots[0].uniqueName)
+                    : undefined
+                }
               />
               <ArcaneSlotCard
                 arcane={arcaneSlots[1]}
@@ -202,7 +226,11 @@ export function ModGrid({
                 onChangeRank={(rank) => onChangeArcaneRank?.(1, rank)}
                 className="w-[140px] h-[100px]"
                 draggedArcane={draggedArcane}
-                fullArcaneData={arcaneSlots[1] ? arcaneDataMap?.get(arcaneSlots[1].uniqueName) : undefined}
+                fullArcaneData={
+                  arcaneSlots[1]
+                    ? arcaneDataMap?.get(arcaneSlots[1].uniqueName)
+                    : undefined
+                }
               />
             </div>
           )}
@@ -296,40 +324,44 @@ const ModSlotCard = memo(function ModSlotCard({
 
   const style = transform
     ? {
-      transform: CSS.Translate.toString(transform),
-      opacity: isDragging ? 0 : 1,
-      willChange: "transform",
-    }
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0 : 1,
+        willChange: "transform",
+      }
     : undefined;
 
   // Convert PlacedMod to Mod format for ModCard
   const modForCard: Mod | null = hasMod
     ? {
-      uniqueName: slot.mod!.uniqueName,
-      name: slot.mod!.name,
-      imageName: slot.mod!.imageName,
-      polarity: slot.mod!.polarity,
-      rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
-      baseDrain: slot.mod!.baseDrain,
-      fusionLimit: slot.mod!.fusionLimit,
-      compatName: slot.mod!.compatName,
-      type: slot.mod!.type || "",
-      levelStats: slot.mod!.levelStats,
-      modSet: slot.mod!.modSet,
-      modSetStats: slot.mod!.modSetStats,
-      tradable: false,
-    }
+        uniqueName: slot.mod!.uniqueName,
+        name: slot.mod!.name,
+        imageName: slot.mod!.imageName,
+        polarity: slot.mod!.polarity,
+        rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
+        baseDrain: slot.mod!.baseDrain,
+        fusionLimit: slot.mod!.fusionLimit,
+        compatName: slot.mod!.compatName,
+        type: slot.mod!.type || "",
+        levelStats: slot.mod!.levelStats,
+        modSet: slot.mod!.modSet,
+        modSetStats: slot.mod!.modSetStats,
+        tradable: false,
+      }
     : null;
 
   // Calculate drain and match state for polarity color feedback
   const drain = hasMod ? calculateModDrain(slot.mod!, polarity) : 0;
-  const matchState: MatchState = hasMod ? getMatchState(slot.mod!.polarity, polarity) : "neutral";
+  const matchState: MatchState = hasMod
+    ? getMatchState(slot.mod!.polarity, polarity)
+    : "neutral";
 
   // Polarity selector content (reused for both filled and empty slots)
   const polaritySelectorContent = (
     <PopoverContent className="w-auto p-2" side="bottom" align="center">
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-medium text-muted-foreground">Select Polarity</span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Select Polarity
+        </span>
         <div className="flex gap-1 flex-wrap">
           {ALL_POLARITIES.map((p) => (
             <button
@@ -378,7 +410,7 @@ const ModSlotCard = memo(function ModSlotCard({
               "relative flex items-start justify-center transition-all rounded-lg overflow-visible group",
               className,
               isOver &&
-              "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
+                "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
             )}
             style={{ isolation: "isolate" }}
           >
@@ -433,7 +465,7 @@ const ModSlotCard = memo(function ModSlotCard({
                     ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
                     : "hover:ring-1 hover:ring-primary/50",
                   isOver &&
-                  "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+                    "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
                   className
                 )}
                 style={{ isolation: "isolate" }}
@@ -468,7 +500,7 @@ const ModSlotCard = memo(function ModSlotCard({
             </TooltipTrigger>
           </PopoverTrigger>
           <TooltipContent side="bottom">
-            <p>Click to add mod • Shift+Click or Right-Click for polarity</p>
+            <p>Click to add mod</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

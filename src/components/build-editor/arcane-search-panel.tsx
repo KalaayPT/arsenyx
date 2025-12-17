@@ -58,7 +58,7 @@ export function ArcaneSearchPanel({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("Name");
   const [rarityFilter, setRarityFilter] = useState<RarityFilter>("All");
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -125,6 +125,13 @@ export function ArcaneSearchPanel({
 
       const isInputFocused = e.target === inputRef.current;
 
+      // Select first item if nothing is selected
+      if (selectedIndex === -1 && ["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(e.key)) {
+        e.preventDefault();
+        setSelectedIndex(0);
+        return;
+      }
+
       switch (e.key) {
         case "ArrowDown":
           if (isInputFocused) return;
@@ -159,7 +166,7 @@ export function ArcaneSearchPanel({
           break;
         case "Enter":
           e.preventDefault();
-          if (filteredArcanes.length > 0) {
+          if (filteredArcanes.length > 0 && selectedIndex !== -1) {
             const selectedArcane = filteredArcanes[boundedSelectedIndex];
             if (selectedArcane && !isArcaneUsed(selectedArcane)) {
               const maxRank = selectedArcane.levelStats
@@ -171,7 +178,7 @@ export function ArcaneSearchPanel({
           break;
       }
     },
-    [filteredArcanes, boundedSelectedIndex, isArcaneUsed, handleSelectArcane]
+    [filteredArcanes, boundedSelectedIndex, isArcaneUsed, handleSelectArcane, selectedIndex]
   );
 
   // Scroll selected item into view
@@ -302,10 +309,10 @@ function SearchableArcaneCard({
 
   const style = transform
     ? {
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.5 : 1,
-        willChange: "transform",
-      }
+      transform: CSS.Translate.toString(transform),
+      opacity: isDragging ? 0.5 : 1,
+      willChange: "transform",
+    }
     : undefined;
 
   const handleClick = useCallback(() => {

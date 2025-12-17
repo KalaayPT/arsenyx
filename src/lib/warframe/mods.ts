@@ -299,6 +299,7 @@ export function canAddModToBuild(mod: Mod, existingMods: Mod[]): boolean {
 export function getAllArcanes(): Arcane[] {
   return allArcanes.filter((arcane) => {
     if (!arcane.name) return false;
+    if (arcane.name === "Arcane") return false;
     return true;
   });
 }
@@ -316,11 +317,7 @@ export function getArcanesForSlot(
 
     switch (slotType) {
       case "warframe":
-        return (
-          type === "arcane" &&
-          !type.includes("operator") &&
-          !type.includes("magus")
-        );
+        return type === "arcane" || type === "warframe arcane";
       case "operator":
         return type.includes("magus") || type.includes("operator");
       case "weapon":
