@@ -311,7 +311,7 @@ export function ModSearchGrid({
       {/* Responsive Mod Grid - Horizontal scrolling with 2 rows */}
       <div
         ref={gridRef}
-        className="grid gap-4 overflow-x-auto overflow-y-hidden pt-4 pb-12 px-2 max-w-full"
+        className="grid gap-x-4 gap-y-12 overflow-x-auto overflow-y-hidden pt-2 pb-8 px-2 max-w-full h-72 content-center"
         style={{
           gridTemplateRows: "repeat(2, min-content)",
           gridAutoFlow: "column",
