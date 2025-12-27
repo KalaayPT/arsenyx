@@ -490,9 +490,13 @@ export function BuildContainer({
   // ==========================================================================
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragItem(event.active.data.current as DragItem);
+    const dragData = event.active.data.current as DragItem;
+    setActiveDragItem(dragData);
     lastOverRef.current = null;
-    setActiveSlotId(null);
+    // Don't clear activeSlotId when dragging arcanes - keep the panel visible
+    if (dragData?.type !== "search-arcane" && dragData?.type !== "placed-arcane") {
+      setActiveSlotId(null);
+    }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -1087,7 +1091,7 @@ export function BuildContainer({
             {/* Mod/Arcane Search Grid - only show when editing */}
             {canEdit && (
               <div className="bg-card border rounded-lg p-4">
-                {getSlotType(activeSlotId) === "arcane" && compatibleArcanes.length > 0 ? (
+                {(getSlotType(activeSlotId) === "arcane" || activeDragItem?.type === "search-arcane" || activeDragItem?.type === "placed-arcane") && compatibleArcanes.length > 0 ? (
                   <ArcaneSearchPanel
                     availableArcanes={compatibleArcanes}
                     usedArcaneNames={usedArcaneNames}
@@ -1124,11 +1128,7 @@ export function BuildContainer({
               disableAnimation
             />
           </div>
-        ) : activeDragItem && activeDragItem.type === "search-arcane" ? (
-          <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
-            <ArcaneDragGhost arcane={activeDragItem.arcane} />
-          </div>
-        ) : activeDragItem && activeDragItem.type === "placed-arcane" ? (
+        ) : activeDragItem && (activeDragItem.type === "search-arcane" || activeDragItem.type === "placed-arcane") ? (
           <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
             <ArcaneDragGhost arcane={activeDragItem.arcane} />
           </div>

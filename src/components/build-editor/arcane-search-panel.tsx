@@ -9,7 +9,6 @@ import {
   useDeferredValue,
 } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -307,13 +306,9 @@ function SearchableArcaneCard({
       disabled: isDisabled,
     });
 
-  const style = transform
-    ? {
-      transform: CSS.Translate.toString(transform),
-      opacity: isDragging ? 0.5 : 1,
-      willChange: "transform",
-    }
-    : undefined;
+  const style = {
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const handleClick = useCallback(() => {
     if (!isDisabled) {
