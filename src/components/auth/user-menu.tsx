@@ -54,8 +54,12 @@ export function UserMenu() {
         </div>
         <Separator className="my-2" />
         <div className="space-y-1">
-          <MenuLink href="/profile">My Profile</MenuLink>
-          <MenuLink href="/builds">My Builds</MenuLink>
+          {session.user.username && (
+            <MenuLink href={`/profile/${session.user.username}`}>
+              My Profile
+            </MenuLink>
+          )}
+          <MenuLink href="/builds/mine">My Builds</MenuLink>
           <MenuLink href="/favorites">Favorites</MenuLink>
         </div>
         <Separator className="my-2" />

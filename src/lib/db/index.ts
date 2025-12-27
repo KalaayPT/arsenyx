@@ -48,6 +48,38 @@ export type {
   GetBuildsOptions,
 } from "./builds";
 
+// Vote operations
+export {
+  toggleBuildVote,
+  hasUserVotedForBuild,
+  getUserVotesForBuilds,
+} from "./votes";
+
+export type { ToggleVoteResult } from "./votes";
+
+// Favorite operations
+export {
+  toggleBuildFavorite,
+  hasUserFavoritedBuild,
+  getUserFavoriteBuilds,
+  getUserFavoritesForBuilds,
+} from "./favorites";
+
+export type {
+  ToggleFavoriteResult,
+  FavoriteBuildWithDetails,
+} from "./favorites";
+
+// User operations
+export {
+  getUserByUsername,
+  getUserById,
+  getUserStats,
+  getPublicBuildCountForUser,
+} from "./users";
+
+export type { UserProfile, UserStats } from "./users";
+
 /**
  * Check if database mode is enabled
  */

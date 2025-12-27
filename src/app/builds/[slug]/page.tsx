@@ -14,6 +14,7 @@ import { getModsForCategory, getArcanesForSlot } from "@/lib/warframe/mods";
 import { getCategoryConfig } from "@/lib/warframe";
 import type { BrowseCategory, Arcane } from "@/lib/warframe/types";
 import { BuildGuideSection } from "@/components/build/build-guide-section";
+import { BuildSocialActions } from "@/components/build/build-social-actions";
 import { slugify } from "@/lib/warframe/slugs";
 import { ViewTracker } from "@/components/build/view-tracker";
 
@@ -169,10 +170,16 @@ export default async function BuildPage({ params }: BuildPageProps) {
                                     by {build.user.username || build.user.name || "Anonymous"}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <span>{build.voteCount} votes</span>
-                                <span>{build.viewCount} views</span>
-                                <span>Updated {new Date(build.updatedAt).toLocaleDateString()}</span>
+                            <div className="flex items-center gap-2">
+                                <BuildSocialActions
+                                    buildId={build.id}
+                                    voteCount={build.voteCount}
+                                    favoriteCount={build.favoriteCount}
+                                    viewCount={build.viewCount}
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                    Updated {new Date(build.updatedAt).toLocaleDateString()}
+                                </span>
                             </div>
                         </div>
                     </div>

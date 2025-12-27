@@ -1,0 +1,121 @@
+/**
+ * User Database Operations
+ *
+ * Profile queries and statistics
+ */
+
+import { prisma } from "../db";
+
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export interface UserProfile {
+  id: string;
+  name: string | null;
+  username: string | null;
+  image: string | null;
+  bio: string | null;
+  createdAt: Date;
+  role: string;
+}
+
+export interface UserStats {
+  totalBuilds: number;
+  totalVotesReceived: number;
+  totalFavorites: number;
+}
+
+// =============================================================================
+// USER QUERIES
+// =============================================================================
+
+/**
+ * Get user profile by username (case-insensitive)
+ *
+ * @param username - Username to look up
+ * @returns User profile or null if not found
+ */
+export async function getUserByUsername(
+  username: string
+): Promise<UserProfile | null> {
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { usernameLower: username.toLowerCase() },
+        { username: { equals: username, mode: "insensitive" } },
+      ],
+    },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      image: true,
+      bio: true,
+      createdAt: true,
+      role: true,
+    },
+  });
+
+  return user;
+}
+
+/**
+ * Get user profile by ID
+ *
+ * @param userId - User ID to look up
+ * @returns User profile or null if not found
+ */
+export async function getUserById(userId: string): Promise<UserProfile | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      image: true,
+      bio: true,
+      createdAt: true,
+      role: true,
+    },
+  });
+
+  return user;
+}
+
+/**
+ * Get user statistics
+ *
+ * @param userId - User ID to get stats for
+ * @returns Stats including total builds, votes received, and favorites made
+ */
+export async function getUserStats(userId: string): Promise<UserStats> {
+  const [buildStats, totalFavorites] = await Promise.all([
+    prisma.build.aggregate({
+      where: { userId, visibility: "PUBLIC" },
+      _count: { id: true },
+      _sum: { voteCount: true },
+    }),
+    prisma.buildFavorite.count({ where: { userId } }),
+  ]);
+
+  return {
+    totalBuilds: buildStats._count.id,
+    totalVotesReceived: buildStats._sum.voteCount ?? 0,
+    totalFavorites,
+  };
+}
+
+/**
+ * Get public build count for a user
+ *
+ * @param userId - User ID to count builds for
+ * @returns Number of public builds
+ */
+export async function getPublicBuildCountForUser(
+  userId: string
+): Promise<number> {
+  return prisma.build.count({
+    where: { userId, visibility: "PUBLIC" },
+  });
+}

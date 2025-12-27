@@ -2143,12 +2143,12 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 
 ### Sprint 3: Social Features
 
-1. [ ] Implement voting with rate limiting
-2. [ ] Implement favorites
-3. [ ] Add vote/favorite UI to build pages
-4. [ ] Create user profile page
-5. [ ] Add "My Builds" and "My Favorites" pages
-6. [ ] Add build counts to item pages
+1. [x] Implement voting with rate limiting
+2. [x] Implement favorites
+3. [x] Add vote/favorite UI to build pages
+4. [x] Create user profile page
+5. [x] Add "My Builds" and "My Favorites" pages
+6. [x] Add build counts to item pages
 
 ### Sprint 4: Advanced Features
 

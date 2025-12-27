@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { ThumbsUp, Eye } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Icons } from "@/components/icons";
 // Server-only imports (uses Node.js fs via @wfcd/items)
 import { getItemBySlug, getStaticItems } from "@/lib/warframe/items";
+import { getPublicBuildsForItem } from "@/lib/db/index";
 import {
   getCategoryConfig,
   getImageUrl,
@@ -318,41 +320,111 @@ export default async function ItemPage({ params }: ItemPageProps) {
 
           <Separator />
 
-          {/* Community Builds Section (Placeholder) */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">
-                Community Builds
-              </h2>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Icons.filter className="h-4 w-4" />
-                Filter
-              </Button>
-            </div>
-
-            {/* Placeholder for no builds */}
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="rounded-full bg-muted p-4 mb-4">
-                  <Icons.users className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="font-semibold mb-1">No builds yet</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Be the first to share a {item.name} build with the community!
-                </p>
-                <Button className="gap-2" asChild>
-                  <Link href={`/create?item=${slug}&category=${category}`}>
-                    <Icons.plus className="h-4 w-4" />
-                    Create Build
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
+          {/* Community Builds Section */}
+          <CommunityBuildsSection
+            itemUniqueName={item.uniqueName}
+            itemName={item.name}
+            category={category}
+            slug={slug}
+          />
         </div>
       </main>
       <Footer />
     </div>
+  );
+}
+
+async function CommunityBuildsSection({
+  itemUniqueName,
+  itemName,
+  category,
+  slug,
+}: {
+  itemUniqueName: string;
+  itemName: string;
+  category: string;
+  slug: string;
+}) {
+  const { builds, total } = await getPublicBuildsForItem(itemUniqueName, {
+    limit: 6,
+    sortBy: "votes",
+  });
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">
+          Community Builds
+          {total > 0 && (
+            <span className="ml-2 text-lg font-normal text-muted-foreground">
+              ({total})
+            </span>
+          )}
+        </h2>
+        {total > 6 && (
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/builds?category=${category}`}>View All</Link>
+          </Button>
+        )}
+      </div>
+
+      {builds.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="rounded-full bg-muted p-4 mb-4">
+              <Icons.users className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold mb-1">No builds yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Be the first to share a {itemName} build with the community!
+            </p>
+            <Button className="gap-2" asChild>
+              <Link href={`/create?item=${slug}&category=${category}`}>
+                <Icons.plus className="h-4 w-4" />
+                Create Build
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          {builds.map((build) => (
+            <Link
+              key={build.id}
+              href={`/builds/${build.slug}`}
+              className="block bg-card border rounded-lg overflow-hidden hover:border-primary transition-colors"
+            >
+              <div className="relative aspect-video bg-muted/20">
+                <Image
+                  src={getImageUrl(build.item.imageName ?? undefined)}
+                  alt={build.item.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-2 space-y-1">
+                <h3 className="font-medium text-sm line-clamp-1">
+                  {build.name}
+                </h3>
+                <p className="text-xs text-muted-foreground line-clamp-1">
+                  by {build.user.username || build.user.name || "Anonymous"}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-0.5">
+                    <ThumbsUp className="h-3 w-3" />
+                    {build.voteCount}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <Eye className="h-3 w-3" />
+                    {build.viewCount}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
