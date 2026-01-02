@@ -15,9 +15,7 @@ export function UserMenu() {
   const { data: session, isPending } = useSession();
 
   if (isPending) {
-    return (
-      <div className="size-8 animate-pulse rounded-full bg-muted" />
-    );
+    return <div className="size-8 animate-pulse rounded-full bg-muted" />;
   }
 
   if (!session?.user) {
@@ -64,7 +62,11 @@ export function UserMenu() {
         </div>
         <Separator className="my-2" />
         <button
-          onClick={() => signOut({ fetchOptions: { onSuccess: () => window.location.href = "/" } })}
+          onClick={() =>
+            signOut({
+              fetchOptions: { onSuccess: () => (window.location.href = "/") },
+            })
+          }
           className="w-full rounded-md px-2 py-1.5 text-left text-sm text-destructive hover:bg-destructive/10"
         >
           Sign Out

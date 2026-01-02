@@ -29,9 +29,9 @@ export default function SignInPage() {
           </p>
         </div>
 
-        <Button 
-          type="button" 
-          className="w-full" 
+        <Button
+          type="button"
+          className="w-full"
           size="lg"
           onClick={handleSignIn}
           disabled={isLoading}

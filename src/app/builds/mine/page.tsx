@@ -187,9 +187,7 @@ export default async function MyBuildsPage({
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2">
                   {page > 1 && (
-                    <Link
-                      href={`/builds/mine?page=${page - 1}&sort=${sortBy}`}
-                    >
+                    <Link href={`/builds/mine?page=${page - 1}&sort=${sortBy}`}>
                       <Button variant="outline" size="sm">
                         Previous
                       </Button>
@@ -199,9 +197,7 @@ export default async function MyBuildsPage({
                     Page {page} of {totalPages}
                   </span>
                   {page < totalPages && (
-                    <Link
-                      href={`/builds/mine?page=${page + 1}&sort=${sortBy}`}
-                    >
+                    <Link href={`/builds/mine?page=${page + 1}&sort=${sortBy}`}>
                       <Button variant="outline" size="sm">
                         Next
                       </Button>

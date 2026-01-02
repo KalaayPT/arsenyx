@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef, useId } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useId,
+} from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
@@ -45,7 +52,15 @@ import type {
   Arcane,
   HelminthAbility,
 } from "@/lib/warframe/types";
-import { Diamond, Gem, Save, X, Loader2, UploadCloud, Pencil } from "lucide-react";
+import {
+  Diamond,
+  Gem,
+  Save,
+  X,
+  Loader2,
+  UploadCloud,
+  Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublishDialog, type Visibility } from "./publish-dialog";
 
@@ -137,7 +152,9 @@ function createInitialSlots(polarities?: string[]): ModSlot[] {
   return Array.from({ length: 8 }, (_, i) => ({
     id: `normal-${i}`,
     type: "normal" as const,
-    innatePolarity: polarities?.[i] ? normalizePolarity(polarities[i]) : undefined,
+    innatePolarity: polarities?.[i]
+      ? normalizePolarity(polarities[i])
+      : undefined,
   }));
 }
 
@@ -174,9 +191,14 @@ function createInitialBuildState(
     baseState.auraSlot = {
       id: "aura-0",
       type: "aura",
-      innatePolarity: auraPolarity ? normalizePolarity(auraPolarity) : undefined,
+      innatePolarity: auraPolarity
+        ? normalizePolarity(auraPolarity)
+        : undefined,
     };
-    baseState.arcaneSlots = [undefined as unknown as PlacedArcane, undefined as unknown as PlacedArcane];
+    baseState.arcaneSlots = [
+      undefined as unknown as PlacedArcane,
+      undefined as unknown as PlacedArcane,
+    ];
     // Only actual warframes (not necramechs) have shard slots
     if (category === "warframes") {
       baseState.shardSlots = [null, null, null, null, null];
@@ -263,7 +285,7 @@ export function BuildContainer({
 
   // canEdit: owners can edit when in edit mode, non-owners never
   // For new builds (no savedBuildId), always allow editing
-  const canEdit = savedBuildId ? (isOwner && isEditMode) : !readOnly;
+  const canEdit = savedBuildId ? isOwner && isEditMode : !readOnly;
 
   // Build state
   const [buildState, setBuildState] = useState<BuildState>(() =>
@@ -272,7 +294,9 @@ export function BuildContainer({
 
   // Build metadata for database persistence
   const [buildId, setBuildId] = useState<string | undefined>(savedBuildId);
-  const [_buildSlug, setBuildSlug] = useState<string | undefined>(savedBuildSlug);
+  const [_buildSlug, setBuildSlug] = useState<string | undefined>(
+    savedBuildSlug
+  );
   const [buildName, setBuildName] = useState<string>(
     importedBuild?.buildName || `${item.name} Build`
   );
@@ -292,7 +316,10 @@ export function BuildContainer({
 
   // Drag and Drop State
   const [activeDragItem, setActiveDragItem] = useState<DragItem | null>(null);
-  const lastOverRef = useRef<{ id: string; data: { type: string; slotId?: string; slotIndex?: number } } | null>(null);
+  const lastOverRef = useRef<{
+    id: string;
+    data: { type: string; slotId?: string; slotIndex?: number };
+  } | null>(null);
 
   // Router for navigation
   const router = useRouter();
@@ -512,9 +539,7 @@ export function BuildContainer({
 
   // Get all used arcane names for duplicate checking
   const usedArcaneNames = useMemo((): string[] => {
-    return (buildState.arcaneSlots || [])
-      .filter(Boolean)
-      .map((a) => a.name);
+    return (buildState.arcaneSlots || []).filter(Boolean).map((a) => a.name);
   }, [buildState.arcaneSlots]);
 
   // Create a map of arcane uniqueName -> full Arcane data for hydration
@@ -531,18 +556,25 @@ export function BuildContainer({
   // ==========================================================================
 
   // Place a shard in a specific slot
-  const handlePlaceShard = useCallback((slotIndex: number, shard: PlacedShard) => {
-    setBuildState((prev) => {
-      const newShardSlots = [...(prev.shardSlots || [null, null, null, null, null])];
-      newShardSlots[slotIndex] = shard;
-      return { ...prev, shardSlots: newShardSlots };
-    });
-  }, []);
+  const handlePlaceShard = useCallback(
+    (slotIndex: number, shard: PlacedShard) => {
+      setBuildState((prev) => {
+        const newShardSlots = [
+          ...(prev.shardSlots || [null, null, null, null, null]),
+        ];
+        newShardSlots[slotIndex] = shard;
+        return { ...prev, shardSlots: newShardSlots };
+      });
+    },
+    []
+  );
 
   // Remove a shard from a slot
   const handleRemoveShard = useCallback((slotIndex: number) => {
     setBuildState((prev) => {
-      const newShardSlots = [...(prev.shardSlots || [null, null, null, null, null])];
+      const newShardSlots = [
+        ...(prev.shardSlots || [null, null, null, null, null]),
+      ];
       newShardSlots[slotIndex] = null;
       return { ...prev, shardSlots: newShardSlots };
     });
@@ -557,18 +589,27 @@ export function BuildContainer({
     setActiveDragItem(dragData);
     lastOverRef.current = null;
     // Don't clear activeSlotId when dragging arcanes - keep the panel visible
-    if (dragData?.type !== "search-arcane" && dragData?.type !== "placed-arcane") {
+    if (
+      dragData?.type !== "search-arcane" &&
+      dragData?.type !== "placed-arcane"
+    ) {
       setActiveSlotId(null);
     }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { over } = event;
-    const overCurrent = over?.data?.current as { type?: string; slotId?: string; slotIndex?: number } | undefined;
+    const overCurrent = over?.data?.current as
+      | { type?: string; slotId?: string; slotIndex?: number }
+      | undefined;
     if (overCurrent?.type === "slot" || overCurrent?.type === "arcane-slot") {
       lastOverRef.current = {
         id: String(over!.id),
-        data: { type: overCurrent.type, slotId: overCurrent.slotId, slotIndex: overCurrent.slotIndex },
+        data: {
+          type: overCurrent.type,
+          slotId: overCurrent.slotId,
+          slotIndex: overCurrent.slotIndex,
+        },
       };
     }
   };
@@ -583,10 +624,16 @@ export function BuildContainer({
 
     const activeData = active.data.current as DragItem | undefined;
     // Extract overData - handle both DragOverEvent's over object and our cached lastOverRef
-    const rawOverData = "data" in over && typeof over.data === "object" && over.data !== null && "current" in over.data
-      ? (over.data as { current?: unknown }).current
-      : (over as { data?: unknown }).data;
-    const overData = rawOverData as { type?: string; slotId?: string; slotIndex?: number; mod?: PlacedMod } | undefined;
+    const rawOverData =
+      "data" in over &&
+      typeof over.data === "object" &&
+      over.data !== null &&
+      "current" in over.data
+        ? (over.data as { current?: unknown }).current
+        : (over as { data?: unknown }).data;
+    const overData = rawOverData as
+      | { type?: string; slotId?: string; slotIndex?: number; mod?: PlacedMod }
+      | undefined;
 
     if (!activeData || !overData) return;
 
@@ -595,10 +642,15 @@ export function BuildContainer({
     // ==========================================================================
 
     // Validate mod slot restrictions
-    if (overData.type === "slot" && overData.slotId && (activeData.type === "search-mod" || activeData.type === "placed-mod")) {
+    if (
+      overData.type === "slot" &&
+      overData.slotId &&
+      (activeData.type === "search-mod" || activeData.type === "placed-mod")
+    ) {
       // Find full mod data to ensure we have correct flags (isExilus etc) in case placed mod state is stale
       const mod = activeData.mod;
-      const fullMod = compatibleMods.find((m) => m.uniqueName === mod.uniqueName) || mod;
+      const fullMod =
+        compatibleMods.find((m) => m.uniqueName === mod.uniqueName) || mod;
 
       // Aura slot restriction
       if (overData.slotId.startsWith("aura")) {
@@ -616,12 +668,20 @@ export function BuildContainer({
     }
 
     // Case 1: Search Mod -> Slot
-    if (activeData.type === "search-mod" && overData.type === "slot" && overData.slotId) {
+    if (
+      activeData.type === "search-mod" &&
+      overData.type === "slot" &&
+      overData.slotId
+    ) {
       placeModInSlot(activeData.mod, activeData.rank, overData.slotId);
     }
 
     // Case 2: Placed Mod -> Slot (Swap/Move)
-    if (activeData.type === "placed-mod" && overData.type === "slot" && overData.slotId) {
+    if (
+      activeData.type === "placed-mod" &&
+      overData.type === "slot" &&
+      overData.slotId
+    ) {
       const sourceSlotId = activeData.slotId;
       const targetSlotId = overData.slotId;
 
@@ -635,12 +695,20 @@ export function BuildContainer({
     // ==========================================================================
 
     // Case 3: Search Arcane -> Arcane Slot
-    if (activeData.type === "search-arcane" && overData.type === "arcane-slot" && overData.slotIndex !== undefined) {
+    if (
+      activeData.type === "search-arcane" &&
+      overData.type === "arcane-slot" &&
+      overData.slotIndex !== undefined
+    ) {
       placeArcaneInSlot(activeData.arcane, activeData.rank, overData.slotIndex);
     }
 
     // Case 4: Placed Arcane -> Arcane Slot (Swap/Move)
-    if (activeData.type === "placed-arcane" && overData.type === "arcane-slot" && overData.slotIndex !== undefined) {
+    if (
+      activeData.type === "placed-arcane" &&
+      overData.type === "arcane-slot" &&
+      overData.slotIndex !== undefined
+    ) {
       const sourceIndex = activeData.slotIndex;
       const targetIndex = overData.slotIndex;
 
@@ -804,7 +872,10 @@ export function BuildContainer({
 
       const updateModRank = (slot: ModSlot | undefined) => {
         if (!slot?.mod) return slot;
-        const clampedRank = Math.max(0, Math.min(newRank, slot.mod.fusionLimit));
+        const clampedRank = Math.max(
+          0,
+          Math.min(newRank, slot.mod.fusionLimit)
+        );
         return {
           ...slot,
           mod: { ...slot.mod, rank: clampedRank },
@@ -872,65 +943,70 @@ export function BuildContainer({
   }, [item, category, compatibleMods]);
 
   // Handle Helminth ability selection
-  const handleHelminthAbilityChange = useCallback((slotIndex: number, ability: HelminthAbility | null) => {
-    setBuildState((prev) => ({
-      ...prev,
-      helminthAbility: ability
-        ? {
-          slotIndex,
-          ability,
-        }
-        : undefined,
-    }));
-  }, []);
+  const handleHelminthAbilityChange = useCallback(
+    (slotIndex: number, ability: HelminthAbility | null) => {
+      setBuildState((prev) => ({
+        ...prev,
+        helminthAbility: ability
+          ? {
+              slotIndex,
+              ability,
+            }
+          : undefined,
+      }));
+    },
+    []
+  );
 
   // Save build (authenticated: DB, guest: clipboard fallback)
-  const handlePublish = useCallback(async (visibility: Visibility) => {
-    // For authenticated users, save to database
-    if (isAuthenticated) {
-      setSaveStatus("saving");
-      setSaveError(null);
+  const handlePublish = useCallback(
+    async (visibility: Visibility) => {
+      // For authenticated users, save to database
+      if (isAuthenticated) {
+        setSaveStatus("saving");
+        setSaveError(null);
 
-      try {
-        const result = await saveBuildAction({
-          buildId: buildId,
-          itemUniqueName: item.uniqueName,
-          name: buildName,
-          visibility: visibility,
-          buildData: { ...buildState, buildName },
-        });
+        try {
+          const result = await saveBuildAction({
+            buildId: buildId,
+            itemUniqueName: item.uniqueName,
+            name: buildName,
+            visibility: visibility,
+            buildData: { ...buildState, buildName },
+          });
 
-        if (result.success && result.build) {
-          setBuildId(result.build.id);
-          setBuildSlug(result.build.slug);
-          setSaveStatus("saved");
-          setPublishDialogOpen(false);
+          if (result.success && result.build) {
+            setBuildId(result.build.id);
+            setBuildSlug(result.build.slug);
+            setSaveStatus("saved");
+            setPublishDialogOpen(false);
 
-          // Redirect to view page
-          router.push(`/builds/${result.build.slug}`);
-
-        } else {
+            // Redirect to view page
+            router.push(`/builds/${result.build.slug}`);
+          } else {
+            setSaveStatus("error");
+            setSaveError(result.error || "Failed to save build");
+            setTimeout(() => setSaveStatus("idle"), 3000);
+          }
+        } catch (error) {
+          console.error("Save build error:", error);
           setSaveStatus("error");
-          setSaveError(result.error || "Failed to save build");
+          setSaveError("An unexpected error occurred");
           setTimeout(() => setSaveStatus("idle"), 3000);
         }
-      } catch (error) {
-        console.error("Save build error:", error);
-        setSaveStatus("error");
-        setSaveError("An unexpected error occurred");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+        return;
       }
-      return;
-    }
 
-    // For guests, copy to clipboard as fallback (should not be reached via dialog but safe to keep)
-    const success = await copyBuildToClipboard(buildState);
-    if (success) {
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
-      setPublishDialogOpen(false);
-    }
-  }, [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router]);
+      // For guests, copy to clipboard as fallback (should not be reached via dialog but safe to keep)
+      const success = await copyBuildToClipboard(buildState);
+      if (success) {
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
+        setPublishDialogOpen(false);
+      }
+    },
+    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router]
+  );
 
   // Cancel and go back (clears localStorage)
   const handleCancel = useCallback(() => {
@@ -967,7 +1043,7 @@ export function BuildContainer({
 
   useBuildKeyboard({
     onSelectSlot: handleSelectSlot,
-    onOpenSearch: () => { },
+    onOpenSearch: () => {},
     onCloseSearch: () => {
       setActiveSlotId(null);
     },
@@ -999,7 +1075,9 @@ export function BuildContainer({
                 />
               </div>
               <div className="flex flex-col justify-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {item.name}
+                </h1>
                 <span className="text-sm text-muted-foreground">
                   {categoryLabel}
                 </span>
@@ -1064,18 +1142,20 @@ export function BuildContainer({
                   >
                     {saveStatus === "saving" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : buildId ? (
+                      <Save className="w-4 h-4" />
                     ) : (
-                      buildId ? <Save className="w-4 h-4" /> : <UploadCloud className="w-4 h-4" />
+                      <UploadCloud className="w-4 h-4" />
                     )}
                     {saveStatus === "saving"
                       ? "Saving..."
                       : saveStatus === "saved"
-                        ? "Saved!"
-                        : saveStatus === "error"
-                          ? "Error"
-                          : buildId
-                            ? "Update"
-                            : "Publish"}
+                      ? "Saved!"
+                      : saveStatus === "error"
+                      ? "Error"
+                      : buildId
+                      ? "Update"
+                      : "Publish"}
                   </Button>
                 ) : (
                   <Button
@@ -1138,16 +1218,30 @@ export function BuildContainer({
                 exilusSlot={buildState.exilusSlot}
                 normalSlots={buildState.normalSlots}
                 activeSlotId={canEdit ? activeSlotId : null}
-                onSelectSlot={canEdit ? handleSelectSlot : () => { }}
-                onRemoveMod={canEdit ? handleRemoveMod : () => { }}
-                onChangeRank={canEdit ? handleChangeRank : () => { }}
-                onApplyForma={canEdit ? handleApplyForma : () => { }}
+                onSelectSlot={canEdit ? handleSelectSlot : () => {}}
+                onRemoveMod={canEdit ? handleRemoveMod : () => {}}
+                onChangeRank={canEdit ? handleChangeRank : () => {}}
+                onApplyForma={canEdit ? handleApplyForma : () => {}}
                 isWarframe={isWarframeOrNecramech}
-                draggedMod={canEdit && (activeDragItem?.type === "search-mod" || activeDragItem?.type === "placed-mod") ? activeDragItem.mod : undefined}
+                draggedMod={
+                  canEdit &&
+                  (activeDragItem?.type === "search-mod" ||
+                    activeDragItem?.type === "placed-mod")
+                    ? activeDragItem.mod
+                    : undefined
+                }
                 arcaneSlots={buildState.arcaneSlots}
-                onRemoveArcane={canEdit ? handleRemoveArcane : () => { }}
-                onChangeArcaneRank={canEdit ? handleChangeArcaneRank : () => { }}
-                draggedArcane={canEdit && (activeDragItem?.type === "search-arcane" ? activeDragItem.arcane : activeDragItem?.type === "placed-arcane" ? activeDragItem.arcane : undefined) || undefined}
+                onRemoveArcane={canEdit ? handleRemoveArcane : () => {}}
+                onChangeArcaneRank={canEdit ? handleChangeArcaneRank : () => {}}
+                draggedArcane={
+                  (canEdit &&
+                    (activeDragItem?.type === "search-arcane"
+                      ? activeDragItem.arcane
+                      : activeDragItem?.type === "placed-arcane"
+                      ? activeDragItem.arcane
+                      : undefined)) ||
+                  undefined
+                }
                 arcaneDataMap={arcaneDataMap}
                 readOnly={!canEdit}
               />
@@ -1157,7 +1251,10 @@ export function BuildContainer({
           {/* Mod/Arcane Search Grid - only show when editing */}
           {canEdit && (
             <div className="bg-card border rounded-lg p-4">
-              {(getSlotType(activeSlotId) === "arcane" || activeDragItem?.type === "search-arcane" || activeDragItem?.type === "placed-arcane") && compatibleArcanes.length > 0 ? (
+              {(getSlotType(activeSlotId) === "arcane" ||
+                activeDragItem?.type === "search-arcane" ||
+                activeDragItem?.type === "placed-arcane") &&
+              compatibleArcanes.length > 0 ? (
                 <ArcaneSearchPanel
                   availableArcanes={compatibleArcanes}
                   usedArcaneNames={usedArcaneNames}
@@ -1176,7 +1273,9 @@ export function BuildContainer({
         </div>
       </div>
       <DragOverlay dropAnimation={null}>
-        {activeDragItem && (activeDragItem.type === "search-mod" || activeDragItem.type === "placed-mod") ? (
+        {activeDragItem &&
+        (activeDragItem.type === "search-mod" ||
+          activeDragItem.type === "placed-mod") ? (
           <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
             <CompactModCard
               mod={activeDragItem.mod as Mod}
@@ -1187,13 +1286,16 @@ export function BuildContainer({
               }
               isMaxRank={
                 (activeDragItem.rank ??
-                  ("rank" in activeDragItem.mod ? activeDragItem.mod.rank : 0)) >=
-                (activeDragItem.mod.fusionLimit ?? 0)
+                  ("rank" in activeDragItem.mod
+                    ? activeDragItem.mod.rank
+                    : 0)) >= (activeDragItem.mod.fusionLimit ?? 0)
               }
               disableAnimation
             />
           </div>
-        ) : activeDragItem && (activeDragItem.type === "search-arcane" || activeDragItem.type === "placed-arcane") ? (
+        ) : activeDragItem &&
+          (activeDragItem.type === "search-arcane" ||
+            activeDragItem.type === "placed-arcane") ? (
           <div className="opacity-90 cursor-grabbing shadow-xl rounded-lg">
             <ArcaneDragGhost arcane={activeDragItem.arcane} />
           </div>
