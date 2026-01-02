@@ -158,7 +158,7 @@ export function ShardSelectionDialog({
                   )}
                 >
                   <span className="font-medium">{stat.name}</span>
-                  <span className="font-mono text-sm">
+                  <span className="font-mono text-sm text-muted-foreground">
                     {formatStatValue(stat, tauforged)}
                   </span>
                 </button>
