@@ -353,7 +353,7 @@ export type ModCompatibility =
 // ARCHON SHARD TYPES
 // =============================================================================
 
-export type ShardColor = "crimson" | "amber" | "azure" | "violet" | "emerald";
+export type ShardColor = "crimson" | "amber" | "azure" | "topaz" | "violet" | "emerald";
 
 export interface ShardStat {
   name: string;           // e.g., "Health", "Ability Strength"

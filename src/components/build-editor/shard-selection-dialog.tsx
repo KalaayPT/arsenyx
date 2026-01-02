@@ -129,36 +129,35 @@ export function ShardSelectionDialog({
           </div>
         ) : (
           // Step 2: Stat Selection
-          <div className="space-y-4 py-2">
+          <div className="space-y-3 py-1">
             {/* Tauforged Toggle */}
-            <div className="flex items-center justify-between px-2 py-2 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="tauforged" className="font-medium">
-                  Tauforged
-                </Label>
-              </div>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-muted/50 rounded">
+              <Label htmlFor="tauforged" className="text-sm">
+                Tauforged
+              </Label>
               <Switch
                 id="tauforged"
                 checked={tauforged}
                 onCheckedChange={setTauforged}
+                className="scale-90"
               />
             </div>
 
             {/* Stats List */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               {stats.map((stat) => (
                 <button
                   key={stat.name}
                   onClick={() => handleStatSelect(stat)}
                   className={cn(
-                    "w-full flex items-center justify-between p-3 rounded-lg transition-all",
+                    "w-full flex items-center justify-between px-2 py-1.5 rounded transition-all text-sm",
                     "border border-border hover:border-primary/50 hover:bg-accent/50",
                     currentShard?.stat === stat.name && currentShard?.color === selectedColor
                       && "border-primary bg-accent/50"
                   )}
                 >
-                  <span className="font-medium">{stat.name}</span>
-                  <span className="font-mono text-sm text-muted-foreground">
+                  <span>{stat.name}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
                     {formatStatValue(stat, tauforged)}
                   </span>
                 </button>

@@ -126,8 +126,10 @@ export function ItemSidebar({
               </button>
             );
           })}
-        </div>
+      </div>
       )}
+
+      <Separator />
 
       <HelminthAbilityDialog
         open={isHelminthDialogOpen}
@@ -152,8 +154,6 @@ export function ItemSidebar({
           <Separator />
         </>
       )}
-
-      <Separator />
 
       {/* Capacity */}
       <div className="p-3 space-y-3">
