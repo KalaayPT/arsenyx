@@ -3,9 +3,9 @@
 import { signIn } from "@/lib/auth-client";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
@@ -50,6 +50,33 @@ export default function SignInPage() {
             Privacy Policy
           </a>
         </p>
+      </div>
+    </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<SignInFallback />}>
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInFallback() {
+  return (
+    <div className="flex min-h-[80vh] items-center justify-center">
+      <div className="mx-auto w-full max-w-sm space-y-6 px-4">
+        <div className="space-y-2 text-center">
+          <h1 className="text-2xl font-bold">Sign in to Arsenix</h1>
+          <p className="text-muted-foreground">
+            Sign in to save builds, vote, and more
+          </p>
+        </div>
+        <Button type="button" className="w-full" size="lg" disabled>
+          <GitHubIcon className="mr-2 size-5" />
+          Continue with GitHub
+        </Button>
       </div>
     </div>
   );

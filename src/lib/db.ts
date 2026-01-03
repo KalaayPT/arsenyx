@@ -9,6 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
+    max: 3, // Limit connections per worker during build
   });
   const adapter = new PrismaPg(pool);
 
@@ -23,4 +24,5 @@ function createPrismaClient() {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+// Cache in all environments (needed for next build with multiple workers)
+if (!globalForPrisma.prisma) globalForPrisma.prisma = prisma;

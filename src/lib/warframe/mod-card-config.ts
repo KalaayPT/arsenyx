@@ -248,5 +248,5 @@ export function getPolarityIconUrl(polarity: Polarity): string {
 export const HOVER_TRANSITION = {
   type: "tween" as const,
   duration: 0.15,
-  ease: [0.4, 0, 0.2, 1], // ease-out cubic
+  ease: [0.4, 0, 0.2, 1] as const, // ease-out cubic
 };
