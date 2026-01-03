@@ -239,12 +239,6 @@ export function ArcaneSearchPanel({
         </div>
       </div>
 
-      {/* Arcane Count */}
-      <div className="text-xs text-muted-foreground">
-        {filteredArcanes.length} arcane{filteredArcanes.length !== 1 ? "s" : ""}{" "}
-        available
-      </div>
-
       {/* Arcane Grid - Horizontal scrolling with 2 rows */}
       <div
         ref={gridRef}

@@ -386,17 +386,6 @@ export function ModSearchGrid({
         </div>
       </div>
 
-      {/* Mod Count */}
-      <div className="text-xs text-muted-foreground">
-        {filteredMods.length} mod{filteredMods.length !== 1 ? "s" : ""}{" "}
-        available
-        {slotType !== "normal" && (
-          <span className="ml-1 text-primary">
-            ({slotType === "aura" ? "Aura" : "Exilus"} compatible)
-          </span>
-        )}
-      </div>
-
       {/* Responsive Mod Grid - Horizontal scrolling with 2 rows */}
       <div
         ref={gridRef}

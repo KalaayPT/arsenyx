@@ -497,7 +497,7 @@ function ModCardComponent({
                   }}
                   transition={HOVER_TRANSITION}
                   style={{ originX: 0.5, originY: 0.5 }}
-                  className="drop-shadow-[0_0_20px_rgba(0,0,0,0.8)] shadow-2xl"
+                  className="drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
                 >
                   <ExpandedModCard
                     mod={mod}

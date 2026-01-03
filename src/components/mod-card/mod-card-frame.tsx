@@ -143,14 +143,14 @@ export function DrainBadge({
     matchState === "match"
       ? "#4ade80"
       : matchState === "mismatch"
-        ? "#f87171"
-        : rarityColor;
+      ? "#f87171"
+      : rarityColor;
   const glow =
     matchState === "match"
       ? "0 0 8px rgba(74, 222, 128, 0.45)"
       : matchState === "mismatch"
-        ? "0 0 8px rgba(248, 113, 113, 0.45)"
-        : undefined;
+      ? "0 0 8px rgba(248, 113, 113, 0.45)"
+      : undefined;
 
   const polarityIconUrl = `/focus-schools/${getPolarityFilename(polarity)}`;
 
@@ -245,7 +245,7 @@ export function ModCardFrame({
     >
       {/* Background - only visible in expanded view */}
       {isExpanded && (
-        <div className="absolute inset-x-[3px] top-[4px] bottom-[4px] z-5 overflow-hidden">
+        <div className="absolute inset-x-[3px] top-[4px] bottom-[4px] z-5 overflow-hidden rounded-b-[20px]">
           <Image
             src={getModAssetUrl(rarity, "Background")}
             alt=""
