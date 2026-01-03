@@ -370,70 +370,75 @@ export async function getPublicBuildsForItem(
     itemUniqueName: string,
     options: GetBuildsOptions = {}
 ): Promise<{ builds: BuildWithUser[]; total: number }> {
-    const { page = 1, limit = 20, sortBy = "popular" } = options;
-    const skip = (page - 1) * limit;
+    try {
+        const { page = 1, limit = 20, sortBy = "popular" } = options;
+        const skip = (page - 1) * limit;
 
-    // Find the item first
-    const item = await prisma.item.findUnique({
-        where: { uniqueName: itemUniqueName },
-        select: { id: true },
-    });
+        // Find the item first
+        const item = await prisma.item.findUnique({
+            where: { uniqueName: itemUniqueName },
+            select: { id: true },
+        });
 
-    if (!item) {
+        if (!item) {
+            return { builds: [], total: 0 };
+        }
+
+        const [builds, total] = await Promise.all([
+            prisma.build.findMany({
+                where: {
+                    itemId: item.id,
+                    visibility: "PUBLIC",
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                            image: true,
+                        },
+                    },
+                    item: {
+                        select: {
+                            id: true,
+                            uniqueName: true,
+                            name: true,
+                            imageName: true,
+                            browseCategory: true,
+                        },
+                    },
+                    buildGuide: {
+                        select: {
+                            content: true,
+                            updatedAt: true,
+                        },
+                    },
+                },
+                orderBy: getOrderBy(sortBy),
+                skip,
+                take: limit,
+            }),
+            prisma.build.count({
+                where: {
+                    itemId: item.id,
+                    visibility: "PUBLIC",
+                },
+            }),
+        ]);
+
+        return {
+            builds: builds.map((b) => ({
+                ...b,
+                buildData: b.buildData as unknown as BuildState,
+                buildGuide: b.buildGuide as BuildWithUser["buildGuide"],
+            })),
+            total,
+        };
+    } catch {
+        // Return empty during build time when DB is unavailable
         return { builds: [], total: 0 };
     }
-
-    const [builds, total] = await Promise.all([
-        prisma.build.findMany({
-            where: {
-                itemId: item.id,
-                visibility: "PUBLIC",
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        username: true,
-                        image: true,
-                    },
-                },
-                item: {
-                    select: {
-                        id: true,
-                        uniqueName: true,
-                        name: true,
-                        imageName: true,
-                        browseCategory: true,
-                    },
-                },
-                buildGuide: {
-                    select: {
-                        content: true,
-                        updatedAt: true,
-                    },
-                },
-            },
-            orderBy: getOrderBy(sortBy),
-            skip,
-            take: limit,
-        }),
-        prisma.build.count({
-            where: {
-                itemId: item.id,
-                visibility: "PUBLIC",
-            },
-        }),
-    ]);
-
-    return {
-        builds: builds.map((b) => ({
-            ...b,
-            buildData: b.buildData as unknown as BuildState,
-            buildGuide: b.buildGuide as BuildWithUser["buildGuide"],
-        })),
-        total,
-    };
 }
 
 /**
