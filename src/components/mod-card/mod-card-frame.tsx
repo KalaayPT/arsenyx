@@ -236,6 +236,7 @@ export function ModCardFrame({
 
   const group = getRarityGroup(rarity);
   const topFrameDims = ASSET_DIMENSIONS[group].frameTop;
+  const bottomFrameDims = ASSET_DIMENSIONS[group].frameBottom;
 
   return (
     <div
@@ -283,13 +284,13 @@ export function ModCardFrame({
       <Image
         src={getModAssetUrl(rarity, "FrameBottom")}
         alt=""
-        width={184}
-        height={64}
+        width={bottomFrameDims.w}
+        height={bottomFrameDims.h}
         className={cn(
           frameBottomPosition,
           "z-20 pointer-events-none w-full",
           rarity === "Amalgam"
-            ? "-bottom-9 w-[115%] max-w-none h-auto"
+            ? "w-[110%] max-w-none h-auto"
             : "w-full"
         )}
         priority={false}
