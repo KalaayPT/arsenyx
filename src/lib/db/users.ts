@@ -41,10 +41,7 @@ export async function getUserByUsername(
 ): Promise<UserProfile | null> {
   const user = await prisma.user.findFirst({
     where: {
-      OR: [
-        { usernameLower: username.toLowerCase() },
-        { username: { equals: username, mode: "insensitive" } },
-      ],
+      username: { equals: username, mode: "insensitive" },
     },
     select: {
       id: true,

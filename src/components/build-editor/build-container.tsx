@@ -91,7 +91,7 @@ interface ItemStats {
   armor?: number;
   energy?: number;
   sprintSpeed?: number;
-  abilities?: Array<{ name: string; imageName?: string }>;
+  abilities?: Array<{ name: string; imageName?: string; description: string }>;
   // Weapon stats (all)
   fireRate?: number;
   criticalChance?: number;
@@ -114,7 +114,7 @@ function extractItemStats(item: BrowseableItem): ItemStats {
     armor?: number;
     power?: number;
     sprintSpeed?: number;
-    abilities?: Array<{ name: string; imageName?: string }>;
+    abilities?: Array<{ name: string; imageName?: string; description: string }>;
     // Weapon
     fireRate?: number;
     criticalChance?: number;
@@ -277,8 +277,8 @@ export function BuildContainer({
   isOwner = false,
 }: BuildContainerProps) {
   // Auth session
-  const { data: session, status: sessionStatus } = useSession();
-  const isAuthenticated = sessionStatus === "authenticated" && !!session?.user;
+  const { data: session, isPending: isSessionPending } = useSession();
+  const isAuthenticated = !isSessionPending && !!session?.user;
 
   // Track edit mode for owners (initially false = view mode)
   const [isEditMode, setIsEditMode] = useState(false);

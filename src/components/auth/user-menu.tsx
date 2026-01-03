@@ -64,7 +64,7 @@ export function UserMenu() {
         <button
           onClick={() =>
             signOut({
-              fetchOptions: { onSuccess: () => (window.location.href = "/") },
+              fetchOptions: { onSuccess: () => { window.location.href = "/"; } },
             })
           }
           className="w-full rounded-md px-2 py-1.5 text-left text-sm text-destructive hover:bg-destructive/10"

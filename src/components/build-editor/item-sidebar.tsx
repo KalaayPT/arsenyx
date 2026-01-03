@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe/images";
 import type { BuildState, HelminthAbility, PlacedShard } from "@/lib/warframe/types";
@@ -18,7 +19,7 @@ interface ItemStats {
   armor?: number;
   energy?: number;
   sprintSpeed?: number;
-  abilities?: Array<{ name: string; imageName?: string }>;
+  abilities?: Array<{ name: string; imageName?: string; description: string }>;
   // Weapon stats (all)
   fireRate?: number;
   criticalChance?: number;
@@ -95,7 +96,7 @@ export function ItemSidebar({
   };
 
   // Helper to get ability to display (replaced or original)
-  const getDisplayAbility = (index: number, originalAbility: { name: string; imageName?: string }) => {
+  const getDisplayAbility = (index: number, originalAbility: { name: string; imageName?: string; description: string }) => {
     if (
       buildState.helminthAbility &&
       buildState.helminthAbility.slotIndex === index
@@ -115,37 +116,43 @@ export function ItemSidebar({
         <div className="p-3 flex justify-around">
           {abilities.slice(0, 4).map((originalAbility, i) => {
             const displayAbility = getDisplayAbility(i, originalAbility);
+            const tooltipDescription = displayAbility.isHelminth && "description" in displayAbility
+              ? displayAbility.description
+              : originalAbility.description;
 
             return (
-              <button
-                key={i}
-                className={cn(
-                  "w-10 h-10 rounded bg-muted border overflow-hidden relative transition-colors",
-                  displayAbility.isHelminth ? "border-destructive" : "border-border",
-                  !readOnly && "hover:border-primary hover:cursor-pointer"
-                )}
-                title={
-                  displayAbility.isHelminth && "source" in displayAbility
-                    ? `${displayAbility.name} (Subsumed from ${displayAbility.source})`
-                    : originalAbility.name
-                }
-                onClick={() => handleAbilityClick(i)}
-                disabled={readOnly}
-              >
-                {displayAbility.imageName ? (
-                  <Image
-                    src={getImageUrl(displayAbility.imageName)}
-                    alt={displayAbility.name}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                    {i + 1}
-                  </div>
-                )}
-
-              </button>
+              <Tooltip key={i}>
+                <TooltipTrigger asChild>
+                  <button
+                    className={cn(
+                      "w-10 h-10 rounded bg-muted border overflow-hidden relative transition-colors",
+                      displayAbility.isHelminth ? "border-destructive" : "border-border",
+                      !readOnly && "hover:border-primary hover:cursor-pointer"
+                    )}
+                    onClick={() => handleAbilityClick(i)}
+                    disabled={readOnly}
+                  >
+                    {displayAbility.imageName ? (
+                      <Image
+                        src={getImageUrl(displayAbility.imageName)}
+                        alt={displayAbility.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
+                        {i + 1}
+                      </div>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-semibold">{displayAbility.name}</p>
+                  {tooltipDescription && (
+                    <p className="text-muted-foreground mt-1">{tooltipDescription}</p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
             );
           })}
       </div>
