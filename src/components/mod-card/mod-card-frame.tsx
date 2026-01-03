@@ -15,6 +15,8 @@ import {
   DISPLAY_SIZE,
   getModAssetUrl,
   getRarityColor,
+  ASSET_DIMENSIONS,
+  getRarityGroup,
 } from "@/lib/warframe/mod-card-config";
 
 // =============================================================================
@@ -226,11 +228,46 @@ export function ModCardFrame({
 }: ModCardFrameProps) {
   const size = DISPLAY_SIZE[variant];
   const isExpanded = variant === "expanded";
+  const group = getRarityGroup(rarity);
 
   // Frame positioning differs by variant
   const frameBottomPosition = isExpanded
     ? "absolute bottom-0 left-1/2 -translate-x-1/2"
     : "absolute -bottom-8 left-1/2 -translate-x-1/2";
+
+  // Calculate dynamic dimensions
+  const BASE_WIDTH = 184; // DISPLAY_SIZE.compact.width
+  const STANDARD_ASSET_WIDTH = ASSET_DIMENSIONS.standard.frameTop.w; // 248
+  const SCALE_FACTOR = BASE_WIDTH / STANDARD_ASSET_WIDTH;
+  const STANDARD_HEIGHTS = { top: 44, bottom: 64 };
+
+  const getFrameConfig = (type: "top" | "bottom") => {
+    if (group === "amalgam") {
+      const asset =
+        type === "top"
+          ? ASSET_DIMENSIONS.amalgam.frameTop
+          : ASSET_DIMENSIONS.amalgam.frameBottom;
+
+      const width = asset.w * SCALE_FACTOR;
+      const height = asset.h * SCALE_FACTOR;
+      const standardHeight =
+        type === "top" ? STANDARD_HEIGHTS.top : STANDARD_HEIGHTS.bottom;
+      const offset = -(height - standardHeight);
+
+      return {
+        width,
+        height,
+        offset,
+      };
+    }
+    // Default/Existing hardcoded values
+    return type === "top"
+      ? { width: 184, height: STANDARD_HEIGHTS.top, offset: 0 }
+      : { width: 184, height: STANDARD_HEIGHTS.bottom, offset: 0 };
+  };
+
+  const topConfig = getFrameConfig("top");
+  const bottomConfig = getFrameConfig("bottom");
 
   return (
     <div
@@ -260,9 +297,15 @@ export function ModCardFrame({
       <Image
         src={getModAssetUrl(rarity, "FrameTop")}
         alt=""
-        width={184}
-        height={44}
-        className="absolute top-0 left-1/2 -translate-x-1/2 z-20 pointer-events-none w-full"
+        width={topConfig.width}
+        height={topConfig.height}
+        className={cn(
+          "absolute top-0 left-1/2 -translate-x-1/2 z-20 pointer-events-none",
+          group !== "amalgam" && "w-full"
+        )}
+        style={{
+          marginTop: topConfig.offset,
+        }}
         priority={false}
       />
 
@@ -273,9 +316,16 @@ export function ModCardFrame({
       <Image
         src={getModAssetUrl(rarity, "FrameBottom")}
         alt=""
-        width={184}
-        height={64}
-        className={cn(frameBottomPosition, "z-20 pointer-events-none w-full")}
+        width={bottomConfig.width}
+        height={bottomConfig.height}
+        className={cn(
+          frameBottomPosition,
+          "z-20 pointer-events-none",
+          group !== "amalgam" && "w-full"
+        )}
+        style={{
+          marginBottom: bottomConfig.offset,
+        }}
         priority={false}
       />
     </div>
