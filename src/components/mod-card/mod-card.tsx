@@ -157,7 +157,7 @@ function CompactModCard({
           fontFamily: "Roboto, sans-serif",
           color: getRarityColor(rarity),
           textShadow:
-            "0 0 8px rgba(0,0,0,1), 0 0 16px rgba(0,0,0,0.9), 0 2px 4px rgba(0,0,0,1)",
+            "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000",
         }}
       >
         {mod.name}
