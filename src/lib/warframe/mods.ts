@@ -61,6 +61,10 @@ export function getAllMods(): Mod[] {
       if (mod.name.includes("Riven Mod")) return false;
       if (!mod.compatName && !mod.type) return false;
 
+      // Filter out Conclave/PvP mods
+      const uniqueName = mod.uniqueName ?? "";
+      if (uniqueName.includes("/PvPMods/")) return false;
+
       // Filter out variant mods (duplicates with different stats)
       // - Beginner: Tutorial versions with lower ranks (in /Beginner/ path)
       // - Intermediate: Mid-tier tutorial versions (ends with "Intermediate")
@@ -68,7 +72,6 @@ export function getAllMods(): Mod[] {
       //           because Primed mods are stored with Expert suffix in WFCD data
       // - Nemesis: Duplicate entries from Nemesis system
       // - SubMod: Internal sub-components of other mods (ends with "SubMod")
-      const uniqueName = mod.uniqueName ?? "";
       if (uniqueName.includes("/Beginner/")) return false;
       if (uniqueName.endsWith("Intermediate")) return false;
       // Expert mods are duplicates UNLESS they're Primed mods (Primed versions use Expert suffix)
@@ -169,6 +172,93 @@ export function getModsForCategory(category: string): Mod[] {
     result.push(...getModsByCompatibility(compat));
   }
   return result;
+}
+
+/**
+ * Get mods compatible with a specific item
+ * Matches mods based on the item's type field (e.g., "Rifle", "Shotgun", "Bow", etc.)
+ * For items without a type field, falls back to category-based filtering
+ */
+export function getModsForItem(item: { type?: string; category?: string }): Mod[] {
+  const itemType = item.type;
+
+  if (!itemType) {
+    // No type info - fall back to category-based filtering
+    const category = item.category?.toLowerCase();
+    if (category === "primary") return getModsForCategory("primary");
+    if (category === "secondary") return getModsForCategory("secondary");
+    if (category === "melee") return getModsForCategory("melee");
+    if (category === "warframes") return getModsForCategory("warframes");
+    if (category === "necramechs") return getModsForCategory("necramechs");
+    if (category === "companions") return getModsForCategory("companions");
+    return [];
+  }
+
+  const itemTypeLower = itemType.toLowerCase();
+  const allModsNormalized = getAllMods();
+
+  return allModsNormalized.filter((mod) => {
+    const compatName = mod.compatName?.toLowerCase() ?? "";
+    const modType = mod.type?.toLowerCase() ?? "";
+
+    // Match mod compatibility to item type
+    // Primary weapons: Rifle, Shotgun, Sniper, Launcher, Bow
+    if (["rifle", "shotgun", "sniper", "launcher", "bow"].includes(itemTypeLower)) {
+      // Match based on exact compatibility name OR type field
+      if (compatName === itemTypeLower) return true;
+      if (modType.includes(itemTypeLower)) return true;
+
+      // General primary mods (no specific weapon type in compatName)
+      // These are mods like "Primary" type that work across primary weapons
+      if (
+        modType.includes("primary") &&
+        !compatName &&
+        !modType.includes("rifle") &&
+        !modType.includes("shotgun") &&
+        !modType.includes("sniper") &&
+        !modType.includes("launcher") &&
+        !modType.includes("bow")
+      ) {
+        return true;
+      }
+
+      return false;
+    }
+
+    // Secondary weapons: Pistol
+    if (itemTypeLower === "pistol") {
+      return compatName === "pistol" || modType.includes("secondary") || modType.includes("pistol");
+    }
+
+    // Melee weapons
+    if (itemTypeLower === "melee") {
+      return compatName === "melee" || modType.includes("melee");
+    }
+
+    // Warframes
+    if (itemTypeLower === "warframe") {
+      return (
+        modType.includes("warframe") &&
+        (compatName === "warframe" || compatName === "aura")
+      );
+    }
+
+    // Necramech
+    if (itemTypeLower === "necramech") {
+      return modType.includes("necramech");
+    }
+
+    // Companion
+    if (["companion", "sentinel", "beast"].includes(itemTypeLower)) {
+      return (
+        modType.includes("companion") ||
+        modType.includes("sentinel") ||
+        modType.includes("beast")
+      );
+    }
+
+    return false;
+  });
 }
 
 /**

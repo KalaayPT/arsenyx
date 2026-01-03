@@ -301,7 +301,8 @@ function SearchableArcaneCard({
     });
 
   const style = {
-    opacity: isDragging ? 0.5 : 1,
+    // Hide the original element when dragging - DragOverlay shows the ghost
+    opacity: isDragging ? 0 : 1,
   };
 
   const handleClick = useCallback(() => {

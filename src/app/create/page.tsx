@@ -8,7 +8,7 @@ import { BuildContainer } from "@/components/build-editor/build-container";
 import { Skeleton } from "@/components/ui/skeleton";
 // Server-only imports
 import { getItemBySlug, getFullItem } from "@/lib/warframe/items";
-import { getModsForCategory, getArcanesForSlot } from "@/lib/warframe/mods";
+import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods";
 import { isValidCategory, getCategoryConfig } from "@/lib/warframe";
 import { decodeBuild } from "@/lib/build-codec";
 import type { BrowseCategory, Arcane } from "@/lib/warframe/types";
@@ -77,7 +77,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
 
       if (fullItem) {
         const categoryConfig = getCategoryConfig(category);
-        const compatibleMods = getModsForCategory(category);
+        const compatibleMods = getModsForItem(fullItem);
         // Fetch arcanes based on category
         let compatibleArcanes: Arcane[] = [];
         if (["warframes", "necramechs"].includes(category)) {
@@ -123,7 +123,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
 
     const fullItem = getFullItem(category, item.uniqueName);
     const categoryConfig = getCategoryConfig(category);
-    const compatibleMods = getModsForCategory(category);
+    const compatibleMods = fullItem ? getModsForItem(fullItem) : [];
     // Fetch arcanes based on category
     let compatibleArcanes: Arcane[] = [];
     if (["warframes", "necramechs"].includes(category)) {

@@ -5,6 +5,7 @@ const VARIANT_PREFIXES = [
   "Archon ",
   "Umbral ",
   "Sacrificial ",
+  "Spectral ",
 ];
 
 // Galvanized mods that replace base mods with different names

@@ -35,13 +35,10 @@ export function SearchableModCard({
       disabled: isDisabled,
     });
 
-  const style = transform
-    ? {
-      transform: CSS.Translate.toString(transform),
-      opacity: isDragging ? 0.5 : 1,
-      willChange: "transform",
-    }
-    : undefined;
+  const style = {
+    // Hide the original element when dragging - DragOverlay shows the ghost
+    opacity: isDragging ? 0 : 1,
+  };
 
   const handleClick = useCallback(() => {
     if (!isDisabled) {

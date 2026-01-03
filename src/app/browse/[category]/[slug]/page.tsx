@@ -186,12 +186,6 @@ export default async function ItemPage({ params }: ItemPageProps) {
                     Create Build
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="gap-2" asChild>
-                  <Link href={`/browse?category=${category}`}>
-                    <Icons.chevronLeft className="h-4 w-4" />
-                    Back to {categoryConfig?.labelPlural}
-                  </Link>
-                </Button>
               </div>
             </div>
           </div>

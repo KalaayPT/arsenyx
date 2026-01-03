@@ -11,7 +11,7 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { getBuildBySlug } from "@/lib/db/index";
 import { getFullItem } from "@/lib/warframe/items";
-import { getModsForCategory, getArcanesForSlot } from "@/lib/warframe/mods";
+import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods";
 import { getCategoryConfig } from "@/lib/warframe";
 import type { BrowseCategory, Arcane } from "@/lib/warframe/types";
 import { BuildGuideSection } from "@/components/build/build-guide-section";
@@ -127,7 +127,7 @@ export default async function BuildPage({ params }: BuildPageProps) {
 
   // Get compatible mods and arcanes
   const categoryConfig = getCategoryConfig(category);
-  const compatibleMods = getModsForCategory(category);
+  const compatibleMods = getModsForItem(fullItem);
   const isWarframeCategory =
     category === "warframes" || category === "necramechs";
 
