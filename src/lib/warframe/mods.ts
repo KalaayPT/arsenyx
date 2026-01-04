@@ -135,7 +135,8 @@ export function getModsByCompatibility(compatibility: ModCompatibility): Mod[] {
       case "Aura":
         return modType.includes("aura") || compatName === "aura";
       case "Exilus":
-        return mod.isExilus === true;
+        // Both isExilus and isUtility indicate exilus-compatible mods in WFCD data
+        return mod.isExilus === true || mod.isUtility === true;
       case "Rifle":
         return compatName === "rifle" || modType.includes("rifle");
       case "Shotgun":

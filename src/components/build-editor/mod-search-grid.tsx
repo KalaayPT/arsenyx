@@ -180,7 +180,8 @@ export function ModSearchGrid({
     if (slotType === "aura") {
       mods = mods.filter((m) => m.compatName?.toUpperCase() === "AURA");
     } else if (slotType === "exilus") {
-      mods = mods.filter((m) => m.isExilus);
+      // Both isExilus and isUtility indicate exilus-compatible mods in WFCD data
+      mods = mods.filter((m) => m.isExilus || m.isUtility);
     }
     // Normal slot: show all mods including aura (they auto-snap to aura slot)
 
