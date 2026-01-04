@@ -26,6 +26,10 @@ import { ModGrid } from "./mod-grid";
 import { ModSearchGrid } from "./mod-search-grid";
 import { ArcaneSearchPanel } from "./arcane-search-panel";
 import { InlineGuideEditor } from "./inline-guide-editor";
+import { PartnerBuildSelector } from "./partner-build-selector";
+import type { PartnerBuild } from "./partner-build-card";
+import { PartnerBuildsSection } from "@/components/build/partner-builds-section";
+import { GuideReader } from "@/components/guides/guide-reader";
 import { CompactModCard, type ModRarity } from "@/components/mod-card";
 import { ArcaneDragGhost } from "@/components/arcane-card";
 import { useBuildKeyboard } from "./use-build-keyboard";
@@ -37,7 +41,7 @@ import {
 import { normalizePolarity } from "@/lib/warframe/mods";
 import { getModBaseName } from "@/lib/warframe/mod-variants";
 import { copyBuildToClipboard } from "@/lib/build-codec";
-import { saveBuildAction } from "@/app/actions/builds";
+import { saveBuildAction, updateBuildGuideAction, getUserBuildsForPartnerSelectorAction } from "@/app/actions/builds";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/warframe/images";
@@ -83,6 +87,23 @@ interface BuildContainerProps {
   savedBuildSlug?: string;
   readOnly?: boolean; // View-only mode for non-owners
   isOwner?: boolean; // Whether the current user owns this build
+  // Guide data for existing builds
+  initialGuide?: {
+    summary?: string | null;
+    description?: string | null;
+    updatedAt?: Date;
+  };
+  initialPartnerBuilds?: {
+    id: string;
+    slug: string;
+    name: string;
+    item: {
+      name: string;
+      imageName: string | null;
+      browseCategory: string;
+    };
+    buildData: { formaCount: number };
+  }[];
 }
 
 // Extract stats from item data (warframes and weapons)
@@ -278,6 +299,8 @@ export function BuildContainer({
   savedBuildSlug,
   readOnly = false,
   isOwner = false,
+  initialGuide,
+  initialPartnerBuilds = [],
 }: BuildContainerProps) {
   // Auth session
   const { data: session, isPending: isSessionPending } = useSession();
@@ -308,9 +331,26 @@ export function BuildContainer({
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
-  // Guide state (for inline editor during creation)
-  const [guideSummary, setGuideSummary] = useState<string>("");
-  const [guideDescription, setGuideDescription] = useState<string>("");
+  // Guide state (for inline editor)
+  const [guideSummary, setGuideSummary] = useState<string>(
+    initialGuide?.summary ?? ""
+  );
+  const [guideDescription, setGuideDescription] = useState<string>(
+    initialGuide?.description ?? ""
+  );
+  
+  // Partner builds state
+  const [partnerBuilds, setPartnerBuilds] = useState(initialPartnerBuilds);
+  const [availableBuilds, setAvailableBuilds] = useState<{
+    id: string;
+    slug: string;
+    name: string;
+    item: { name: string; imageName: string | null; browseCategory: string };
+    buildData: { formaCount: number };
+  }[]>([]);
+  
+  // Guide save status (separate from build save)
+  const [guideSaveStatus, setGuideSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const [_saveError, setSaveError] = useState<string | null>(null);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -825,6 +865,68 @@ export function BuildContainer({
     }
   }, [item.uniqueName, savedBuildId]);
 
+  // Fetch available builds for partner selector when in edit mode or creating new build
+  useEffect(() => {
+    // For existing builds: only fetch when owner
+    // For new builds: fetch when authenticated
+    if (savedBuildId && !isOwner) return;
+    if (!savedBuildId && !isAuthenticated) return;
+    
+    getUserBuildsForPartnerSelectorAction().then((result) => {
+      if (result.success && result.builds) {
+        setAvailableBuilds(result.builds);
+      }
+    });
+  }, [isOwner, savedBuildId, isAuthenticated]);
+
+  // Handler to add a partner build
+  const handleAddPartner = useCallback((buildId: string) => {
+    const build = availableBuilds.find((b) => b.id === buildId);
+    if (build) {
+      setPartnerBuilds((prev) => [
+        ...prev,
+        {
+          id: build.id,
+          slug: build.slug,
+          name: build.name,
+          item: build.item,
+          buildData: { formaCount: build.buildData.formaCount },
+        },
+      ]);
+    }
+  }, [availableBuilds]);
+
+  // Handler to remove a partner build
+  const handleRemovePartner = useCallback((buildId: string) => {
+    setPartnerBuilds((prev) => prev.filter((b) => b.id !== buildId));
+  }, []);
+
+  // Save guide for existing builds
+  const handleSaveGuide = useCallback(async () => {
+    if (!savedBuildId) return;
+    
+    setGuideSaveStatus("saving");
+    
+    try {
+      const result = await updateBuildGuideAction(savedBuildId, {
+        summary: guideSummary.trim() || undefined,
+        description: guideDescription.trim() || undefined,
+        partnerBuildIds: partnerBuilds.map((b) => b.id),
+      });
+      
+      if (result.success) {
+        setGuideSaveStatus("saved");
+        setTimeout(() => setGuideSaveStatus("idle"), 2000);
+      } else {
+        setGuideSaveStatus("error");
+        setTimeout(() => setGuideSaveStatus("idle"), 3000);
+      }
+    } catch {
+      setGuideSaveStatus("error");
+      setTimeout(() => setGuideSaveStatus("idle"), 3000);
+    }
+  }, [savedBuildId, guideSummary, guideDescription, partnerBuilds]);
+
   // Toggle reactor/catalyst
   const handleToggleReactor = useCallback(() => {
     setBuildState((prev) => ({
@@ -1027,6 +1129,7 @@ try {
             buildData: { ...buildState, buildName },
             guideSummary: guideSummary.trim() || undefined,
             guideDescription: guideDescription.trim() || undefined,
+            partnerBuildIds: partnerBuilds.map((b) => b.id),
           });
 
           if (result.success && result.build) {
@@ -1067,7 +1170,7 @@ try {
         setPublishDialogOpen(false);
       }
     },
-    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router, guideSummary, guideDescription]
+    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router, guideSummary, guideDescription, partnerBuilds]
   );
 
   // Cancel and go back (clears localStorage)
@@ -1335,14 +1438,121 @@ try {
             </div>
           )}
 
-          {/* Build Guide Editor - only show when creating new builds (not editing existing) */}
+          {/* Build Guide Section */}
+          {/* New builds: show inline editor with partner builds */}
           {canEdit && !savedBuildId && (
-            <InlineGuideEditor
-              summary={guideSummary}
-              description={guideDescription}
-              onSummaryChange={setGuideSummary}
-              onDescriptionChange={setGuideDescription}
-            />
+            <div className="bg-card/50 border rounded-xl overflow-hidden">
+              <div className="border-b bg-muted/30 px-6 py-4">
+                <h2 className="text-lg font-semibold">Build Guide</h2>
+              </div>
+              <div className="p-6 space-y-6">
+                <InlineGuideEditor
+                  summary={guideSummary}
+                  description={guideDescription}
+                  onSummaryChange={setGuideSummary}
+                  onDescriptionChange={setGuideDescription}
+                  embedded
+                />
+                
+                {/* Partner Builds Selector for new builds */}
+                {isAuthenticated && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium">Partner Builds</h3>
+                    <PartnerBuildSelector
+                      currentBuildId=""
+                      selectedBuilds={partnerBuilds as PartnerBuild[]}
+                      availableBuilds={availableBuilds}
+                      onAdd={handleAddPartner}
+                      onRemove={handleRemovePartner}
+                    />
+                  </div>
+                )}
+                
+                <p className="text-xs text-muted-foreground">
+                  Your guide will be saved when you publish the build.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Existing builds: show editable or read-only guide */}
+          {savedBuildId && (
+            <div className="bg-card/50 border rounded-xl overflow-hidden">
+              <div className="border-b bg-muted/30 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Build Guide</h2>
+                {canEdit && (
+                  <div className="flex items-center gap-2">
+                    {guideSaveStatus === "saved" && (
+                      <span className="text-sm text-green-600 dark:text-green-400">
+                        Saved
+                      </span>
+                    )}
+                    {guideSaveStatus === "error" && (
+                      <span className="text-sm text-destructive">Error</span>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={handleSaveGuide}
+                      disabled={guideSaveStatus === "saving"}
+                    >
+                      {guideSaveStatus === "saving" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}
+                      Save Guide
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 space-y-6">
+                {canEdit ? (
+                  <>
+                    {/* Editable guide content */}
+                    <InlineGuideEditor
+                      summary={guideSummary}
+                      description={guideDescription}
+                      onSummaryChange={setGuideSummary}
+                      onDescriptionChange={setGuideDescription}
+                      embedded
+                    />
+                    
+                    {/* Partner Builds Selector */}
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-medium">Partner Builds</h3>
+                      <PartnerBuildSelector
+                        currentBuildId={savedBuildId}
+                        selectedBuilds={partnerBuilds as PartnerBuild[]}
+                        availableBuilds={availableBuilds}
+                        onAdd={handleAddPartner}
+                        onRemove={handleRemovePartner}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Read-only guide view */}
+                    {(guideSummary || guideDescription || partnerBuilds.length > 0) ? (
+                      <>
+                        {guideSummary && (
+                          <div className="text-muted-foreground">{guideSummary}</div>
+                        )}
+                        {guideDescription && (
+                          <GuideReader content={guideDescription} />
+                        )}
+                        {partnerBuilds.length > 0 && (
+                          <PartnerBuildsSection partnerBuilds={partnerBuilds} />
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No guide written yet.</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

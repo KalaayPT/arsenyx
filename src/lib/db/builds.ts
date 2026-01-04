@@ -21,6 +21,7 @@ export interface CreateBuildInput {
     buildData: BuildState;
     guideSummary?: string;
     guideDescription?: string;
+    partnerBuildIds?: string[];
 }
 
 export interface UpdateBuildInput {
@@ -220,6 +221,11 @@ const slug = await generateUniqueSlug();
           }
         : undefined;
 
+    // Prepare partner builds connection if provided
+    const partnerBuildsConnect = input.partnerBuildIds && input.partnerBuildIds.length > 0
+        ? { connect: input.partnerBuildIds.map(id => ({ id })) }
+        : undefined;
+
     const build = await prisma.build.create({
         data: {
             slug,
@@ -231,6 +237,7 @@ const slug = await generateUniqueSlug();
             buildData: input.buildData as unknown as Prisma.JsonObject,
             hasShards: false, // TODO: Detect from buildData when shards are implemented
             buildGuide: guideCreate,
+            partnerBuilds: partnerBuildsConnect,
         },
         include: buildInclude,
     });

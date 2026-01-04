@@ -14,7 +14,6 @@ import { getFullItem } from "@/lib/warframe/items";
 import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods";
 import { getCategoryConfig } from "@/lib/warframe";
 import type { BrowseCategory, Arcane } from "@/lib/warframe/types";
-import { BuildGuideSection } from "@/components/build/build-guide-section";
 import { BuildSocialActions } from "@/components/build/build-social-actions";
 import { slugify } from "@/lib/warframe/slugs";
 import { ViewTracker } from "@/components/build/view-tracker";
@@ -202,7 +201,7 @@ export default async function BuildPage({ params }: BuildPageProps) {
           </div>
         </div>
 
-        <Suspense fallback={<BuildViewSkeleton />}>
+<Suspense fallback={<BuildViewSkeleton />}>
           <BuildContainer
             item={fullItem}
             category={category}
@@ -210,28 +209,24 @@ export default async function BuildPage({ params }: BuildPageProps) {
             compatibleMods={compatibleMods}
             compatibleArcanes={compatibleArcanes}
             importedBuild={build.buildData}
-            savedBuildId={isOwner ? build.id : undefined}
-            savedBuildSlug={isOwner ? build.slug : undefined}
+            savedBuildId={build.id}
+            savedBuildSlug={build.slug}
             readOnly={!isOwner}
             isOwner={isOwner}
+            initialGuide={{
+              summary: build.buildGuide?.summary,
+              description: build.buildGuide?.description,
+              updatedAt: build.buildGuide?.updatedAt,
+            }}
+            initialPartnerBuilds={build.partnerBuilds.map((pb) => ({
+              id: pb.id,
+              slug: pb.slug,
+              name: pb.name,
+              item: pb.item,
+              buildData: pb.buildData as { formaCount: number },
+            }))}
           />
         </Suspense>
-
-        {/* Build Guide */}
-        <BuildGuideSection
-          buildId={build.id}
-          initialSummary={build.buildGuide?.summary}
-          initialDescription={build.buildGuide?.description}
-          initialPartnerBuilds={build.partnerBuilds.map((pb) => ({
-            id: pb.id,
-            slug: pb.slug,
-            name: pb.name,
-            item: pb.item,
-            buildData: pb.buildData as { formaCount: number },
-          }))}
-          updatedAt={build.buildGuide?.updatedAt}
-          isOwner={isOwner}
-        />
       </main>
       <Footer />
       <ViewTracker buildId={build.id} />

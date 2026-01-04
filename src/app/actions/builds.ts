@@ -35,6 +35,7 @@ export interface SaveBuildInput {
   buildData: BuildState;
   guideSummary?: string;
   guideDescription?: string;
+  partnerBuildIds?: string[];
 }
 
 export interface SaveBuildResult {
@@ -115,6 +116,7 @@ export async function saveBuildAction(
       buildData: input.buildData,
       guideSummary: input.guideSummary,
       guideDescription: input.guideDescription,
+      partnerBuildIds: input.partnerBuildIds,
     };
 
     const build = await createBuild(userId, createData);
