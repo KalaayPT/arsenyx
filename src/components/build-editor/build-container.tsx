@@ -1493,11 +1493,6 @@ export function BuildContainer({
             <div className="bg-card/50 border rounded-xl overflow-hidden">
               <div className="border-b bg-muted/30 px-6 py-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Build Guide</h2>
-                {canEdit && (
-                  <span className="text-sm text-muted-foreground">
-                    Saved automatically when you update the build
-                  </span>
-                )}
               </div>
               <div className="p-6 space-y-6">
                 {canEdit ? (

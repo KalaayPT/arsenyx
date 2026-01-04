@@ -100,8 +100,8 @@ export const HERO_CONTENT = {
   description:
     "The open-source Warframe build planner. Fast, keyboard-first, and built for the community. Plan your perfect loadout in seconds.",
   cta: {
-    primary: { label: "Create Build", href: ROUTES.create },
-    secondary: { label: "Browse Items", href: ROUTES.browse },
+    primary: { label: "Start Building", href: ROUTES.browse },
+    secondary: { label: "Start Building", href: ROUTES.browse },
   },
   trustSignals: [
     {
@@ -127,6 +127,6 @@ export const CTA_CONTENT = {
   headline: "Ready to build your perfect loadout?",
   description:
     "Join thousands of Tenno who use Arsenix to plan, share, and optimize their builds.",
-  primaryCta: { label: "Start Building", href: ROUTES.create },
+  primaryCta: { label: "Start Building", href: ROUTES.browse },
   secondaryCta: { label: "Star on GitHub", href: EXTERNAL_LINKS.github },
 } as const;
