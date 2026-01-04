@@ -45,7 +45,6 @@ export const NAV_ITEMS = [
 export const FOOTER_LINKS = {
   build: [
     { label: "Browse Items", href: ROUTES.browse },
-    { label: "Create Build", href: ROUTES.create },
     { label: "Import Build", href: ROUTES.import },
     { label: "Templates", href: ROUTES.templates },
   ],

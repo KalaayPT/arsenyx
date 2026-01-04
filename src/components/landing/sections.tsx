@@ -38,14 +38,8 @@ export function HeroSection() {
             </p>
           </div>
 
-          {/* CTA Buttons */}
+          {/* CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="gap-2 w-full sm:w-auto" asChild>
-              <Link href={cta.primary.href}>
-                {cta.primary.label}
-                <Icons.arrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
             <Button
               size="lg"
               variant="outline"
@@ -99,7 +93,7 @@ export function FeaturesSection() {
 }
 
 export function CTASection() {
-  const { headline, description, primaryCta, secondaryCta } = CTA_CONTENT;
+  const { headline, description, secondaryCta } = CTA_CONTENT;
 
   return (
     <section className="border-b">
@@ -110,12 +104,6 @@ export function CTASection() {
           </h2>
           <p className="text-lg text-muted-foreground">{description}</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" className="gap-2 w-full sm:w-auto" asChild>
-              <Link href={primaryCta.href}>
-                {primaryCta.label}
-                <Icons.arrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
             <Button size="lg" variant="outline" className="gap-2" asChild>
               <Link
                 href={secondaryCta.href}

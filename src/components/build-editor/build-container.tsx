@@ -41,7 +41,10 @@ import {
 import { normalizePolarity } from "@/lib/warframe/mods";
 import { getModBaseName } from "@/lib/warframe/mod-variants";
 import { copyBuildToClipboard } from "@/lib/build-codec";
-import { saveBuildAction, getUserBuildsForPartnerSelectorAction } from "@/app/actions/builds";
+import {
+  saveBuildAction,
+  getUserBuildsForPartnerSelectorAction,
+} from "@/app/actions/builds";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/warframe/images";
@@ -137,7 +140,11 @@ function extractItemStats(item: BrowseableItem): ItemStats {
     armor?: number;
     power?: number;
     sprintSpeed?: number;
-    abilities?: Array<{ name: string; imageName?: string; description: string }>;
+    abilities?: Array<{
+      name: string;
+      imageName?: string;
+      description: string;
+    }>;
     // Weapon
     fireRate?: number;
     criticalChance?: number;
@@ -327,7 +334,7 @@ export function BuildContainer({
     importedBuild?.buildName || `${item.name} Build`
   );
 
-// Save status: 'idle' | 'saving' | 'saved' | 'error'
+  // Save status: 'idle' | 'saving' | 'saved' | 'error'
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
 
@@ -338,16 +345,18 @@ export function BuildContainer({
   const [guideDescription, setGuideDescription] = useState<string>(
     initialGuide?.description ?? ""
   );
-  
+
   // Partner builds state
   const [partnerBuilds, setPartnerBuilds] = useState(initialPartnerBuilds);
-  const [availableBuilds, setAvailableBuilds] = useState<{
-    id: string;
-    slug: string;
-    name: string;
-    item: { name: string; imageName: string | null; browseCategory: string };
-    buildData: { formaCount: number };
-  }[]>([]);
+  const [availableBuilds, setAvailableBuilds] = useState<
+    {
+      id: string;
+      slug: string;
+      name: string;
+      item: { name: string; imageName: string | null; browseCategory: string };
+      buildData: { formaCount: number };
+    }[]
+  >([]);
 
   const [_saveError, setSaveError] = useState<string | null>(null);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -785,7 +794,7 @@ export function BuildContainer({
     buildState.exilusSlot
   );
 
-// Auto-save to localStorage (debounced to avoid chatty writes while dragging)
+  // Auto-save to localStorage (debounced to avoid chatty writes while dragging)
   // Skip in read-only mode
   useEffect(() => {
     if (!canEdit) return; // Don't save in read-only mode
@@ -811,7 +820,10 @@ export function BuildContainer({
       try {
         localStorage.setItem(
           key,
-          JSON.stringify({ summary: guideSummary, description: guideDescription })
+          JSON.stringify({
+            summary: guideSummary,
+            description: guideDescription,
+          })
         );
       } catch {
         // Ignore storage errors
@@ -821,7 +833,7 @@ export function BuildContainer({
     return () => window.clearTimeout(handle);
   }, [guideSummary, guideDescription, item.uniqueName, canEdit]);
 
-// Load from localStorage on mount
+  // Load from localStorage on mount
   useEffect(() => {
     if (importedBuild) return; // Don't override imported builds
 
@@ -868,7 +880,7 @@ export function BuildContainer({
     // For new builds: fetch when authenticated
     if (savedBuildId && !isOwner) return;
     if (!savedBuildId && !isAuthenticated) return;
-    
+
     getUserBuildsForPartnerSelectorAction().then((result) => {
       if (result.success && result.builds) {
         setAvailableBuilds(result.builds);
@@ -877,21 +889,24 @@ export function BuildContainer({
   }, [isOwner, savedBuildId, isAuthenticated]);
 
   // Handler to add a partner build
-  const handleAddPartner = useCallback((buildId: string) => {
-    const build = availableBuilds.find((b) => b.id === buildId);
-    if (build) {
-      setPartnerBuilds((prev) => [
-        ...prev,
-        {
-          id: build.id,
-          slug: build.slug,
-          name: build.name,
-          item: build.item,
-          buildData: { formaCount: build.buildData.formaCount },
-        },
-      ]);
-    }
-  }, [availableBuilds]);
+  const handleAddPartner = useCallback(
+    (buildId: string) => {
+      const build = availableBuilds.find((b) => b.id === buildId);
+      if (build) {
+        setPartnerBuilds((prev) => [
+          ...prev,
+          {
+            id: build.id,
+            slug: build.slug,
+            name: build.name,
+            item: build.item,
+            buildData: { formaCount: build.buildData.formaCount },
+          },
+        ]);
+      }
+    },
+    [availableBuilds]
+  );
 
   // Handler to remove a partner build
   const handleRemovePartner = useCallback((buildId: string) => {
@@ -1090,11 +1105,11 @@ export function BuildContainer({
       if (isAuthenticated) {
         // Track if this is an update (existing build) or new publish
         const isUpdating = !!buildId;
-        
+
         setSaveStatus("saving");
         setSaveError(null);
 
-try {
+        try {
           const result = await saveBuildAction({
             buildId: buildId,
             itemUniqueName: item.uniqueName,
@@ -1114,8 +1129,12 @@ try {
 
             // Clear localStorage on successful save
             try {
-              localStorage.removeItem(`${STORAGE_KEY_PREFIX}${item.uniqueName}`);
-              localStorage.removeItem(`${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`);
+              localStorage.removeItem(
+                `${STORAGE_KEY_PREFIX}${item.uniqueName}`
+              );
+              localStorage.removeItem(
+                `${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`
+              );
             } catch {
               // Ignore storage errors
             }
@@ -1149,7 +1168,17 @@ try {
         setPublishDialogOpen(false);
       }
     },
-    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router, guideSummary, guideDescription, partnerBuilds]
+    [
+      isAuthenticated,
+      buildId,
+      item.uniqueName,
+      buildName,
+      buildState,
+      router,
+      guideSummary,
+      guideDescription,
+      partnerBuilds,
+    ]
   );
 
   // Cancel editing - for existing builds, exit edit mode; for new builds, go back
@@ -1163,7 +1192,7 @@ try {
     } catch {
       // Ignore storage errors
     }
-    
+
     // For existing builds, just exit edit mode (stay on build page)
     if (savedBuildId) {
       setIsEditMode(false);
@@ -1400,7 +1429,7 @@ try {
             </div>
           </div>
 
-{/* Mod/Arcane Search Grid - only show when editing */}
+          {/* Mod/Arcane Search Grid - only show when editing */}
           {canEdit && (
             <div className="bg-card border rounded-lg p-4">
               {(getSlotType(activeSlotId) === "arcane" ||
@@ -1436,9 +1465,8 @@ try {
                   description={guideDescription}
                   onSummaryChange={setGuideSummary}
                   onDescriptionChange={setGuideDescription}
-                  embedded
                 />
-                
+
                 {/* Partner Builds Selector for new builds */}
                 {isAuthenticated && (
                   <div className="space-y-2">
@@ -1452,7 +1480,7 @@ try {
                     />
                   </div>
                 )}
-                
+
                 <p className="text-xs text-muted-foreground">
                   Your guide will be saved when you publish the build.
                 </p>
@@ -1480,9 +1508,8 @@ try {
                       description={guideDescription}
                       onSummaryChange={setGuideSummary}
                       onDescriptionChange={setGuideDescription}
-                      embedded
                     />
-                    
+
                     {/* Partner Builds Selector */}
                     <div className="space-y-2">
                       <h3 className="text-sm font-medium">Partner Builds</h3>
@@ -1498,10 +1525,14 @@ try {
                 ) : (
                   <>
                     {/* Read-only guide view */}
-                    {(guideSummary || guideDescription || partnerBuilds.length > 0) ? (
+                    {guideSummary ||
+                    guideDescription ||
+                    partnerBuilds.length > 0 ? (
                       <>
                         {guideSummary && (
-                          <div className="text-muted-foreground">{guideSummary}</div>
+                          <div className="text-muted-foreground">
+                            {guideSummary}
+                          </div>
                         )}
                         {guideDescription && (
                           <GuideReader content={guideDescription} />

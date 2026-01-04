@@ -83,7 +83,9 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         if (["warframes", "necramechs"].includes(category)) {
           compatibleArcanes = getArcanesForSlot("warframe");
         } else if (["primary", "secondary", "melee"].includes(category)) {
-          compatibleArcanes = getArcanesForSlot(category as "primary" | "secondary" | "melee");
+          compatibleArcanes = getArcanesForSlot(
+            category as "primary" | "secondary" | "melee"
+          );
         }
 
         return (
@@ -129,7 +131,9 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     if (["warframes", "necramechs"].includes(category)) {
       compatibleArcanes = getArcanesForSlot("warframe");
     } else if (["primary", "secondary", "melee"].includes(category)) {
-      compatibleArcanes = getArcanesForSlot(category as "primary" | "secondary" | "melee");
+      compatibleArcanes = getArcanesForSlot(
+        category as "primary" | "secondary" | "melee"
+      );
     }
 
     return (
@@ -151,7 +155,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     );
   }
 
-  // No item specified - show item picker
+  // No item specified - show lightweight picker guidance
   return (
     <div className="relative min-h-screen flex flex-col">
       <Header />
@@ -160,7 +164,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
           <div className="text-center space-y-4 py-16">
             <h1 className="text-3xl font-bold">Build Editor</h1>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Select an item from the{" "}
+              Pick an item from the{" "}
               <Link
                 href="/browse"
                 className="text-primary underline underline-offset-4"

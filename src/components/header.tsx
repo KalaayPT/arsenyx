@@ -31,12 +31,6 @@ export function Header() {
             <Icons.search className="h-4 w-4" />
             <span className="sr-only">Search</span>
           </Button>
-          <Button variant="ghost" size="default" className="gap-2" asChild>
-            <Link href={ROUTES.create}>
-              <Icons.plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New Build</span>
-            </Link>
-          </Button>
           <Button variant="ghost" size="icon">
             <Icons.bell className="h-4 w-4" />
             <span className="sr-only">Notifications</span>
