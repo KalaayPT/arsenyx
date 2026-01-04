@@ -112,37 +112,18 @@ export interface GuideFilters {
 // Sort options for guide listings
 export type GuideSortOption = "recent" | "title" | "readingTime";
 
-// Helper to calculate reading time from content
-export function calculateReadingTime(content: SerializedEditorState): number {
+// Helper to calculate reading time from markdown content
+export function calculateReadingTime(content: string): number {
     // Rough estimate: 200 words per minute
-    // Extract text content from serialized state
-    const textContent = extractTextFromEditorState(content);
-    const wordCount = textContent.split(/\s+/).filter(Boolean).length;
+    // Strip markdown syntax for more accurate word count
+    const plainText = content
+        .replace(/#{1,6}\s/g, "") // headings
+        .replace(/\*\*|__/g, "") // bold
+        .replace(/\*|_/g, "") // italic
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // links
+        .replace(/`{1,3}[^`]*`{1,3}/g, "") // code
+        .replace(/---/g, ""); // hr
+    
+    const wordCount = plainText.split(/\s+/).filter(Boolean).length;
     return Math.max(1, Math.ceil(wordCount / 200));
-}
-
-// Extract plain text from SerializedEditorState for word count
-function extractTextFromEditorState(state: SerializedEditorState): string {
-    const root = state.root;
-    return extractTextFromNode(root);
-}
-
-// Recursively extract text from nodes
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractTextFromNode(node: any): string {
-    if (!node) return "";
-
-    let text = "";
-
-    if (node.text) {
-        text += node.text;
-    }
-
-    if (node.children && Array.isArray(node.children)) {
-        for (const child of node.children) {
-            text += " " + extractTextFromNode(child);
-        }
-    }
-
-    return text;
 }

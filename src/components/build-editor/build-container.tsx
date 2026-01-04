@@ -25,6 +25,7 @@ import { ItemSidebar } from "./item-sidebar";
 import { ModGrid } from "./mod-grid";
 import { ModSearchGrid } from "./mod-search-grid";
 import { ArcaneSearchPanel } from "./arcane-search-panel";
+import { InlineGuideEditor } from "./inline-guide-editor";
 import { CompactModCard, type ModRarity } from "@/components/mod-card";
 import { ArcaneDragGhost } from "@/components/arcane-card";
 import { useBuildKeyboard } from "./use-build-keyboard";
@@ -264,6 +265,7 @@ function createInitialBuildState(
 
 // Local storage key for auto-save
 const STORAGE_KEY_PREFIX = "arsenix_build_";
+const GUIDE_STORAGE_KEY_PREFIX = "arsenix_build_guide_";
 
 export function BuildContainer({
   item,
@@ -302,9 +304,13 @@ export function BuildContainer({
     importedBuild?.buildName || `${item.name} Build`
   );
 
-  // Save status: 'idle' | 'saving' | 'saved' | 'error'
+// Save status: 'idle' | 'saving' | 'saved' | 'error'
   type SaveStatus = "idle" | "saving" | "saved" | "error";
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
+  // Guide state (for inline editor during creation)
+  const [guideSummary, setGuideSummary] = useState<string>("");
+  const [guideDescription, setGuideDescription] = useState<string>("");
 
   const [_saveError, setSaveError] = useState<string | null>(null);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -742,7 +748,7 @@ export function BuildContainer({
     buildState.exilusSlot
   );
 
-  // Auto-save to localStorage (debounced to avoid chatty writes while dragging)
+// Auto-save to localStorage (debounced to avoid chatty writes while dragging)
   // Skip in read-only mode
   useEffect(() => {
     if (!canEdit) return; // Don't save in read-only mode
@@ -759,7 +765,26 @@ export function BuildContainer({
     return () => window.clearTimeout(handle);
   }, [buildState, item.uniqueName, canEdit]);
 
-  // Load from localStorage on mount
+  // Auto-save guide to localStorage
+  useEffect(() => {
+    if (!canEdit) return;
+
+    const key = `${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`;
+    const handle = window.setTimeout(() => {
+      try {
+        localStorage.setItem(
+          key,
+          JSON.stringify({ summary: guideSummary, description: guideDescription })
+        );
+      } catch {
+        // Ignore storage errors
+      }
+    }, 300);
+
+    return () => window.clearTimeout(handle);
+  }, [guideSummary, guideDescription, item.uniqueName, canEdit]);
+
+// Load from localStorage on mount
   useEffect(() => {
     if (importedBuild) return; // Don't override imported builds
 
@@ -782,6 +807,23 @@ export function BuildContainer({
       // Ignore parse errors
     }
   }, [item.uniqueName, item.name, item.imageName, category, importedBuild]);
+
+  // Load guide from localStorage on mount
+  useEffect(() => {
+    if (savedBuildId) return; // Don't load for existing saved builds
+
+    const key = `${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`;
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.summary) setGuideSummary(parsed.summary);
+        if (parsed.description) setGuideDescription(parsed.description);
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, [item.uniqueName, savedBuildId]);
 
   // Toggle reactor/catalyst
   const handleToggleReactor = useCallback(() => {
@@ -976,13 +1018,15 @@ export function BuildContainer({
         setSaveStatus("saving");
         setSaveError(null);
 
-        try {
+try {
           const result = await saveBuildAction({
             buildId: buildId,
             itemUniqueName: item.uniqueName,
             name: buildName,
             visibility: visibility,
             buildData: { ...buildState, buildName },
+            guideSummary: guideSummary.trim() || undefined,
+            guideDescription: guideDescription.trim() || undefined,
           });
 
           if (result.success && result.build) {
@@ -990,6 +1034,14 @@ export function BuildContainer({
             setBuildSlug(result.build.slug);
             setSaveStatus("saved");
             setPublishDialogOpen(false);
+
+            // Clear localStorage on successful save
+            try {
+              localStorage.removeItem(`${STORAGE_KEY_PREFIX}${item.uniqueName}`);
+              localStorage.removeItem(`${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`);
+            } catch {
+              // Ignore storage errors
+            }
 
             // Redirect to view page
             router.push(`/builds/${result.build.slug}`);
@@ -1015,7 +1067,7 @@ export function BuildContainer({
         setPublishDialogOpen(false);
       }
     },
-    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router]
+    [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router, guideSummary, guideDescription]
   );
 
   // Cancel and go back (clears localStorage)
@@ -1260,7 +1312,7 @@ export function BuildContainer({
             </div>
           </div>
 
-          {/* Mod/Arcane Search Grid - only show when editing */}
+{/* Mod/Arcane Search Grid - only show when editing */}
           {canEdit && (
             <div className="bg-card border rounded-lg p-4">
               {(getSlotType(activeSlotId) === "arcane" ||
@@ -1281,6 +1333,16 @@ export function BuildContainer({
                 />
               )}
             </div>
+          )}
+
+          {/* Build Guide Editor - only show when creating new builds (not editing existing) */}
+          {canEdit && !savedBuildId && (
+            <InlineGuideEditor
+              summary={guideSummary}
+              description={guideDescription}
+              onSummaryChange={setGuideSummary}
+              onDescriptionChange={setGuideDescription}
+            />
           )}
         </div>
       </div>

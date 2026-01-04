@@ -19,6 +19,8 @@ export interface CreateBuildInput {
     description?: string;
     visibility?: BuildVisibility;
     buildData: BuildState;
+    guideSummary?: string;
+    guideDescription?: string;
 }
 
 export interface UpdateBuildInput {
@@ -205,7 +207,18 @@ export async function createBuild(
         throw new Error(`Item not found: ${input.itemUniqueName}`);
     }
 
-    const slug = await generateUniqueSlug();
+const slug = await generateUniqueSlug();
+
+    // Prepare guide data if provided
+    const hasGuideData = input.guideSummary || input.guideDescription;
+    const guideCreate = hasGuideData
+        ? {
+              create: {
+                  summary: input.guideSummary ?? null,
+                  description: input.guideDescription ?? null,
+              },
+          }
+        : undefined;
 
     const build = await prisma.build.create({
         data: {
@@ -217,6 +230,7 @@ export async function createBuild(
             visibility: input.visibility ?? "PUBLIC",
             buildData: input.buildData as unknown as Prisma.JsonObject,
             hasShards: false, // TODO: Detect from buildData when shards are implemented
+            buildGuide: guideCreate,
         },
         include: buildInclude,
     });

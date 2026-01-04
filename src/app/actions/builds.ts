@@ -33,6 +33,8 @@ export interface SaveBuildInput {
   description?: string;
   visibility?: BuildVisibility;
   buildData: BuildState;
+  guideSummary?: string;
+  guideDescription?: string;
 }
 
 export interface SaveBuildResult {
@@ -104,13 +106,15 @@ export async function saveBuildAction(
       };
     }
 
-    // Create new build
+// Create new build
     const createData: CreateBuildInput = {
       itemUniqueName: input.itemUniqueName,
       name: input.name,
       description: input.description,
       visibility: input.visibility ?? "PUBLIC",
       buildData: input.buildData,
+      guideSummary: input.guideSummary,
+      guideDescription: input.guideDescription,
     };
 
     const build = await createBuild(userId, createData);
