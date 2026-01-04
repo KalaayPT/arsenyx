@@ -26,12 +26,13 @@ Replace the complex Lexical WYSIWYG editor with a simpler markdown-based guide s
 - Link related builds (exalted weapons, companions, specific weapon builds, etc.)
 - **Maximum 10 partner builds** per build (hard limit)
 - **Own builds only**: Can only link builds you created
-- **Published builds only**: Both builds must be published to create a link
+- **Any visibility**: Can link to any of your own builds (public, unlisted, or private)
 - **NOT auto-bidirectional**: Each build manages its own partner list independently
   - Build A can link to Build B without B linking back
   - Prevents "20 frames pointing to 1 weapon" flooding that weapon's partner list
-- **Visibility inheritance**: Partner links only shown to viewers who can access both builds
+- **Visibility inheritance on view**: Partner links only shown to viewers who can access both builds
   - If all partner builds are inaccessible, hide the entire Partner Builds section
+  - Example: Public build links to unlisted build → viewers without the unlisted link see nothing
 
 ### 3. Description (optional)
 - Raw markdown textarea with toggle preview mode
@@ -52,7 +53,7 @@ Replace the complex Lexical WYSIWYG editor with a simpler markdown-based guide s
 - Search results show: `Build Name (Category)` format (e.g., "Steel Path Slayer (Warframe)")
 - Already-linked builds appear grayed out/disabled with "Already linked" indicator
 - Current build filtered from search results (prevent self-linking)
-- If user has no other published builds: show disabled section with message "Create more builds to link partners"
+- If user has no other builds: show disabled section with message "Create more builds to link partners"
 
 ### Editor: Removing Partner Links
 - X button on partner card
@@ -87,7 +88,7 @@ Replace the complex Lexical WYSIWYG editor with a simpler markdown-based guide s
 │ │ [Search your builds...              v]  │ │
 │ │ ┌─────────┐ ┌─────────┐                 │ │
 │ │ │Exalted  │ │Companion│                 │ │
-│ │ │Blade  [x]│ │Build  [x]│                │ │
+│ │ │Blade [x]│ │Build[x] │                 │ │
 │ │ └─────────┘ └─────────┘                 │ │
 │ └─────────────────────────────────────────┘ │
 │                                             │
@@ -203,7 +204,7 @@ Note: The `partnerBuilds` relation is directional. If Build A adds Build B as a 
 
 4. **Create Partner Build Selector**
    - Type-to-search combobox
-   - Filter: user's published builds only, exclude current build and already-linked
+   - Filter: user's own builds (any visibility), exclude current build and already-linked
    - Display: name + category
    - Remove with confirmation dialog
 
