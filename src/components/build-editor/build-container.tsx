@@ -41,7 +41,7 @@ import {
 import { normalizePolarity } from "@/lib/warframe/mods";
 import { getModBaseName } from "@/lib/warframe/mod-variants";
 import { copyBuildToClipboard } from "@/lib/build-codec";
-import { saveBuildAction, updateBuildGuideAction, getUserBuildsForPartnerSelectorAction } from "@/app/actions/builds";
+import { saveBuildAction, getUserBuildsForPartnerSelectorAction } from "@/app/actions/builds";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { getImageUrl } from "@/lib/warframe/images";
@@ -348,9 +348,6 @@ export function BuildContainer({
     item: { name: string; imageName: string | null; browseCategory: string };
     buildData: { formaCount: number };
   }[]>([]);
-  
-  // Guide save status (separate from build save)
-  const [guideSaveStatus, setGuideSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
   const [_saveError, setSaveError] = useState<string | null>(null);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
@@ -901,32 +898,6 @@ export function BuildContainer({
     setPartnerBuilds((prev) => prev.filter((b) => b.id !== buildId));
   }, []);
 
-  // Save guide for existing builds
-  const handleSaveGuide = useCallback(async () => {
-    if (!savedBuildId) return;
-    
-    setGuideSaveStatus("saving");
-    
-    try {
-      const result = await updateBuildGuideAction(savedBuildId, {
-        summary: guideSummary.trim() || undefined,
-        description: guideDescription.trim() || undefined,
-        partnerBuildIds: partnerBuilds.map((b) => b.id),
-      });
-      
-      if (result.success) {
-        setGuideSaveStatus("saved");
-        setTimeout(() => setGuideSaveStatus("idle"), 2000);
-      } else {
-        setGuideSaveStatus("error");
-        setTimeout(() => setGuideSaveStatus("idle"), 3000);
-      }
-    } catch {
-      setGuideSaveStatus("error");
-      setTimeout(() => setGuideSaveStatus("idle"), 3000);
-    }
-  }, [savedBuildId, guideSummary, guideDescription, partnerBuilds]);
-
   // Toggle reactor/catalyst
   const handleToggleReactor = useCallback(() => {
     setBuildState((prev) => ({
@@ -1117,6 +1088,9 @@ export function BuildContainer({
     async (visibility: Visibility) => {
       // For authenticated users, save to database
       if (isAuthenticated) {
+        // Track if this is an update (existing build) or new publish
+        const isUpdating = !!buildId;
+        
         setSaveStatus("saving");
         setSaveError(null);
 
@@ -1146,8 +1120,13 @@ try {
               // Ignore storage errors
             }
 
-            // Redirect to view page
-            router.push(`/builds/${result.build.slug}`);
+            // For updates, just exit edit mode (stay on build view)
+            // For new builds, redirect to the build page
+            if (isUpdating) {
+              setIsEditMode(false);
+            } else {
+              router.push(`/builds/${result.build.slug}`);
+            }
           } else {
             setSaveStatus("error");
             setSaveError(result.error || "Failed to save build");
@@ -1173,7 +1152,7 @@ try {
     [isAuthenticated, buildId, item.uniqueName, buildName, buildState, router, guideSummary, guideDescription, partnerBuilds]
   );
 
-  // Cancel and go back (clears localStorage)
+  // Cancel editing - for existing builds, exit edit mode; for new builds, go back
   const handleCancel = useCallback(() => {
     // Clear build from localStorage
     const buildKey = `${STORAGE_KEY_PREFIX}${item.uniqueName}`;
@@ -1184,9 +1163,15 @@ try {
     } catch {
       // Ignore storage errors
     }
-    // Navigate back
-    router.back();
-  }, [item.uniqueName, router]);
+    
+    // For existing builds, just exit edit mode (stay on build page)
+    if (savedBuildId) {
+      setIsEditMode(false);
+    } else {
+      // For new builds, navigate back
+      router.back();
+    }
+  }, [item.uniqueName, router, savedBuildId]);
 
   // Get all used mod base names for duplicate/variant checking
   const usedModNames = useMemo((): string[] => {
@@ -1481,28 +1466,9 @@ try {
               <div className="border-b bg-muted/30 px-6 py-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Build Guide</h2>
                 {canEdit && (
-                  <div className="flex items-center gap-2">
-                    {guideSaveStatus === "saved" && (
-                      <span className="text-sm text-green-600 dark:text-green-400">
-                        Saved
-                      </span>
-                    )}
-                    {guideSaveStatus === "error" && (
-                      <span className="text-sm text-destructive">Error</span>
-                    )}
-                    <Button
-                      size="sm"
-                      onClick={handleSaveGuide}
-                      disabled={guideSaveStatus === "saving"}
-                    >
-                      {guideSaveStatus === "saving" ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="w-4 h-4 mr-2" />
-                      )}
-                      Save Guide
-                    </Button>
-                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    Saved automatically when you update the build
+                  </span>
                 )}
               </div>
               <div className="p-6 space-y-6">

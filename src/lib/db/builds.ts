@@ -161,6 +161,8 @@ const buildInclude = {
             id: true,
             slug: true,
             name: true,
+            visibility: true,
+            userId: true,
             buildData: true,
             item: {
                 select: {
@@ -173,17 +175,39 @@ const buildInclude = {
     },
 } as const;
 
-function mapBuildResult(build: {
-    buildData: unknown;
-    buildGuide: { summary: string | null; description: string | null; updatedAt: Date } | null;
-    partnerBuilds: { id: string; slug: string; name: string; buildData: unknown; item: { name: string; imageName: string | null; browseCategory: string } }[];
-    [key: string]: unknown;
-}): BuildWithUser {
+function mapBuildResult(
+    build: {
+        buildData: unknown;
+        buildGuide: { summary: string | null; description: string | null; updatedAt: Date } | null;
+        partnerBuilds: {
+            id: string;
+            slug: string;
+            name: string;
+            visibility: BuildVisibility;
+            userId: string;
+            buildData: unknown;
+            item: { name: string; imageName: string | null; browseCategory: string };
+        }[];
+        [key: string]: unknown;
+    },
+    viewerId?: string
+): BuildWithUser {
+    // Filter partner builds based on visibility
+    const filteredPartners = build.partnerBuilds.filter(partner => 
+        canViewBuild(partner, viewerId)
+    );
+
     return {
         ...build,
         buildData: build.buildData as unknown as BuildState,
         buildGuide: build.buildGuide,
-        partnerBuilds: build.partnerBuilds,
+        partnerBuilds: filteredPartners.map(pb => ({
+            id: pb.id,
+            slug: pb.slug,
+            name: pb.name,
+            item: pb.item,
+            buildData: pb.buildData,
+        })),
     } as BuildWithUser;
 }
 
@@ -242,7 +266,7 @@ const slug = await generateUniqueSlug();
         include: buildInclude,
     });
 
-    return mapBuildResult(build);
+    return mapBuildResult(build, userId);
 }
 
 // =============================================================================
@@ -272,7 +296,7 @@ export async function getBuildBySlug(
         return null;
     }
 
-    return mapBuildResult(build);
+    return mapBuildResult(build, viewerId);
 }
 
 /**
@@ -296,7 +320,7 @@ export async function getBuildById(
         return null;
     }
 
-    return mapBuildResult(build);
+    return mapBuildResult(build, viewerId);
 }
 
 /**
@@ -337,7 +361,7 @@ export async function getUserBuilds(
     ]);
 
     return {
-        builds: builds.map(mapBuildResult),
+        builds: builds.map(b => mapBuildResult(b, viewerId)),
         total,
     };
 }
@@ -383,7 +407,7 @@ export async function getPublicBuildsForItem(
         ]);
 
         return {
-            builds: builds.map(mapBuildResult),
+            builds: builds.map(b => mapBuildResult(b)),
             total,
         };
     } catch {
@@ -422,7 +446,7 @@ export async function getPublicBuilds(
     ]);
 
     return {
-        builds: builds.map(mapBuildResult),
+        builds: builds.map(b => mapBuildResult(b)),
         total,
     };
 }
@@ -516,7 +540,7 @@ export async function updateBuild(
         include: buildInclude,
     });
 
-    return mapBuildResult(build);
+    return mapBuildResult(build, userId);
 }
 
 /**
