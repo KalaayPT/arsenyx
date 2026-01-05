@@ -102,6 +102,7 @@ volumes:
 ```
 
 Local `DATABASE_URL`:
+
 ```
 postgresql://arsenix:arsenix_dev@localhost:5432/arsenix
 ```
@@ -751,6 +752,7 @@ export const { GET, POST } = handlers;
 ### 4.3 Session Access
 
 Server components:
+
 ```typescript
 import { auth } from "@/lib/auth";
 
@@ -763,6 +765,7 @@ export default async function Page() {
 ```
 
 Client components:
+
 ```typescript
 "use client";
 import { useSession } from "next-auth/react";
@@ -2460,6 +2463,7 @@ jobs:
 | E2E               | Critical paths | Auth, build CRUD, voting         |
 
 Don't aim for 100% coverage - focus on:
+
 1. Business logic (capacity calculations, sync logic)
 2. Authorization (ownership checks, visibility rules)
 3. Data integrity (vote counts, cascade deletes)

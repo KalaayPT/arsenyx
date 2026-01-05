@@ -3,11 +3,13 @@
 ## Overview
 
 Add the ability to import builds from Overframe.gg URLs into Arsenix. Given a URL like:
-```
+
+```txt
 https://overframe.gg/build/935570/uriel/fire-and-brimstone-uriel-hybrid-nuke-and-weapon-platform/
 ```
 
 The system should:
+
 1. Fetch the build data from Overframe
 2. Match the warframe/weapon and mods to Arsenix's WFCD data
 3. Create a new build with the correct mods, forma, arcanes, and shards in place
@@ -50,6 +52,7 @@ interface BuildState {
 ### Matching Challenge
 
 The main challenge is **name matching**:
+
 - Overframe uses display names (e.g., "Primed Continuity")
 - Arsenix uses WFCD's `uniqueName` as the primary identifier
 - Names must be fuzzy-matched to handle slight differences
@@ -78,6 +81,7 @@ export async function POST(request: Request) {
 ```
 
 **Key tasks**:
+
 - Validate URL matches pattern: `https://overframe.gg/build/\d+/[^/]+/[^/]+/?`
 - Fetch page HTML with appropriate User-Agent
 - Extract JSON from `<script id="__NEXT_DATA__">` tag
@@ -122,6 +126,7 @@ interface OverframeMod {
 **File**: `src/lib/overframe/name-matcher.ts`
 
 Build a robust name matching system to handle:
+
 - Exact matches
 - Case-insensitive matches
 - Fuzzy matches (Levenshtein distance)
@@ -144,6 +149,7 @@ export function findMatchingArcane(
 ```
 
 **Matching strategy**:
+
 1. Try exact match (case-insensitive)
 2. Try normalized match (remove special characters, spaces)
 3. Try fuzzy match with similarity threshold (>0.85)
@@ -198,6 +204,7 @@ export function convertOverframeBuild(
 ```
 
 **Conversion steps**:
+
 1. Map item to Arsenix item (validate category matches)
 2. Create base `BuildState` with item info and innate polarities
 3. For each Overframe mod:
@@ -261,6 +268,7 @@ export function ImportBuildDialog({
 ```
 
 **UI flow**:
+
 1. User clicks "Import Build" button
 2. Dialog opens with URL input
 3. User pastes Overframe URL
@@ -308,6 +316,7 @@ const handleImportBuild = async (overframeBuild: ConversionResult) => {
 #### 5.1 Handle Missing Mods
 
 When a mod can't be matched:
+
 - Log warning to conversion result
 - Leave slot empty
 - Show user which mods couldn't be imported
@@ -335,7 +344,7 @@ When a mod can't be matched:
 
 ## File Structure
 
-```
+```txt
 src/
 ├── app/
 │   └── api/
@@ -372,6 +381,7 @@ src/
 ## Testing Strategy
 
 ### Manual Testing
+
 1. Test with various Overframe build URLs:
    - Warframe builds (with shards, arcanes, helminth)
    - Primary/Secondary/Melee weapon builds
@@ -379,6 +389,7 @@ src/
    - Builds with missing/corrupted data
 
 ### Edge Cases to Test
+
 - Primed vs regular mod matching
 - Galvanized mod matching
 - Arcane rank handling
@@ -390,13 +401,13 @@ src/
 
 ## Risks & Mitigations
 
-| Risk | Mitigation |
-|------|------------|
-| Overframe blocks scraping | Add appropriate User-Agent, rate limit, consider reaching out to Overframe devs |
-| __NEXT_DATA__ structure changes | Version the parser, graceful degradation |
-| Name matching inaccuracies | Fuzzy matching with user confirmation, manual override option |
-| WFCD data out of sync | Clear error messages, suggest data update |
-| Performance with large mod lists | Pre-build indexes, cache matching results |
+| Risk                             | Mitigation                                                                      |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| Overframe blocks scraping        | Add appropriate User-Agent, rate limit, consider reaching out to Overframe devs |
+| **NEXT_DATA** structure changes  | Version the parser, graceful degradation                                        |
+| Name matching inaccuracies       | Fuzzy matching with user confirmation, manual override option                   |
+| WFCD data out of sync            | Clear error messages, suggest data update                                       |
+| Performance with large mod lists | Pre-build indexes, cache matching results                                       |
 
 ---
 

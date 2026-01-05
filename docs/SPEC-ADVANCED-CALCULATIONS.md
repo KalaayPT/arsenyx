@@ -3,17 +3,16 @@
 ## Overview
 
 This specification describes advanced calculation features beyond basic stat display, including:
+
 - Effective Health Pool (EHP) calculations
 - Damage Per Second (DPS) calculations
 - Time-To-Kill (TTK) estimates
-- Build comparisons
 - Stat optimization suggestions
-
-**Prerequisites**: This spec assumes [SPEC-STATS-CALCULATION.md](./SPEC-STATS-CALCULATION.md) is implemented.
 
 ## Problem Statement
 
 While basic stat display helps users understand their build, it doesn't answer key questions:
+
 - "How tanky is my Warframe against Grineer?"
 - "What's my actual DPS against a level 100 Heavy Gunner?"
 - "Is Viral or Corrosive better for this build?"
@@ -26,7 +25,6 @@ These calculations require understanding Warframe's damage formulas, enemy armor
 1. **EHP Display**: Show effective survivability against different factions
 2. **DPS Calculator**: Calculate theoretical and practical DPS
 3. **Enemy Simulation**: Show TTK against specific enemy types
-4. **Build Comparison**: Compare two builds side-by-side
 5. **Optimization Hints**: Suggest mod improvements
 
 ## Technical Design
@@ -36,11 +34,13 @@ These calculations require understanding Warframe's damage formulas, enemy armor
 EHP represents how much raw damage a Warframe can take before dying.
 
 #### Formula
+
 ```
 EHP = Health × (1 + Armor/300) × (1 / (1 - DamageReduction))
 ```
 
 Where:
+
 - `Health` = Modified health from mods/shards
 - `Armor` = Modified armor
 - `DamageReduction` = From abilities, Adaptation, etc.
@@ -118,6 +118,7 @@ Sustained DPS = Base DPS × (Magazine / (Magazine + Reload × Fire Rate))
 ```
 
 Where Critical Multiplier:
+
 ```
 Crit Multiplier = 1 + (CritChance × (CritMultiplier - 1))
 
@@ -388,57 +389,7 @@ function getDamageTypeModifiers(
 }
 ```
 
-### 5. Build Comparison System
-
-```typescript
-// src/lib/warframe/build-comparison.ts
-
-interface BuildComparison {
-  stats: Array<{
-    label: string;
-    build1: number | string;
-    build2: number | string;
-    difference: number;      // Percentage change
-    winner: 1 | 2 | "tie";
-  }>;
-  summary: {
-    build1Advantages: string[];
-    build2Advantages: string[];
-    recommendation: string;
-  };
-}
-
-function compareBuildStats(
-  build1: CalculatedStats,
-  build2: CalculatedStats
-): BuildComparison {
-  const stats: BuildComparison["stats"] = [];
-
-  // Compare key stats
-  if (build1.warframe && build2.warframe) {
-    stats.push(
-      compareValue("Health", build1.warframe.health, build2.warframe.health),
-      compareValue("Armor", build1.warframe.armor, build2.warframe.armor),
-      compareValue("Ability Strength", build1.warframe.abilityStrength, build2.warframe.abilityStrength),
-      // ... more stats
-    );
-  }
-
-  if (build1.weapon && build2.weapon) {
-    stats.push(
-      compareValue("Burst DPS", calculateDPS(build1.weapon), calculateDPS(build2.weapon)),
-      // ... more stats
-    );
-  }
-
-  return {
-    stats,
-    summary: generateSummary(stats),
-  };
-}
-```
-
-### 6. Optimization Suggestions
+### 5. Optimization Suggestions
 
 ```typescript
 // src/lib/warframe/build-optimizer.ts
@@ -638,116 +589,41 @@ function AdvancedStatsPanel({ buildState, calculatedStats }: AdvancedStatsPanelP
 }
 ```
 
-#### Build Comparison Modal
-
-```tsx
-// src/components/build-editor/build-comparison-modal.tsx
-
-interface BuildComparisonModalProps {
-  open: boolean;
-  onClose: () => void;
-  currentBuild: BuildState;
-  compareBuild?: BuildState;
-}
-
-function BuildComparisonModal({ open, onClose, currentBuild, compareBuild }: BuildComparisonModalProps) {
-  const [importedBuild, setImportedBuild] = useState<BuildState | null>(compareBuild ?? null);
-
-  const comparison = useMemo(() => {
-    if (!importedBuild) return null;
-    const stats1 = calculateStats(getItem(currentBuild), currentBuild);
-    const stats2 = calculateStats(getItem(importedBuild), importedBuild);
-    return compareBuildStats(stats1, stats2);
-  }, [currentBuild, importedBuild]);
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Compare Builds</DialogTitle>
-        </DialogHeader>
-
-        {!importedBuild && (
-          <div className="space-y-4">
-            <p>Paste a build code to compare:</p>
-            <Input
-              placeholder="Build code..."
-              onChange={e => handleImport(e.target.value)}
-            />
-          </div>
-        )}
-
-        {comparison && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Stat</TableHead>
-                <TableHead>Current</TableHead>
-                <TableHead>Compare</TableHead>
-                <TableHead>Diff</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {comparison.stats.map(stat => (
-                <TableRow key={stat.label}>
-                  <TableCell>{stat.label}</TableCell>
-                  <TableCell className={stat.winner === 1 ? "text-green-500" : ""}>
-                    {stat.build1}
-                  </TableCell>
-                  <TableCell className={stat.winner === 2 ? "text-green-500" : ""}>
-                    {stat.build2}
-                  </TableCell>
-                  <TableCell className={stat.difference > 0 ? "text-green-500" : "text-red-500"}>
-                    {stat.difference > 0 ? "+" : ""}{stat.difference.toFixed(1)}%
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-```
-
 ## Implementation Plan
 
 ### Phase 1: Core Calculations
+
 1. Implement EHP calculator with armor formula
 2. Implement DPS calculator with crit averaging
 3. Add damage type modifier tables
 4. Create calculation result types
 
 ### Phase 2: Enemy System
+
 1. Add common enemy database with stats
 2. Implement enemy level scaling formulas
 3. Create TTK calculator
 4. Add faction-specific recommendations
 
 ### Phase 3: UI Components
+
 1. Create AdvancedStatsPanel component
 2. Add EHP display with breakdown toggle
 3. Add DPS display with weapon stats
 4. Add TTK simulator with enemy selector
 
-### Phase 4: Build Comparison
-1. Implement build comparison logic
-2. Create BuildComparisonModal
-3. Add build import functionality
-4. Generate comparison summaries
+### Phase 6: Optimization Engine
 
-### Phase 5: Optimization Engine
 1. Implement suggestion analysis
 2. Add essential mod detection
 3. Add synergy detection (sets, combos)
 4. Create suggestion UI component
 
 ### Phase 6: Polish
+
 1. Add calculation caching/memoization
 2. Performance optimization
-3. Add export/share comparison results
-4. Add calculation explanations/tooltips
+3. Add calculation explanations/tooltips
 
 ## File Structure
 
@@ -758,7 +634,6 @@ src/lib/warframe/
 ├── ttk-calculator.ts           # Time-to-kill simulator
 ├── damage-types.ts             # Damage type modifiers
 ├── enemy-database.ts           # Common enemy stats
-├── build-comparison.ts         # Comparison logic
 ├── build-optimizer.ts          # Optimization suggestions
 └── scaling-formulas.ts         # Enemy scaling math
 
@@ -767,18 +642,19 @@ src/components/build-editor/
 ├── ehp-display.tsx             # EHP widget
 ├── dps-display.tsx             # DPS widget
 ├── ttk-simulator.tsx           # TTK calculator UI
-├── build-comparison-modal.tsx  # Comparison dialog
 └── optimization-panel.tsx      # Suggestions UI
 ```
 
 ## Data Sources
 
 ### Enemy Data
+
 - Primary source: [Warframe Wiki](https://wiki.warframe.com)
 - Alternative: DE's official data (when available)
 - Community sources: [WFCD](https://github.com/WFCD)
 
 ### Scaling Formulas
+
 - [Warframe Wiki: Enemy Level Scaling](https://wiki.warframe.com/w/Enemy_Level_Scaling)
 - [Warframe Wiki: Damage](https://wiki.warframe.com/w/Damage)
 - [Warframe Wiki: Armor](https://wiki.warframe.com/w/Armor)
@@ -826,9 +702,6 @@ describe("DPS Calculator", () => {
 
 3. **Arcane triggers**: How to handle conditional arcane bonuses?
    - Proposal: Show "with Arcane active" as separate stat line
-
-4. **Build saving**: Should comparisons save build snapshots?
-   - Proposal: Yes, store as build codes in localStorage
 
 ## Success Metrics
 
