@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   title: "Arsenix - Warframe Build Planner",
   description:
     "Open-source Warframe build planner. Fast, keyboard-first, and community-driven.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+  },
 };
 
 export default function RootLayout({
@@ -49,7 +54,13 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
-            <Toaster richColors position="bottom-right" />
+            <Toaster
+              richColors
+              position="bottom-right"
+              toastOptions={{
+                className: "sm:max-w-md",
+              }}
+            />
           </ThemeProvider>
         </SessionProvider>
       </body>
