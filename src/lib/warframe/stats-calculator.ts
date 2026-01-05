@@ -143,26 +143,37 @@ export function calculateWeaponStats(
       const attackDamage =
         typeof attack.damage === "object" ? sumDamageTypes(attack.damage) : 0;
 
+      // WFCD attack mode stats may be in percentage form (34) or decimal form (0.34)
+      // Values > 1 are already percentages, values <= 1 need to be multiplied by 100
+      const rawCrit = attack.crit_chance ?? weapon.criticalChance ?? 0;
+      const critBase = rawCrit > 1 ? rawCrit : rawCrit * 100;
+
+      const rawCritMult = attack.crit_mult ?? weapon.criticalMultiplier ?? 1;
+      const critMultBase = rawCritMult > 10 ? rawCritMult : rawCritMult * 100;
+
+      const rawStatus = attack.status_chance ?? weapon.procChance ?? 0;
+      const statusBase = rawStatus > 1 ? rawStatus : rawStatus * 100;
+
       const mode: AttackModeStats = {
         name: attack.name,
         totalDamage: calculateWeaponDamage(attackDamage, mods, showMaxStacks),
         criticalChance: calculateWeaponStat(
           "critical_chance",
-          (attack.crit_chance ?? weapon.criticalChance ?? 0) * 100,
+          critBase,
           mods,
           showMaxStacks,
           true
         ),
         criticalMultiplier: calculateWeaponStat(
           "critical_multiplier",
-          (attack.crit_mult ?? weapon.criticalMultiplier ?? 1) * 100,
+          critMultBase,
           mods,
           showMaxStacks,
           true
         ),
         statusChance: calculateWeaponStat(
           "status_chance",
-          (attack.status_chance ?? weapon.procChance ?? 0) * 100,
+          statusBase,
           mods,
           showMaxStacks,
           true

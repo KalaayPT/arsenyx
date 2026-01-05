@@ -1389,9 +1389,9 @@ export function BuildContainer({
         {/* Main Content: Sidebar + Mod Grid (same height) + Search below */}
         <div className="flex flex-col gap-4">
           {/* Top row: Sidebar + Mod Grid - Stack on mobile, side-by-side on desktop */}
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch">
-            {/* Left Sidebar (Stats) - Full width on mobile, fixed width on desktop */}
-            <div className="w-full lg:w-[260px] lg:shrink-0 bg-card border rounded-lg">
+          <div className="flex flex-col lg:block lg:relative gap-4">
+            {/* Left Sidebar (Stats) - Full width on mobile, absolute on desktop to not affect height */}
+            <div className="w-full lg:absolute lg:left-0 lg:top-0 lg:bottom-0 lg:w-[260px] bg-card border rounded-lg lg:overflow-y-auto">
               <ItemSidebar
                 buildState={buildState}
                 capacityStatus={capacityStatus}
@@ -1408,8 +1408,8 @@ export function BuildContainer({
               />
             </div>
 
-            {/* Mod Slots Grid - Full width on mobile, flex-1 on desktop */}
-            <div className="flex-1 bg-card border rounded-lg p-2 sm:p-4 min-w-0">
+            {/* Mod Slots Grid - Full width on mobile, offset on desktop to make room for sidebar */}
+            <div className="flex-1 lg:ml-[calc(260px+1rem)] bg-card border rounded-lg p-2 sm:p-4 min-w-0">
               <ModGrid
                 auraSlot={buildState.auraSlot}
                 exilusSlot={buildState.exilusSlot}

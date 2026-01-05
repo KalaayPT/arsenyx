@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { getImageUrl } from "@/lib/warframe/images";
+import { getImageUrl, getPlaceholderUrl } from "@/lib/warframe/images";
 import type { Mod } from "@/lib/warframe/types";
 import {
   type ModRarity,
@@ -95,6 +95,39 @@ function normalizeRarity(rarity: string): ModRarity {
 }
 
 // =============================================================================
+// MOD IMAGE WITH FALLBACK
+// =============================================================================
+
+interface ModImageProps {
+  mod: Mod;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+function ModImage({ mod, alt, className, style }: ModImageProps) {
+  const [src, setSrc] = useState(() => getImageUrl(mod.imageName));
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      className={className}
+      style={style}
+      onError={() => {
+        // Try wiki thumbnail first, then placeholder
+        if (mod.wikiaThumbnail && src !== mod.wikiaThumbnail) {
+          setSrc(mod.wikiaThumbnail);
+        } else {
+          setSrc(getPlaceholderUrl());
+        }
+      }}
+    />
+  );
+}
+
+// =============================================================================
 // COMPACT MOD CARD
 // =============================================================================
 
@@ -132,10 +165,9 @@ function CompactModCard({
 
       {/* Mod Image */}
       <div className="absolute top-[4px] left-[3px] right-[3px] -bottom-4 z-10 overflow-hidden rounded-b-[5px]">
-        <Image
-          src={getImageUrl(mod.imageName)}
+        <ModImage
+          mod={mod}
           alt={mod.name}
-          fill
           className="object-cover object-top"
           style={{
             filter: "grayscale(0.7) brightness(0.5)",
@@ -232,10 +264,9 @@ function ExpandedModCard({
 
       {/* Mod Image - full card height */}
       <div className="absolute top-[4px] left-[3px] right-[3px] bottom-[4px] z-10 overflow-hidden">
-        <Image
-          src={getImageUrl(mod.imageName)}
+        <ModImage
+          mod={mod}
           alt={mod.name}
-          fill
           className="object-contain object-top"
         />
       </div>

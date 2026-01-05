@@ -235,6 +235,7 @@ export interface Mod {
     rarity: string;
     type: string;
   }>;
+  wikiaThumbnail?: string;
 }
 
 // =============================================================================
