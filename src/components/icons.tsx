@@ -86,6 +86,7 @@ const polaritySvgMap: Record<Polarity, string> = {
   unairu: "/focus-schools/Unairu_Pol.svg",
   penjaga: "/focus-schools/Penjaga_Pol.svg",
   umbra: "/focus-schools/Umbra_Pol.svg",
+  any: "/focus-schools/Any_Pol.svg",
   universal: "/focus-schools/Any_Pol.svg",
 };
 
@@ -97,6 +98,7 @@ const polarityColorMap: Record<Polarity, string> = {
   unairu: "brightness-0 invert sepia saturate-[10] hue-rotate-[250deg]", // Purple
   penjaga: "brightness-0 invert sepia saturate-[10] hue-rotate-[150deg]", // Cyan
   umbra: "brightness-0 invert sepia saturate-[10] hue-rotate-[25deg]", // Amber
+  any: "brightness-0 invert opacity-60", // Gray
   universal: "brightness-0 invert opacity-60", // Gray
 };
 

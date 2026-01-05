@@ -1,0 +1,109 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+type ImportResult = unknown;
+
+export function ImportOverframeClient() {
+  const [url, setUrl] = useState("https://overframe.gg/build/935570/");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
+
+  const createUrl =
+    result && typeof result === "object"
+      ? (result as { createUrl?: string | null }).createUrl
+      : null;
+
+  const pretty = useMemo(() => {
+    if (!result) return "";
+    try {
+      return JSON.stringify(result, null, 2);
+    } catch {
+      return String(result);
+    }
+  }, [result]);
+
+  async function runImport() {
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const res = await fetch("/api/import/overframe", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url, encodeBuild: true }),
+      });
+
+      const data = (await res.json()) as ImportResult;
+
+      if (!res.ok) {
+        setError(`HTTP ${res.status}: ${JSON.stringify(data)}`);
+      } else {
+        setResult(data);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Import from Overframe</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Overframe URL</label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://overframe.gg/build/..."
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+              <Button
+                onClick={runImport}
+                disabled={isLoading || url.trim().length === 0}
+              >
+                {isLoading ? "Importing…" : "Import"}
+              </Button>
+              {createUrl ? (
+                <Button asChild variant="secondary" disabled={isLoading}>
+                  <Link href={createUrl}>Open in editor</Link>
+                </Button>
+              ) : null}
+            </div>
+          </div>
+
+          {error ? (
+            <div className="text-sm text-destructive whitespace-pre-wrap">
+              {error}
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Response</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="text-xs whitespace-pre-wrap break-words bg-muted/30 border rounded-md p-3 min-h-[160px]">
+            {pretty || "(no response yet)"}
+          </pre>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

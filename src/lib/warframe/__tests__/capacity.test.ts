@@ -35,6 +35,25 @@ describe("calculateModDrain", () => {
     expect(calculateModDrain(mod, "universal")).toBe(9);
   });
 
+  it("halves drain for any polarity slot (non-Umbra)", () => {
+    const mod = createTestMod({
+      baseDrain: 4,
+      rank: 5,
+      polarity: "madurai" as Polarity,
+    });
+    // (4 + 5) / 2 = 4.5 -> 4
+    expect(calculateModDrain(mod, "any")).toBe(4);
+  });
+
+  it("treats any polarity slot as neutral for Umbra mods", () => {
+    const mod = createTestMod({
+      baseDrain: 4,
+      rank: 5,
+      polarity: "umbra" as Polarity,
+    });
+    expect(calculateModDrain(mod, "any")).toBe(9);
+  });
+
   it("halves drain for matching polarity (rounded down)", () => {
     const mod = createTestMod({
       baseDrain: 4,
@@ -209,6 +228,24 @@ describe("calculateAuraBonus", () => {
     const aura = createTestMod({ baseDrain: -4, rank: 5 });
     expect(calculateAuraBonus(aura, "universal")).toBe(9);
   });
+
+  it("doubles bonus for any polarity slot (non-Umbra)", () => {
+    const aura = createTestMod({
+      baseDrain: -4,
+      rank: 5,
+      polarity: "madurai" as Polarity,
+    });
+    expect(calculateAuraBonus(aura, "any")).toBe(18);
+  });
+
+  it("treats any polarity slot as neutral for Umbra auras", () => {
+    const aura = createTestMod({
+      baseDrain: -4,
+      rank: 5,
+      polarity: "umbra" as Polarity,
+    });
+    expect(calculateAuraBonus(aura, "any")).toBe(9);
+  });
 });
 
 // =============================================================================
@@ -344,6 +381,14 @@ describe("getMatchState", () => {
     expect(getMatchState("madurai", "universal")).toBe("neutral");
   });
 
+  it('returns "match" for any slot polarity (non-Umbra)', () => {
+    expect(getMatchState("madurai", "any")).toBe("match");
+  });
+
+  it('returns "neutral" for any slot polarity with Umbra mods', () => {
+    expect(getMatchState("umbra", "any")).toBe("neutral");
+  });
+
   it('returns "match" for matching polarities', () => {
     expect(getMatchState("vazarin", "vazarin")).toBe("match");
   });
@@ -368,6 +413,16 @@ describe("wouldMatchPolarity", () => {
     const mod = createTestMod({ polarity: "madurai" });
     expect(wouldMatchPolarity(mod, "vazarin")).toBe(false);
   });
+
+  it("returns true for any polarity with non-Umbra mods", () => {
+    const mod = createTestMod({ polarity: "madurai" });
+    expect(wouldMatchPolarity(mod, "any")).toBe(true);
+  });
+
+  it("returns false for any polarity with Umbra mods", () => {
+    const mod = createTestMod({ polarity: "umbra" });
+    expect(wouldMatchPolarity(mod, "any")).toBe(false);
+  });
 });
 
 describe("wouldMismatchPolarity", () => {
@@ -384,6 +439,11 @@ describe("wouldMismatchPolarity", () => {
   it("returns true for mismatched polarity", () => {
     const mod = createTestMod({ polarity: "madurai" });
     expect(wouldMismatchPolarity(mod, "vazarin")).toBe(true);
+  });
+
+  it("returns false for any polarity", () => {
+    const mod = createTestMod({ polarity: "madurai" });
+    expect(wouldMismatchPolarity(mod, "any")).toBe(false);
   });
 });
 
@@ -418,7 +478,7 @@ describe("calculateFormaCount", () => {
   });
 
   it("counts swapped polarities as net change", () => {
-    // Swapping one madurai to vazarin, one vazarin to madurai = 0 forma
+    // Swapping still requires forma per slot
     const slots = [
       {
         ...createModSlot("0", "normal", "madurai"),
@@ -429,11 +489,11 @@ describe("calculateFormaCount", () => {
         formaPolarity: "madurai" as Polarity,
       },
     ];
-    expect(calculateFormaCount(slots)).toBe(0);
+    expect(calculateFormaCount(slots)).toBe(2);
   });
 
   it("handles complex forma scenarios", () => {
-    // Add 2 madurai, remove 1 vazarin
+    // 3 independent changes
     const slots = [
       { ...createModSlot("0", "normal"), formaPolarity: "madurai" as Polarity },
       { ...createModSlot("1", "normal"), formaPolarity: "madurai" as Polarity },
@@ -442,8 +502,7 @@ describe("calculateFormaCount", () => {
         formaPolarity: "universal" as Polarity,
       },
     ];
-    // 2 added, 1 removed = max(2, 1) = 2
-    expect(calculateFormaCount(slots)).toBe(2);
+    expect(calculateFormaCount(slots)).toBe(3);
   });
 
   it("includes aura and exilus slots", () => {
@@ -455,9 +514,7 @@ describe("calculateFormaCount", () => {
       ...createModSlot("exilus", "exilus"),
       formaPolarity: "naramon" as Polarity,
     };
-    // 1 change from madurai to vazarin (net: +1 vazarin, -1 madurai)
-    // 1 addition of naramon
-    // Total: max(2 added, 1 removed) = 2
+    // Aura changed + Exilus gained polarity = 2
     expect(calculateFormaCount([], auraSlot, exilusSlot)).toBe(2);
   });
 });

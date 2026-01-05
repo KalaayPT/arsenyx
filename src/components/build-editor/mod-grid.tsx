@@ -44,6 +44,7 @@ const ALL_POLARITIES: Polarity[] = [
   "unairu",
   "penjaga",
   "umbra",
+  "any",
 ];
 
 interface ModGridProps {
@@ -104,104 +105,102 @@ export function ModGrid({
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-col gap-2 sm:gap-4 items-center">
-          {/* Row 1: Aura & Exilus */}
-          <div className="flex gap-2 sm:gap-4 w-full justify-center">
-            {isWarframe && auraSlot && (
-              <ModSlotCard
-                slot={auraSlot}
-                isActive={activeSlotId === auraSlot.id}
-                onSelect={() => onSelectSlot(auraSlot.id)}
-                onRemove={() => onRemoveMod(auraSlot.id)}
-                onChangeRank={(rank) => onChangeRank(auraSlot.id, rank)}
-                onApplyForma={(polarity) => onApplyForma(auraSlot.id, polarity)}
-                label="Aura"
-                className="w-[120px] h-[80px] sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px]"
-                setCount={
-                  auraSlot.mod?.modSet ? setCounts[auraSlot.mod.modSet] : 0
-                }
-                draggedMod={draggedMod}
-                readOnly={readOnly}
-              />
-            )}
+        {/* Row 1: Aura & Exilus */}
+        <div className="flex gap-2 sm:gap-4 w-full justify-center">
+          {isWarframe && auraSlot && (
             <ModSlotCard
-              slot={exilusSlot}
-              isActive={activeSlotId === exilusSlot.id}
-              onSelect={() => onSelectSlot(exilusSlot.id)}
-              onRemove={() => onRemoveMod(exilusSlot.id)}
-              onChangeRank={(rank) => onChangeRank(exilusSlot.id, rank)}
-              onApplyForma={(polarity) => onApplyForma(exilusSlot.id, polarity)}
-              label="Exilus"
+              slot={auraSlot}
+              isActive={activeSlotId === auraSlot.id}
+              onSelect={() => onSelectSlot(auraSlot.id)}
+              onRemove={() => onRemoveMod(auraSlot.id)}
+              onChangeRank={(rank) => onChangeRank(auraSlot.id, rank)}
+              onApplyForma={(polarity) => onApplyForma(auraSlot.id, polarity)}
+              label="Aura"
               className="w-[120px] h-[80px] sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px]"
               setCount={
-                exilusSlot.mod?.modSet ? setCounts[exilusSlot.mod.modSet] : 0
+                auraSlot.mod?.modSet ? setCounts[auraSlot.mod.modSet] : 0
               }
               draggedMod={draggedMod}
               readOnly={readOnly}
             />
-          </div>
-
-          {/* Row 2: Normal Slots 1-4 */}
-          <div className="grid grid-cols-2 sm:flex sm:gap-4 gap-2 w-full justify-center">
-            {normalSlots.slice(0, 4).map((slot) => (
-              <ModSlotCard
-                key={slot.id}
-                slot={slot}
-                isActive={activeSlotId === slot.id}
-                onSelect={() => onSelectSlot(slot.id)}
-                onRemove={() => onRemoveMod(slot.id)}
-                onChangeRank={(rank) => onChangeRank(slot.id, rank)}
-                onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
-                className="w-full sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px] h-[80px]"
-                setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
-                draggedMod={draggedMod}
-                readOnly={readOnly}
-              />
-            ))}
-          </div>
-
-          {/* Row 3: Normal Slots 5-8 */}
-          <div className="grid grid-cols-2 sm:flex sm:gap-4 gap-2 w-full justify-center">
-            {normalSlots.slice(4, 8).map((slot) => (
-              <ModSlotCard
-                key={slot.id}
-                slot={slot}
-                isActive={activeSlotId === slot.id}
-                onSelect={() => onSelectSlot(slot.id)}
-                onRemove={() => onRemoveMod(slot.id)}
-                onChangeRank={(rank) => onChangeRank(slot.id, rank)}
-                onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
-                className="w-full sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px] h-[80px]"
-                setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
-                draggedMod={draggedMod}
-                readOnly={readOnly}
-              />
-            ))}
-          </div>
-
-          {/* Row 4: Arcanes */}
-          {arcaneSlots.length > 0 && (
-            <div className="flex gap-3 sm:gap-6 w-full justify-center mt-2">
-              {arcaneSlots.map((arcane, index) => (
-                <ArcaneSlotCard
-                  key={`arcane-${index}`}
-                  arcane={arcane}
-                  slotIndex={index}
-                  isActive={activeSlotId === `arcane-${index}`}
-                  onSelect={() => onSelectSlot(`arcane-${index}`)}
-                  onRemove={() => onRemoveArcane?.(index)}
-                  onChangeRank={(rank) => onChangeArcaneRank?.(index, rank)}
-                  className="w-[100px] h-[80px] sm:w-[120px] sm:h-[90px] md:w-[140px] md:h-[100px]"
-                  draggedArcane={draggedArcane}
-                  fullArcaneData={
-                    arcane
-                      ? arcaneDataMap?.get(arcane.uniqueName)
-                      : undefined
-                  }
-                  readOnly={readOnly}
-                />
-              ))}
-            </div>
           )}
+          <ModSlotCard
+            slot={exilusSlot}
+            isActive={activeSlotId === exilusSlot.id}
+            onSelect={() => onSelectSlot(exilusSlot.id)}
+            onRemove={() => onRemoveMod(exilusSlot.id)}
+            onChangeRank={(rank) => onChangeRank(exilusSlot.id, rank)}
+            onApplyForma={(polarity) => onApplyForma(exilusSlot.id, polarity)}
+            label="Exilus"
+            className="w-[120px] h-[80px] sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px]"
+            setCount={
+              exilusSlot.mod?.modSet ? setCounts[exilusSlot.mod.modSet] : 0
+            }
+            draggedMod={draggedMod}
+            readOnly={readOnly}
+          />
+        </div>
+
+        {/* Row 2: Normal Slots 1-4 */}
+        <div className="grid grid-cols-2 sm:flex sm:gap-4 gap-2 w-full justify-center">
+          {normalSlots.slice(0, 4).map((slot) => (
+            <ModSlotCard
+              key={slot.id}
+              slot={slot}
+              isActive={activeSlotId === slot.id}
+              onSelect={() => onSelectSlot(slot.id)}
+              onRemove={() => onRemoveMod(slot.id)}
+              onChangeRank={(rank) => onChangeRank(slot.id, rank)}
+              onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
+              className="w-full sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px] h-[80px]"
+              setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
+              draggedMod={draggedMod}
+              readOnly={readOnly}
+            />
+          ))}
+        </div>
+
+        {/* Row 3: Normal Slots 5-8 */}
+        <div className="grid grid-cols-2 sm:flex sm:gap-4 gap-2 w-full justify-center">
+          {normalSlots.slice(4, 8).map((slot) => (
+            <ModSlotCard
+              key={slot.id}
+              slot={slot}
+              isActive={activeSlotId === slot.id}
+              onSelect={() => onSelectSlot(slot.id)}
+              onRemove={() => onRemoveMod(slot.id)}
+              onChangeRank={(rank) => onChangeRank(slot.id, rank)}
+              onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
+              className="w-full sm:w-[150px] sm:h-[90px] md:w-[184px] md:h-[100px] h-[80px]"
+              setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
+              draggedMod={draggedMod}
+              readOnly={readOnly}
+            />
+          ))}
+        </div>
+
+        {/* Row 4: Arcanes */}
+        {arcaneSlots.length > 0 && (
+          <div className="flex gap-3 sm:gap-6 w-full justify-center mt-2">
+            {arcaneSlots.map((arcane, index) => (
+              <ArcaneSlotCard
+                key={`arcane-${index}`}
+                arcane={arcane}
+                slotIndex={index}
+                isActive={activeSlotId === `arcane-${index}`}
+                onSelect={() => onSelectSlot(`arcane-${index}`)}
+                onRemove={() => onRemoveArcane?.(index)}
+                onChangeRank={(rank) => onChangeArcaneRank?.(index, rank)}
+                className="w-[100px] h-[80px] sm:w-[120px] sm:h-[90px] md:w-[140px] md:h-[100px]"
+                draggedArcane={draggedArcane}
+                fullArcaneData={
+                  arcane ? arcaneDataMap?.get(arcane.uniqueName) : undefined
+                }
+                readOnly={readOnly}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -289,29 +288,29 @@ const ModSlotCard = memo(function ModSlotCard({
 
   const style = transform
     ? {
-      transform: CSS.Translate.toString(transform),
-      opacity: isDragging ? 0 : 1,
-      willChange: "transform",
-    }
+        transform: CSS.Translate.toString(transform),
+        opacity: isDragging ? 0 : 1,
+        willChange: "transform",
+      }
     : undefined;
 
   // Convert PlacedMod to Mod format for ModCard
   const modForCard: Mod | null = hasMod
     ? {
-      uniqueName: slot.mod!.uniqueName,
-      name: slot.mod!.name,
-      imageName: slot.mod!.imageName,
-      polarity: slot.mod!.polarity,
-      rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
-      baseDrain: slot.mod!.baseDrain,
-      fusionLimit: slot.mod!.fusionLimit,
-      compatName: slot.mod!.compatName,
-      type: slot.mod!.type || "",
-      levelStats: slot.mod!.levelStats,
-      modSet: slot.mod!.modSet,
-      modSetStats: slot.mod!.modSetStats,
-      tradable: false,
-    }
+        uniqueName: slot.mod!.uniqueName,
+        name: slot.mod!.name,
+        imageName: slot.mod!.imageName,
+        polarity: slot.mod!.polarity,
+        rarity: (slot.mod!.rarity || "Common") as Mod["rarity"],
+        baseDrain: slot.mod!.baseDrain,
+        fusionLimit: slot.mod!.fusionLimit,
+        compatName: slot.mod!.compatName,
+        type: slot.mod!.type || "",
+        levelStats: slot.mod!.levelStats,
+        modSet: slot.mod!.modSet,
+        modSetStats: slot.mod!.modSetStats,
+        tradable: false,
+      }
     : null;
 
   // Calculate drain and match state for polarity color feedback
@@ -371,7 +370,10 @@ const ModSlotCard = memo(function ModSlotCard({
   // When a mod is present, render with polarity popover
   if (hasMod && modForCard) {
     return (
-      <Popover open={readOnly ? false : polarityOpen} onOpenChange={readOnly ? undefined : setPolarityOpen}>
+      <Popover
+        open={readOnly ? false : polarityOpen}
+        onOpenChange={readOnly ? undefined : setPolarityOpen}
+      >
         <PopoverTrigger asChild>
           <div
             ref={setDroppableRef}
@@ -379,7 +381,7 @@ const ModSlotCard = memo(function ModSlotCard({
               "relative flex items-start justify-center transition-all rounded-lg overflow-visible group",
               className,
               isOver &&
-              "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
+                "ring-2 ring-primary ring-offset-2 ring-offset-background z-10"
             )}
             style={{ isolation: "isolate" }}
           >
@@ -388,7 +390,11 @@ const ModSlotCard = memo(function ModSlotCard({
               {...(readOnly ? {} : listeners)}
               {...(readOnly ? {} : attributes)}
               style={style}
-              className={readOnly ? "cursor-default" : "cursor-grab active:cursor-grabbing"}
+              className={
+                readOnly
+                  ? "cursor-default"
+                  : "cursor-grab active:cursor-grabbing"
+              }
               onClick={(e) => {
                 if (readOnly) return;
                 if (e.shiftKey) {
@@ -432,7 +438,7 @@ const ModSlotCard = memo(function ModSlotCard({
           ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
           : !readOnly && "hover:ring-1 hover:ring-primary/50",
         isOver &&
-        "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
+          "ring-2 ring-primary ring-offset-2 ring-offset-background bg-accent/50",
         className
       )}
       style={{ isolation: "isolate" }}
@@ -464,7 +470,9 @@ const ModSlotCard = memo(function ModSlotCard({
         </span>
       )}
 
-      {!readOnly && <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />}
+      {!readOnly && (
+        <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
+      )}
     </div>
   );
 
@@ -479,9 +487,7 @@ const ModSlotCard = memo(function ModSlotCard({
       <TooltipProvider>
         <Tooltip>
           <PopoverTrigger asChild>
-            <TooltipTrigger asChild>
-              {emptySlotContent}
-            </TooltipTrigger>
+            <TooltipTrigger asChild>{emptySlotContent}</TooltipTrigger>
           </PopoverTrigger>
           <TooltipContent side="bottom">
             <p>Click to add mod</p>

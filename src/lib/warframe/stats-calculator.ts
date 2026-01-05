@@ -24,6 +24,76 @@ import { findStat as findShardStat } from "./shards";
 // Umbral mod set tracking
 const UMBRAL_MODS = new Set(["Umbral Vitality", "Umbral Intensify", "Umbral Fiber"]);
 
+type WarframeRankUpBonus = {
+  health: number;
+  shield: number;
+  armor: number;
+  energy: number;
+};
+
+// Rank-up bonuses from rank 0 -> rank 30.
+// Default values follow the in-game rank-up rules (health/shields/energy).
+// Some frames have exceptions.
+const DEFAULT_WARFRAME_RANKUP_BONUS: WarframeRankUpBonus = {
+  health: 100,
+  shield: 100,
+  armor: 0,
+  energy: 50,
+};
+
+// Warframe rank-up exceptions (from Module:Warframes/data on the wiki).
+// Values are the total bonus gained by rank 30.
+const WARFRAME_RANKUP_BONUS_BY_NAME: Record<string, WarframeRankUpBonus> = {
+  Baruuk: { health: 100, shield: 100, armor: 0, energy: 100 },
+  "Baruuk Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  "Chroma Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  Dante: { health: 90, shield: 90, armor: 0, energy: 70 },
+  Garuda: { health: 100, shield: 100, armor: 0, energy: 100 },
+  "Garuda Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  Grendel: { health: 200, shield: 0, armor: 0, energy: 50 },
+  "Grendel Prime": { health: 200, shield: 0, armor: 0, energy: 50 },
+  Hildryn: { health: 100, shield: 500, armor: 0, energy: 0 },
+  "Hildryn Prime": { health: 100, shield: 500, armor: 0, energy: 0 },
+  Inaros: { health: 200, shield: 0, armor: 0, energy: 50 },
+  "Inaros Prime": { health: 200, shield: 0, armor: 0, energy: 50 },
+  Koumei: { health: 100, shield: 100, armor: 0, energy: 100 },
+  Kullervo: { health: 200, shield: 0, armor: 100, energy: 50 },
+  Lavos: { health: 200, shield: 100, armor: 100, energy: 0 },
+  "Lavos Prime": { health: 200, shield: 100, armor: 100, energy: 0 },
+  Nezha: { health: 100, shield: 50, armor: 0, energy: 50 },
+  "Nezha Prime": { health: 100, shield: 50, armor: 0, energy: 50 },
+  Nidus: { health: 100, shield: 0, armor: 100, energy: 50 },
+  "Nidus Prime": { health: 100, shield: 0, armor: 100, energy: 50 },
+  "Saryn Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  Valkyr: { health: 100, shield: 50, armor: 0, energy: 50 },
+  "Valkyr Prime": { health: 100, shield: 50, armor: 0, energy: 50 },
+  "Volt Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  Wisp: { health: 100, shield: 100, armor: 0, energy: 100 },
+  "Wisp Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+  Xaku: { health: 90, shield: 90, armor: 0, energy: 70 },
+  "Xaku Prime": { health: 90, shield: 90, armor: 0, energy: 70 },
+  Yareli: { health: 100, shield: 100, armor: 0, energy: 100 },
+  "Yareli Prime": { health: 100, shield: 100, armor: 0, energy: 100 },
+};
+
+function getWarframeRank30BaseStats(warframe: Warframe) {
+  const bonus = WARFRAME_RANKUP_BONUS_BY_NAME[warframe.name] ??
+    DEFAULT_WARFRAME_RANKUP_BONUS;
+
+  return {
+    health: warframe.health + bonus.health,
+    shield: warframe.shield + bonus.shield,
+    armor: warframe.armor + bonus.armor,
+    energy: warframe.power + bonus.energy,
+  };
+}
+
+// Auras that affect enemies rather than the player's stats.
+// We exclude these from player stat calculations.
+const AURA_MODS_IGNORE_FOR_PLAYER_STATS = new Set<string>([
+  "/Lotus/Upgrades/Mods/Aura/EnemyArmorReductionAuraMod", // Corrosive Projection
+]);
+
 // Umbral set bonus multipliers based on count
 const UMBRAL_SET_BONUSES: Record<number, number> = {
   1: 1.0, // No bonus with 1 mod
@@ -68,15 +138,13 @@ export function calculateWarframeStats(
   const shards = buildState.shardSlots ?? [];
   const umbralCount = countUmbralMods(mods);
 
-  // WFCD data has health/shield at rank 30, but power (energy) is at rank 0
-  // At rank 30, warframes gain +50 energy from base
-  const rank30Energy = warframe.power + 50;
+  const rank30 = getWarframeRank30BaseStats(warframe);
 
   return {
-    health: calculateSingleStat("health", warframe.health, mods, shards, umbralCount, showMaxStacks),
-    shield: calculateSingleStat("shield", warframe.shield, mods, shards, umbralCount, showMaxStacks),
-    armor: calculateSingleStat("armor", warframe.armor, mods, shards, umbralCount, showMaxStacks),
-    energy: calculateSingleStat("energy", rank30Energy, mods, shards, umbralCount, showMaxStacks),
+    health: calculateSingleStat("health", rank30.health, mods, shards, umbralCount, showMaxStacks),
+    shield: calculateSingleStat("shield", rank30.shield, mods, shards, umbralCount, showMaxStacks),
+    armor: calculateSingleStat("armor", rank30.armor, mods, shards, umbralCount, showMaxStacks),
+    energy: calculateSingleStat("energy", rank30.energy, mods, shards, umbralCount, showMaxStacks),
     sprintSpeed: calculateSingleStat("sprint_speed", warframe.sprintSpeed ?? 1.0, mods, shards, umbralCount, showMaxStacks),
     abilityStrength: calculateAbilityStat("ability_strength", mods, shards, showMaxStacks),
     abilityDuration: calculateAbilityStat("ability_duration", mods, shards, showMaxStacks),
@@ -207,7 +275,9 @@ function getAllPlacedMods(buildState: BuildState): PlacedMod[] {
 
   // Aura slot
   if (buildState.auraSlot?.mod) {
-    mods.push(buildState.auraSlot.mod);
+    if (!AURA_MODS_IGNORE_FOR_PLAYER_STATS.has(buildState.auraSlot.mod.uniqueName)) {
+      mods.push(buildState.auraSlot.mod);
+    }
   }
 
   // Exilus slot

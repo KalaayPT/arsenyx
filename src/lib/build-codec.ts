@@ -64,13 +64,20 @@ export function encodeBuild(state: BuildState): string {
   }
 
   if (state.arcaneSlots?.length > 0) {
-    encoded.ar = state.arcaneSlots
-      .filter((a) => a)
-      .map((a) => ({ u: a.uniqueName, r: a.rank }));
+    const placedArcanes = state.arcaneSlots.filter(
+      (a): a is { uniqueName: string; rank: number } => Boolean(a)
+    );
+
+    if (placedArcanes.length > 0) {
+      encoded.ar = placedArcanes.map((a) => ({ u: a.uniqueName, r: a.rank }));
+    }
   }
 
   // Encode shards (warframes only)
-  if (state.shardSlots?.length > 0 && state.shardSlots.some((s) => s !== null)) {
+  if (
+    state.shardSlots?.length > 0 &&
+    state.shardSlots.some((s) => s !== null)
+  ) {
     encoded.sh = encodeShards(state.shardSlots);
   }
 
@@ -196,7 +203,7 @@ export function decodeBuild(base64String: string): Partial<BuildState> | null {
     }
 
     // Decode arcanes
-    if (encoded.ar) {
+    if (encoded.ar && encoded.ar.length > 0) {
       state.arcaneSlots = encoded.ar.map((a) => ({
         uniqueName: a.u,
         name: "", // Will be filled by the loader

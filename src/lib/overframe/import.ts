@@ -1,0 +1,383 @@
+import type { BrowseCategory, BrowseItem, Mod } from "@/lib/warframe/types";
+// NOTE: Importer intentionally bypasses DB-backed unstable_cache paths.
+// We only need a read-only name->uniqueName index for matching.
+import { getAllMods as getAllModsJson } from "@/lib/warframe/mods";
+import { getCategoryCounts, getItemsByCategory } from "@/lib/warframe/items";
+import { extractOverframeDataFromHtml } from "./next-data";
+import { decodeOverframeBuildString } from "./decode";
+import { getOverframeNameById, getOverframeItemsMap } from "./items-map";
+import { matchItemByName, matchModByName } from "./match";
+import { mapOverframePolarityCode } from "./polarity";
+import type {
+  OverframeImportResponse,
+  OverframeMatchedMod,
+  OverframeImportWarning,
+} from "./types";
+
+export function isValidOverframeBuildUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (url.hostname !== "overframe.gg" && url.hostname !== "www.overframe.gg")
+      return false;
+    // Allow both /build/12345 and full slugs: /build/12345/user/slug/
+    return /^\/build\/(\d+)(\/|$)/.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
+async function fetchOverframeHtml(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (compatible; ArsenixBot/1.0; +https://arsenix.example)",
+      accept: "text/html,application/xhtml+xml",
+    },
+    // Overframe content changes slowly; keep conservative caching.
+    next: { revalidate: 300 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Overframe fetch failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.text();
+}
+
+function getAllBrowseItems(): BrowseItem[] {
+  // Iterate categories from the precomputed JSON dataset.
+  const counts = getCategoryCounts();
+  const categories = Object.keys(counts) as BrowseCategory[];
+
+  const items: BrowseItem[] = [];
+  for (const category of categories) {
+    items.push(...getItemsByCategory(category));
+  }
+  return items;
+}
+
+type OverframeSlotLike = {
+  slot_id?: unknown;
+  mod?: unknown;
+  rank?: unknown;
+  polarity?: unknown;
+};
+
+function parseOverframeSlots(slots: unknown): Array<{
+  slotType: "aura" | "exilus" | "normal";
+  slotIndex: number;
+  overframeId: string | null;
+  rank: number;
+  polarityCode: number;
+}> {
+  if (!Array.isArray(slots)) return [];
+
+  const out: Array<{
+    slotType: "aura" | "exilus" | "normal";
+    slotIndex: number;
+    overframeId: string | null;
+    rank: number;
+    polarityCode: number;
+  }> = [];
+
+  for (const entry of slots as OverframeSlotLike[]) {
+    const slotId = Number(entry?.slot_id);
+    const rank = Number(entry?.rank);
+    const polarityCode = Number(entry?.polarity ?? 0);
+
+    const modIdRaw = entry?.mod;
+    const modIdNum = typeof modIdRaw === "number" ? modIdRaw : Number(modIdRaw);
+    const hasMod =
+      modIdRaw !== null &&
+      modIdRaw !== undefined &&
+      Number.isFinite(modIdNum) &&
+      modIdNum !== 0;
+    const overframeId = hasMod ? String(modIdRaw) : null;
+
+    if (!Number.isFinite(slotId) || !Number.isFinite(rank)) {
+      continue;
+    }
+
+    if (slotId >= 1 && slotId <= 8) {
+      out.push({
+        slotType: "normal",
+        slotIndex: slotId - 1,
+        overframeId,
+        rank,
+        polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
+      });
+    } else if (slotId === 9) {
+      out.push({
+        slotType: "aura",
+        slotIndex: 0,
+        overframeId,
+        rank,
+        polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
+      });
+    } else if (slotId === 10) {
+      out.push({
+        slotType: "exilus",
+        slotIndex: 0,
+        overframeId,
+        rank,
+        polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
+      });
+    } else {
+      // slot_id 11+ are typically arcanes on Overframe (and possibly other extras).
+      // We ignore them for now; caller can extend to arcanes later.
+      continue;
+    }
+  }
+
+  return out;
+}
+
+export async function importOverframeBuild(
+  url: string
+): Promise<OverframeImportResponse> {
+  const warnings: OverframeImportWarning[] = [];
+
+  if (!isValidOverframeBuildUrl(url)) {
+    return {
+      source: { url },
+      item: {},
+      formaCount: null,
+      mods: [],
+      warnings: [
+        {
+          type: "invalid_url",
+          message: "URL must look like https://overframe.gg/build/<id>/...",
+        },
+      ],
+    };
+  }
+
+  let html: string;
+  try {
+    html = await fetchOverframeHtml(url);
+  } catch (err) {
+    return {
+      source: { url },
+      item: {},
+      formaCount: null,
+      mods: [],
+      warnings: [
+        {
+          type: "fetch_failed",
+          message:
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch Overframe page",
+        },
+      ],
+    };
+  }
+
+  const buildId = (() => {
+    try {
+      const u = new URL(url);
+      const m = u.pathname.match(/^\/build\/(\d+)/);
+      return m?.[1];
+    } catch {
+      return undefined;
+    }
+  })();
+
+  const extracted = extractOverframeDataFromHtml(html, { url, buildId });
+  if (!extracted.nextData) {
+    warnings.push({
+      type: "next_data_missing",
+      message: "Could not find __NEXT_DATA__ on the Overframe page.",
+    });
+  }
+
+  // Ensure items.csv is loadable early, so errors are clear.
+  try {
+    await getOverframeItemsMap();
+  } catch (err) {
+    warnings.push({
+      type: "build_data_missing",
+      message:
+        "Overframe items map could not be loaded. Ensure src/lib/overframe/data/items.csv exists.",
+      details: { error: err instanceof Error ? err.message : String(err) },
+    });
+  }
+
+  // Prefer canonical slots[] (it includes explicit slot positions).
+  const canonicalSlots = parseOverframeSlots(extracted.slots);
+
+  // Keep slot polarity info even when a slot is empty.
+  const slotPolarities = canonicalSlots.map((s) => {
+    const slotId =
+      s.slotType === "normal" ? `normal-${s.slotIndex}` : `${s.slotType}-0`;
+    const mapped = mapOverframePolarityCode(s.polarityCode);
+    return {
+      slotId,
+      polarityCode: s.polarityCode,
+      polarity: mapped.polarity,
+    };
+  });
+  const slotPolarityById = new Map(
+    slotPolarities.map((p) => [p.slotId, p] as const)
+  );
+
+  // Fall back to buildstring decoding if slots[] is missing/unknown.
+  let slotList:
+    | Array<{
+        slotType: "aura" | "exilus" | "normal";
+        slotIndex: number;
+        overframeId: string | null;
+        rank: number;
+        polarityCode: number;
+      }>
+    | [] = canonicalSlots;
+
+  if (slotList.length === 0) {
+    if (extracted.buildString) {
+      try {
+        const decoded = decodeOverframeBuildString(extracted.buildString);
+        slotList = decoded.slots.map((s) => ({
+          slotType: s.slotType,
+          slotIndex: s.slotIndex,
+          overframeId: s.overframeId,
+          rank: s.rank,
+          polarityCode: 0,
+        }));
+        if (slotList.length === 0) {
+          warnings.push({
+            type: "buildstring_decode_failed",
+            message: "Decoded buildstring but couldn’t interpret it as slots.",
+          });
+        }
+      } catch (err) {
+        warnings.push({
+          type: "buildstring_decode_failed",
+          message:
+            err instanceof Error ? err.message : "Failed to decode buildstring",
+        });
+      }
+    } else {
+      warnings.push({
+        type: "buildstring_missing",
+        message: "No buildstring found in __NEXT_DATA__.",
+      });
+    }
+  }
+
+  // Resolve Overframe IDs → English names
+  const modsWithNames: Array<{
+    overframeId: string;
+    rank: number;
+    slotId: string;
+    overframeName?: string;
+  }> = [];
+  for (const slot of slotList) {
+    if (!slot.overframeId) continue; // empty slot
+    const overframeName = await getOverframeNameById(slot.overframeId);
+    const slotId =
+      slot.slotType === "normal"
+        ? `normal-${slot.slotIndex}`
+        : `${slot.slotType}-0`;
+    modsWithNames.push({
+      overframeId: slot.overframeId,
+      rank: slot.rank,
+      slotId,
+      overframeName,
+    });
+  }
+
+  // Build mod match index (JSON dataset; avoids Next.js unstable_cache size limit)
+  const allMods: Mod[] = getAllModsJson();
+
+  const matchedMods: OverframeMatchedMod[] = [];
+  for (const m of modsWithNames) {
+    if (!m.overframeName) {
+      matchedMods.push({
+        overframeId: m.overframeId,
+        rank: m.rank,
+        slotId: m.slotId,
+      });
+      warnings.push({
+        type: "mod_not_found",
+        message: `Overframe ID ${m.overframeId} not found in items.csv map`,
+        details: { overframeId: m.overframeId, slotId: m.slotId },
+      });
+      continue;
+    }
+
+    const { mod, score } = matchModByName(m.overframeName, allMods);
+    if (!mod) {
+      matchedMods.push({
+        overframeId: m.overframeId,
+        overframeName: m.overframeName,
+        rank: m.rank,
+        slotId: m.slotId,
+      });
+      warnings.push({
+        type: "mod_not_found",
+        message: `No WFCD mod match for “${m.overframeName}”`,
+        details: {
+          overframeName: m.overframeName,
+          overframeId: m.overframeId,
+          slotId: m.slotId,
+          score,
+        },
+      });
+      continue;
+    }
+
+    matchedMods.push({
+      overframeId: m.overframeId,
+      overframeName: m.overframeName,
+      rank: Math.max(0, Math.min(m.rank, mod.fusionLimit ?? m.rank)),
+      slotId: m.slotId,
+      slotPolarityCode: slotPolarityById.get(m.slotId)?.polarityCode,
+      slotPolarity: slotPolarityById.get(m.slotId)?.polarity,
+      matched: { uniqueName: mod.uniqueName, name: mod.name, score },
+    });
+  }
+
+  // Item matching (best-effort): use extracted itemName when present.
+  const allItems = getAllBrowseItems();
+  const { item: matchedItem, score: itemScore } = matchItemByName(
+    extracted.itemName,
+    allItems
+  );
+
+  if (!matchedItem) {
+    warnings.push({
+      type: "item_not_found",
+      message: extracted.itemName
+        ? `Could not confidently match item “${extracted.itemName}” to a known item.`
+        : "Could not find an item name in the Overframe page.",
+      details: { overframeItemName: extracted.itemName, score: itemScore },
+    });
+  }
+
+  return {
+    source: {
+      url,
+      buildId,
+      buildString: extracted.buildString,
+    },
+    item: {
+      overframeName: extracted.itemName,
+      matched: matchedItem
+        ? {
+            uniqueName: matchedItem.uniqueName,
+            name: matchedItem.name,
+            category: matchedItem.category,
+            score: itemScore,
+          }
+        : undefined,
+    },
+    formaCount:
+      typeof extracted.formaCount === "number" ? extracted.formaCount : null,
+    mods: matchedMods,
+    slotPolarities,
+    warnings,
+    debug: {
+      extractedKeys: extracted.extractedKeys,
+    },
+  };
+}

@@ -211,6 +211,7 @@ function getPolarityFilename(polarity: string): string {
     unairu: "Unairu_Pol.svg",
     penjaga: "Penjaga_Pol.svg",
     umbra: "Umbra_Pol.svg",
+    any: "Any_Pol.svg",
     universal: "Any_Pol.svg",
   };
   return map[polarity] || "Any_Pol.svg";
@@ -289,9 +290,7 @@ export function ModCardFrame({
         className={cn(
           frameBottomPosition,
           "z-20 pointer-events-none w-full",
-          rarity === "Amalgam"
-            ? "w-[110%] max-w-none h-auto"
-            : "w-full"
+          rarity === "Amalgam" ? "w-[110%] max-w-none h-auto" : "w-full"
         )}
         priority={false}
       />

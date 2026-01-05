@@ -34,16 +34,18 @@ describe("calculateWarframeStats", () => {
       const build = createEmptyBuildState();
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      expect(stats.health.base).toBe(100);
-      expect(stats.health.modified).toBe(100);
+      // Rank 30 base includes rank-up bonus
+      expect(stats.health.base).toBe(200);
+      expect(stats.health.modified).toBe(200);
     });
 
     it("returns base shield", () => {
       const build = createEmptyBuildState();
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      expect(stats.shield.base).toBe(100);
-      expect(stats.shield.modified).toBe(100);
+      // Rank 30 base includes rank-up bonus
+      expect(stats.shield.base).toBe(200);
+      expect(stats.shield.modified).toBe(200);
     });
 
     it("returns base armor", () => {
@@ -58,7 +60,7 @@ describe("calculateWarframeStats", () => {
       const build = createEmptyBuildState();
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // Warframes gain +50 energy at rank 30, so 100 base + 50 = 150
+      // Rank 30 base includes rank-up bonus
       expect(stats.energy.base).toBe(150);
       expect(stats.energy.modified).toBe(150);
     });
@@ -85,8 +87,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // 100 * (1 + 4.4) = 540
-      expect(stats.health.modified).toBe(540);
+      // 200 * (1 + 4.4) = 1080
+      expect(stats.health.modified).toBe(1080);
     });
 
     it("applies partial rank Vitality", () => {
@@ -95,8 +97,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // 100 * (1 + 2.4) = 340
-      expect(stats.health.modified).toBe(340);
+      // 200 * (1 + 2.4) = 680
+      expect(stats.health.modified).toBe(680);
     });
 
     it("stacks multiple health mods", () => {
@@ -113,8 +115,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // 100 * (1 + 4.4 + 2.4) = 780
-      expect(stats.health.modified).toBe(780);
+      // 200 * (1 + 4.4 + 2.4) = 1560
+      expect(stats.health.modified).toBe(1560);
     });
   });
 
@@ -149,8 +151,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // 100 * (1 + 6.05) = 705
-      expect(stats.health.modified).toBeCloseTo(705);
+      // 200 * (1 + 6.05) = 1410
+      expect(stats.health.modified).toBeCloseTo(1410);
     });
 
     it("applies 2-piece Umbral bonus (25%)", () => {
@@ -160,8 +162,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // Health: 100 * (1 + 6.05 * 1.25) = 100 * (1 + 7.5625) = 856.25
-      expect(stats.health.modified).toBeCloseTo(856.25);
+      // Health: 200 * (1 + 6.05 * 1.25) = 200 * (1 + 7.5625) = 1712.5
+      expect(stats.health.modified).toBeCloseTo(1712.5);
 
       // Strength: 100 + 121 * 1.25 = 251.25 (but implementation may differ)
       // The actual implementation returns 221 - verify behavior is consistent
@@ -176,8 +178,8 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(EXCALIBUR, build);
 
-      // Health: 100 * (1 + 6.05 * 1.75) = 100 * (1 + 10.5875) = 1158.75
-      expect(stats.health.modified).toBeCloseTo(1158.75);
+      // Health: 200 * (1 + 6.05 * 1.75) = 200 * (1 + 10.5875) = 2317.5
+      expect(stats.health.modified).toBeCloseTo(2317.5);
 
       // Armor increases with 3-piece bonus - verify it's higher than without bonus
       // Base armor is 225, with 181.5% * 1.75 bonus
@@ -194,8 +196,29 @@ describe("calculateWarframeStats", () => {
 
       const stats = calculateWarframeStats(INAROS, build);
 
-      // 550 * (1 + 4.4) = 2970
-      expect(stats.health.modified).toBe(2970);
+      // Inaros gets +200 health by rank 30: 750 * (1 + 4.4) = 4050
+      expect(stats.health.modified).toBe(4050);
+    });
+  });
+
+  describe("aura mods", () => {
+    it("does not apply Corrosive Projection as negative armor on the player", () => {
+      const build = createEmptyBuildState();
+      build.auraSlot.mod = {
+        uniqueName: "/Lotus/Upgrades/Mods/Aura/EnemyArmorReductionAuraMod",
+        name: "Corrosive Projection",
+        polarity: "madurai" as any,
+        baseDrain: -4,
+        fusionLimit: 5,
+        rank: 5,
+        rarity: "Rare",
+        levelStats: [{ stats: ["Enemies lose -18% Armor"] }],
+      } as any;
+
+      const stats = calculateWarframeStats(EXCALIBUR, build);
+
+      // Armor should remain base (no self-debuff)
+      expect(stats.armor.modified).toBe(stats.armor.base);
     });
   });
 

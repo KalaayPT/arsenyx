@@ -88,6 +88,16 @@ export interface GetBuildsOptions {
   category?: string;
 }
 
+function sanitizeBuildDataForDb(buildData: BuildState): BuildState {
+  // Prisma JSON fields cannot contain `undefined` values anywhere inside arrays.
+  // Use `null` for empty slots.
+  return {
+    ...buildData,
+    arcaneSlots: (buildData.arcaneSlots ?? []).map((a) => a ?? null),
+    shardSlots: (buildData.shardSlots ?? []).map((s) => s ?? null),
+  };
+}
+
 // =============================================================================
 // SLUG GENERATION
 // =============================================================================
@@ -263,7 +273,7 @@ export async function createBuild(
       name: input.name,
       description: input.description,
       visibility: input.visibility ?? "PUBLIC",
-      buildData: input.buildData as unknown as Prisma.JsonObject,
+      buildData: sanitizeBuildDataForDb(input.buildData) as unknown as Prisma.JsonObject,
       hasShards: false, // TODO: Detect from buildData when shards are implemented
       buildGuide: guideCreate,
       partnerBuilds: partnerBuildsConnect,
@@ -494,7 +504,9 @@ export async function updateBuild(
     updateData.visibility = input.visibility;
   }
   if (input.buildData !== undefined) {
-    updateData.buildData = input.buildData as unknown as Prisma.JsonObject;
+    updateData.buildData = sanitizeBuildDataForDb(
+      input.buildData
+    ) as unknown as Prisma.JsonObject;
   }
 
   // Handle guide summary and description

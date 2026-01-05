@@ -33,6 +33,7 @@ export function normalizePolarity(polarity?: string): Polarity {
     unairu: "unairu",
     penjaga: "penjaga",
     umbra: "umbra",
+    any: "any",
     universal: "universal",
     // Alternative names
     d: "vazarin",
@@ -75,7 +76,8 @@ export function getAllMods(): Mod[] {
       if (uniqueName.includes("/Beginner/")) return false;
       if (uniqueName.endsWith("Intermediate")) return false;
       // Expert mods are duplicates UNLESS they're Primed mods (Primed versions use Expert suffix)
-      if (uniqueName.endsWith("Expert") && !mod.name.includes("Primed")) return false;
+      if (uniqueName.endsWith("Expert") && !mod.name.includes("Primed"))
+        return false;
       if (uniqueName.includes("/Nemesis/")) return false;
       if (uniqueName.endsWith("SubMod")) return false;
 
@@ -191,7 +193,11 @@ export function getModsForCategory(category: string): Mod[] {
  * For items without a type field, falls back to category-based filtering
  * For warframes, also includes augment mods specific to that warframe
  */
-export function getModsForItem(item: { type?: string; category?: string; name?: string }): Mod[] {
+export function getModsForItem(item: {
+  type?: string;
+  category?: string;
+  name?: string;
+}): Mod[] {
   const itemType = item.type;
   const itemName = item.name;
 
@@ -216,7 +222,9 @@ export function getModsForItem(item: { type?: string; category?: string; name?: 
 
     // Match mod compatibility to item type
     // Primary weapons: Rifle, Shotgun, Sniper, Launcher, Bow
-    if (["rifle", "shotgun", "sniper", "launcher", "bow"].includes(itemTypeLower)) {
+    if (
+      ["rifle", "shotgun", "sniper", "launcher", "bow"].includes(itemTypeLower)
+    ) {
       // Match based on exact compatibility name OR type field
       if (compatName === itemTypeLower) return true;
       if (modType.includes(itemTypeLower)) return true;
@@ -240,7 +248,11 @@ export function getModsForItem(item: { type?: string; category?: string; name?: 
 
     // Secondary weapons: Pistol
     if (itemTypeLower === "pistol") {
-      return compatName === "pistol" || modType.includes("secondary") || modType.includes("pistol");
+      return (
+        compatName === "pistol" ||
+        modType.includes("secondary") ||
+        modType.includes("pistol")
+      );
     }
 
     // Melee weapons
@@ -251,7 +263,10 @@ export function getModsForItem(item: { type?: string; category?: string; name?: 
     // Warframes
     if (itemTypeLower === "warframe") {
       // Include general warframe mods and aura mods
-      if (modType.includes("warframe") && (compatName === "warframe" || compatName === "aura")) {
+      if (
+        modType.includes("warframe") &&
+        (compatName === "warframe" || compatName === "aura")
+      ) {
         return true;
       }
       // Include warframe-specific augment mods if we have the warframe name
@@ -416,7 +431,8 @@ export function getAllArcanes(): Arcane[] {
     if (arcane.name === "Arcane") return false;
     // Filter out duplicate/legacy arcanes marked as excluded from codex
     // (e.g., the incorrect Arcane Fury that shows pistol damage instead of melee damage)
-    if ((arcane as { excludeFromCodex?: boolean }).excludeFromCodex) return false;
+    if ((arcane as { excludeFromCodex?: boolean }).excludeFromCodex)
+      return false;
     return true;
   });
 }
@@ -425,7 +441,13 @@ export function getAllArcanes(): Arcane[] {
  * Get arcanes for a specific slot type (Warframe, Operator, etc.)
  */
 export function getArcanesForSlot(
-  slotType: "warframe" | "operator" | "primary" | "secondary" | "melee" | "weapon"
+  slotType:
+    | "warframe"
+    | "operator"
+    | "primary"
+    | "secondary"
+    | "melee"
+    | "weapon"
 ): Arcane[] {
   const allArcanesData = getAllArcanes();
 
@@ -441,7 +463,11 @@ export function getArcanesForSlot(
         // Primary arcanes generally have "Primary" in type or name if type is generic
         // Main primary arcanes are "Primary Merciless", "Primary Deadhead", etc.
         // They often have type "Primary Arcane" or similar.
-        return type.includes("primary") || type.includes("residua") || type.includes("fractal"); // residues/fractals are kitgun arcanes but often equipable
+        return (
+          type.includes("primary") ||
+          type.includes("residua") ||
+          type.includes("fractal")
+        ); // residues/fractals are kitgun arcanes but often equipable
       case "secondary":
         // Secondary arcanes are "Secondary Merciless", etc.
         // Kitgun secondary arcanes are Pax

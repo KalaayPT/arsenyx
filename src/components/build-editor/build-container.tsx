@@ -226,8 +226,8 @@ function createInitialBuildState(
         : undefined,
     };
     baseState.arcaneSlots = [
-      undefined as unknown as PlacedArcane,
-      undefined as unknown as PlacedArcane,
+      null,
+      null,
     ];
     // Only actual warframes (not necramechs) have shard slots
     if (category === "warframes") {
@@ -235,7 +235,7 @@ function createInitialBuildState(
     }
   } else if (["primary", "secondary", "melee"].includes(category)) {
     // Weapons have 1 arcane slot
-    baseState.arcaneSlots = [undefined as unknown as PlacedArcane];
+    baseState.arcaneSlots = [null];
   }
 
   // Apply imported build data if available
@@ -526,7 +526,7 @@ export function BuildContainer({
           (a) => a?.uniqueName === arcane.uniqueName
         );
         if (existingIndex !== -1 && existingIndex !== slotIndex) {
-          newArcaneSlots[existingIndex] = undefined as unknown as PlacedArcane;
+          newArcaneSlots[existingIndex] = null;
         }
 
         // Place in new slot
@@ -556,7 +556,7 @@ export function BuildContainer({
   const handleRemoveArcane = useCallback((slotIndex: number) => {
     setBuildState((prev) => {
       const newArcaneSlots = [...(prev.arcaneSlots || [])];
-      newArcaneSlots[slotIndex] = undefined as unknown as PlacedArcane;
+      newArcaneSlots[slotIndex] = null;
       return { ...prev, arcaneSlots: newArcaneSlots };
     });
   }, []);

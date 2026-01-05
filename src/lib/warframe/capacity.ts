@@ -25,6 +25,12 @@ export function calculateModDrain(
     return baseDrain;
   }
 
+  // Universal/Omni Forma: matches any polarity except Umbra.
+  // Umbra mods in an "any" slot behave like neutral (no discount, no penalty).
+  if (slotPolarity === "any") {
+    return mod.polarity === "umbra" ? baseDrain : Math.floor(baseDrain / 2);
+  }
+
   if (mod.polarity === slotPolarity) {
     // Matching polarity - halved, rounded down
     return Math.floor(baseDrain / 2);
@@ -79,6 +85,12 @@ export function calculateAuraBonus(
   if (!auraSlotPolarity || auraSlotPolarity === "universal") {
     // No slot polarity - base bonus
     return modDrain;
+  }
+
+  // Universal/Omni Forma: matches any polarity except Umbra.
+  // Umbra aura in an "any" slot behaves like neutral.
+  if (auraSlotPolarity === "any") {
+    return auraMod.polarity === "umbra" ? modDrain : modDrain * 2;
   }
 
   if (auraMod.polarity === auraSlotPolarity) {
@@ -186,6 +198,7 @@ export function wouldMatchPolarity(
   slotPolarity?: Polarity
 ): boolean {
   if (!slotPolarity || slotPolarity === "universal") return false;
+  if (slotPolarity === "any") return mod.polarity !== "umbra";
   return mod.polarity === slotPolarity;
 }
 
@@ -197,6 +210,7 @@ export function wouldMismatchPolarity(
   slotPolarity?: Polarity
 ): boolean {
   if (!slotPolarity || slotPolarity === "universal") return false;
+  if (slotPolarity === "any") return false;
   return mod.polarity !== slotPolarity;
 }
 
@@ -233,6 +247,10 @@ export function getMatchState(
   if (!slotPolarity || slotPolarity === "universal") {
     return "neutral";
   }
+
+  if (slotPolarity === "any") {
+    return modPolarity === "umbra" ? "neutral" : "match";
+  }
   return modPolarity === slotPolarity ? "match" : "mismatch";
 }
 
@@ -241,67 +259,42 @@ export function getMatchState(
 // =============================================================================
 
 /**
- * Calculate the forma count for a build using multiset comparison.
- * 
- * Forma represents NET changes to the total polarity distribution:
- * - Swapping polarities between slots = 0 forma (same total polarities)
- * - Adding a new polarity type = 1 forma
- * - Clearing an innate polarity = 1 forma (if not balanced by an add elsewhere)
- * 
- * Formula: forma = max(totalAdded, totalRemoved)
+ * Calculate the forma count for a build.
+ *
+ * We treat forma as the number of slots whose final polarity differs from the
+ * innate polarity:
+ * - Changing polarity (madurai -> vazarin) counts as 1
+ * - Adding polarity to a neutral slot counts as 1
+ * - Clearing an innate polarity (via "universal") counts as 1
+ *
+ * Note: Swapping polarities between slots still requires forma per slot, so it
+ * counts as 2 changes.
  */
 export function calculateFormaCount(
   normalSlots: ModSlot[],
   auraSlot?: ModSlot,
   exilusSlot?: ModSlot
 ): number {
-  const allSlots = [auraSlot, exilusSlot, ...normalSlots].filter(Boolean) as ModSlot[];
+  const allSlots = [auraSlot, exilusSlot, ...normalSlots].filter(
+    Boolean
+  ) as ModSlot[];
 
-  // Build multisets of innate vs effective polarities
-  const innateCounts: Record<string, number> = {};
-  const effectiveCounts: Record<string, number> = {};
-
+  let changes = 0;
   for (const slot of allSlots) {
     const innate = slot.innatePolarity;
     const effective = getSlotPolarity(slot);
 
-    if (innate && innate !== "universal") {
-      innateCounts[innate] = (innateCounts[innate] || 0) + 1;
-    }
-    if (effective && effective !== "universal") {
-      effectiveCounts[effective] = (effectiveCounts[effective] || 0) + 1;
+    if (innate !== effective) {
+      changes += 1;
     }
   }
 
-  // Get all unique polarities from both sets
-  const allPolarities = new Set([
-    ...Object.keys(innateCounts),
-    ...Object.keys(effectiveCounts)
-  ]);
-
-  // Calculate total added and removed polarities
-  let totalAdded = 0;
-  let totalRemoved = 0;
-
-  for (const polarity of allPolarities) {
-    const innateCount = innateCounts[polarity] || 0;
-    const effectiveCount = effectiveCounts[polarity] || 0;
-
-    if (effectiveCount > innateCount) {
-      totalAdded += effectiveCount - innateCount;
-    } else if (innateCount > effectiveCount) {
-      totalRemoved += innateCount - effectiveCount;
-    }
-  }
-
-  // Forma count is the max of additions or removals
-  return Math.max(totalAdded, totalRemoved);
+  return changes;
 }
 
 // =============================================================================
 // ENDO COST CALCULATION
 // =============================================================================
-
 
 /**
  * Base endo costs per rank by rarity (approximate Warframe values)

@@ -230,6 +230,7 @@ const POLARITY_ICON_MAP: Record<Polarity, string> = {
   unairu: "Unairu_Pol.svg",
   penjaga: "Penjaga_Pol.svg",
   umbra: "Umbra_Pol.svg",
+  any: "Any_Pol.svg",
   universal: "Any_Pol.svg",
 };
 

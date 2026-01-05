@@ -194,6 +194,7 @@ export type Polarity =
   | "unairu"
   | "penjaga"
   | "umbra"
+  | "any"
   | "universal";
 
 // =============================================================================
@@ -313,7 +314,7 @@ export interface BuildState {
   auraSlot?: ModSlot; // Warframes only
   exilusSlot: ModSlot;
   normalSlots: ModSlot[]; // 8 slots
-  arcaneSlots: PlacedArcane[]; // 2 slots for Warframes
+  arcaneSlots: (PlacedArcane | null)[]; // Warframes: 2 slots, Weapons: 1 slot
 
   // Archon Shards (Warframes only) - 5 slots
   shardSlots: (PlacedShard | null)[];
@@ -364,17 +365,23 @@ export type ModCompatibility =
 // ARCHON SHARD TYPES
 // =============================================================================
 
-export type ShardColor = "crimson" | "amber" | "azure" | "topaz" | "violet" | "emerald";
+export type ShardColor =
+  | "crimson"
+  | "amber"
+  | "azure"
+  | "topaz"
+  | "violet"
+  | "emerald";
 
 export interface ShardStat {
-  name: string;           // e.g., "Health", "Ability Strength"
-  baseValue: number;      // Regular shard bonus
+  name: string; // e.g., "Health", "Ability Strength"
+  baseValue: number; // Regular shard bonus
   tauforgedValue: number; // Tauforged bonus (+50%)
-  unit: string;           // "", "%", "s", etc.
+  unit: string; // "", "%", "s", etc.
 }
 
 export interface PlacedShard {
   color: ShardColor;
-  stat: string;           // Stat name key
+  stat: string; // Stat name key
   tauforged: boolean;
 }
