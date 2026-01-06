@@ -40,15 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-*.md
-/.claude/
-
-!README.md
-!IMPLEMENTATION_PLAN.md
-!CLAUDE.md
-!MOBILE_SUPPORT_PLAN.md
-!MOBILE_IMPLEMENTATION_SUMMARY.md
-!docs/*.md
+# prisma generated files
 /src/generated/prisma
 
-nul
+# claude temp files
+/.claude/
