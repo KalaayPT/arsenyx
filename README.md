@@ -1,4 +1,4 @@
-# Arsenix – Warframe Build Planner
+# Arsenyx – Warframe Build Planner
 
 Fast, keyboard-first Warframe build planner built with Next.js 16, Tailwind v4, and shadcn/ui. Data is sourced from the community-maintained `@wfcd/items` package.
 

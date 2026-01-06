@@ -21,15 +21,15 @@ export async function generateMetadata({
   const user = await getUserByUsername(username);
 
   if (!user) {
-    return { title: "User Not Found | ARSENIX" };
+    return { title: "User Not Found | ARSENYX" };
   }
 
   const displayName = user.username || user.name || "User";
 
   return {
-    title: `${displayName} | ARSENIX`,
+    title: `${displayName} | ARSENYX`,
     description:
-      user.bio || `View ${displayName}'s Warframe builds on ARSENIX`,
+      user.bio || `View ${displayName}'s Warframe builds on ARSENYX`,
   };
 }
 

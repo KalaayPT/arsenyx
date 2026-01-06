@@ -243,9 +243,9 @@ describe("decodeBuild", () => {
 describe("generateBuildUrl", () => {
   it("generates URL with build parameter", () => {
     const build = createEmptyBuildState();
-    const url = generateBuildUrl(build, "https://arsenix.app");
+    const url = generateBuildUrl(build, "https://arsenyx.com");
 
-    expect(url).toContain("https://arsenix.app/create?build=");
+    expect(url).toContain("https://arsenyx.com/create?build=");
   });
 
   it("URL-encodes the build parameter", () => {
@@ -263,7 +263,7 @@ describe("extractBuildFromUrl", () => {
       itemUniqueName: "/Lotus/Test/Item",
       hasReactor: true,
     });
-    const url = generateBuildUrl(build, "https://arsenix.app");
+    const url = generateBuildUrl(build, "https://arsenyx.com");
 
     const extracted = extractBuildFromUrl(url);
 
@@ -272,7 +272,7 @@ describe("extractBuildFromUrl", () => {
   });
 
   it("returns null for URL without build parameter", () => {
-    const result = extractBuildFromUrl("https://arsenix.app/create");
+    const result = extractBuildFromUrl("https://arsenyx.com/create");
     expect(result).toBeNull();
   });
 
@@ -297,7 +297,7 @@ describe("extractBuildFromUrl", () => {
       null,
     ];
 
-    const url = generateBuildUrl(build, "https://arsenix.app");
+    const url = generateBuildUrl(build, "https://arsenyx.com");
     const extracted = extractBuildFromUrl(url);
 
     expect(extracted?.itemUniqueName).toBe("/Lotus/Powersuits/Nova/NovaPrime");

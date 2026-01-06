@@ -9,7 +9,7 @@ import { getDefaultCategory, isValidCategory } from "@/lib/warframe";
 import type { BrowseCategory } from "@/lib/warframe/types";
 
 export const metadata: Metadata = {
-  title: "Browse Items | ARSENIX",
+  title: "Browse Items | ARSENYX",
   description:
     "Browse Warframes, weapons, companions, and more. Find the perfect equipment for your next build.",
 };

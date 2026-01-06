@@ -1,6 +1,6 @@
-# Arsenix Implementation Plan
+# Arsenyx Implementation Plan
 
-> Comprehensive plan for adding database persistence, authentication, data synchronization, and social features to Arsenix.
+> Comprehensive plan for adding database persistence, authentication, data synchronization, and social features to Arsenyx.
 
 ## Table of Contents
 
@@ -87,24 +87,24 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: arsenix-db
+    container_name: arsenyx-db
     environment:
-      POSTGRES_USER: arsenix
-      POSTGRES_PASSWORD: arsenix_dev
-      POSTGRES_DB: arsenix
+      POSTGRES_USER: arsenyx
+      POSTGRES_PASSWORD: arsenyx_dev
+      POSTGRES_DB: arsenyx
     ports:
       - "5432:5432"
     volumes:
-      - arsenix_postgres_data:/var/lib/postgresql/data
+      - arsenyx_postgres_data:/var/lib/postgresql/data
 
 volumes:
-  arsenix_postgres_data:
+  arsenyx_postgres_data:
 ```
 
 Local `DATABASE_URL`:
 
 ```
-postgresql://arsenix:arsenix_dev@localhost:5432/arsenix
+postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx
 ```
 
 ### Operational Defaults
@@ -2066,7 +2066,7 @@ async function migrateLocalBuilds(userId: string) {
 
 ```bash
 # Database
-DATABASE_URL="postgresql://user:pass@host:5432/arsenix"
+DATABASE_URL="postgresql://user:pass@host:5432/arsenyx"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"  # Or production URL
@@ -2081,7 +2081,7 @@ EMAIL_SERVER_HOST="smtp.example.com"
 EMAIL_SERVER_PORT="587"
 EMAIL_SERVER_USER="your-email"
 EMAIL_SERVER_PASSWORD="your-password"
-EMAIL_FROM="noreply@arsenix.app"
+EMAIL_FROM="noreply@arsenyx.com"
 ```
 
 ### 12.2 Optional Variables
@@ -2094,7 +2094,7 @@ CRON_SECRET="your-cron-secret"
 R2_ACCOUNT_ID="your-r2-account"
 R2_ACCESS_KEY_ID="your-r2-key"
 R2_SECRET_ACCESS_KEY="your-r2-secret"
-R2_BUCKET_NAME="arsenix-images"
+R2_BUCKET_NAME="arsenyx-images"
 
 # Or Vercel Blob
 BLOB_READ_WRITE_TOKEN="your-blob-token"
@@ -2107,7 +2107,7 @@ UPSTASH_REDIS_REST_TOKEN="your-upstash-token"
 USE_DATABASE="true"
 
 # App URL (for image generation)
-NEXT_PUBLIC_APP_URL="https://arsenix.app"
+NEXT_PUBLIC_APP_URL="https://arsenyx.com"
 ```
 
 ### 12.3 Development vs Production
@@ -2115,7 +2115,7 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 | Variable       | Development                                | Production             |
 | -------------- | ------------------------------------------ | ---------------------- |
 | `DATABASE_URL` | Docker local                               | Neon connection string |
-| `NEXTAUTH_URL` | `http://localhost:3000`                    | `https://arsenix.app`  |
+| `NEXTAUTH_URL` | `http://localhost:3000`                    | `https://arsenyx.com`  |
 | `USE_DATABASE` | `false` initially, then `true`             | `true`                 |
 | Preview envs   | Neon branch per PR (unique `DATABASE_URL`) | -                      |
 
@@ -2185,7 +2185,7 @@ NEXT_PUBLIC_APP_URL="https://arsenix.app"
 ## Appendix A: File Structure
 
 ```
-arsenix/
+arsenyx/
 ├── prisma/
 │   ├── schema.prisma
 │   ├── migrations/
@@ -2379,7 +2379,7 @@ Use a separate test database to avoid polluting development data:
 
 ```bash
 # .env.test
-DATABASE_URL="postgresql://arsenix:arsenix_dev@localhost:5432/arsenix_test"
+DATABASE_URL="postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx_test"
 ```
 
 ```typescript
@@ -2427,9 +2427,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: arsenix
-          POSTGRES_PASSWORD: arsenix_test
-          POSTGRES_DB: arsenix_test
+          POSTGRES_USER: arsenyx
+          POSTGRES_PASSWORD: arsenyx_test
+          POSTGRES_DB: arsenyx_test
         ports:
           - 5432:5432
 
@@ -2440,16 +2440,16 @@ jobs:
       - run: bun install
       - run: bun prisma migrate deploy
         env:
-          DATABASE_URL: postgresql://arsenix:arsenix_test@localhost:5432/arsenix_test
+          DATABASE_URL: postgresql://arsenyx:arsenyx_test@localhost:5432/arsenyx_test
 
       - run: bun test
         env:
-          DATABASE_URL: postgresql://arsenix:arsenix_test@localhost:5432/arsenix_test
+          DATABASE_URL: postgresql://arsenyx:arsenyx_test@localhost:5432/arsenyx_test
 
       - run: bun playwright install --with-deps
       - run: bun playwright test
         env:
-          DATABASE_URL: postgresql://arsenix:arsenix_test@localhost:5432/arsenix_test
+          DATABASE_URL: postgresql://arsenyx:arsenyx_test@localhost:5432/arsenyx_test
 ```
 
 ### C.6 Test Coverage Goals

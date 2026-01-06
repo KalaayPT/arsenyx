@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Arsenix - Warframe Build Planner",
+  title: "Arsenyx - Warframe Build Planner",
   description:
     "Open-source Warframe build planner. Fast, keyboard-first, and community-driven.",
 };

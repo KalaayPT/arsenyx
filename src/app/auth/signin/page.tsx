@@ -22,7 +22,7 @@ function SignInContent() {
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="mx-auto w-full max-w-sm space-y-6 px-4">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">Sign in to Arsenix</h1>
+          <h1 className="text-2xl font-bold">Sign in to Arsenyx</h1>
           <p className="text-muted-foreground">
             Sign in to save builds, vote, and more
           </p>
@@ -67,7 +67,7 @@ function SignInFallback() {
     <div className="flex min-h-[80vh] items-center justify-center">
       <div className="mx-auto w-full max-w-sm space-y-6 px-4">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold">Sign in to Arsenix</h1>
+          <h1 className="text-2xl font-bold">Sign in to Arsenyx</h1>
           <p className="text-muted-foreground">
             Sign in to save builds, vote, and more
           </p>

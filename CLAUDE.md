@@ -1,8 +1,8 @@
-# CLAUDE.md - AI Assistant Guide for Arsenix
+# CLAUDE.md - AI Assistant Guide for Arsenyx
 
 ## Project Overview
 
-Arsenix is a Warframe build planner - a web application for creating, sharing, and discovering equipment builds for the game Warframe. It features keyboard-first navigation, rich text guides, mod/arcane management, and social features (voting, favorites, forking builds).
+Arsenyx is a Warframe build planner - a web application for creating, sharing, and discovering equipment builds for the game Warframe. It features keyboard-first navigation, rich text guides, mod/arcane management, and social features (voting, favorites, forking builds).
 
 ## Tech Stack
 
@@ -201,7 +201,7 @@ Main models in `prisma/schema.prisma`:
 
 Required in `.env`:
 ```
-DATABASE_URL=postgresql://arsenix:arsenix_dev@localhost:5432/arsenix
+DATABASE_URL=postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx
 GITHUB_ID=...
 GITHUB_SECRET=...
 BETTER_AUTH_SECRET=...

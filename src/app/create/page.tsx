@@ -14,7 +14,7 @@ import { decodeBuild } from "@/lib/build-codec";
 import type { BrowseCategory, Arcane } from "@/lib/warframe/types";
 
 export const metadata: Metadata = {
-  title: "Build Editor | ARSENIX",
+  title: "Build Editor | ARSENYX",
   description:
     "Create and share Warframe builds with an intuitive keyboard-first editor.",
 };

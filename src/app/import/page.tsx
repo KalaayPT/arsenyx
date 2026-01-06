@@ -3,7 +3,7 @@ import { Footer } from "@/components/footer";
 import { ImportOverframeClient } from "./import-overframe-client";
 
 export const metadata = {
-  title: "Import Test | ARSENIX",
+  title: "Import Test | ARSENYX",
   description: "Temporary page to test Overframe import.",
 };
 

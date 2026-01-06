@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "My Builds | ARSENIX",
+  title: "My Builds | ARSENYX",
   description: "Manage your saved Warframe builds",
 };
 

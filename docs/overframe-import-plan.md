@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add the ability to import builds from Overframe.gg URLs into Arsenix. Given a URL like:
+Add the ability to import builds from Overframe.gg URLs into Arsenyx. Given a URL like:
 
 ```txt
 https://overframe.gg/build/935570/uriel/fire-and-brimstone-uriel-hybrid-nuke-and-weapon-platform/
@@ -11,7 +11,7 @@ https://overframe.gg/build/935570/uriel/fire-and-brimstone-uriel-hybrid-nuke-and
 The system should:
 
 1. Fetch the build data from Overframe
-2. Match the warframe/weapon and mods to Arsenix's WFCD data
+2. Match the warframe/weapon and mods to Arsenyx's WFCD data
 3. Create a new build with the correct mods, forma, arcanes, and shards in place
 
 ---
@@ -29,7 +29,7 @@ Overframe.gg is a Next.js application that embeds build data in `<script id="__N
 - **Arcanes**: 1-2 equipped arcanes with ranks
 - **Shards**: (Warframes) 5 archon shard slots with color/stat/tauforged
 
-### Arsenix Build Structure
+### Arsenyx Build Structure
 
 From `src/lib/warframe/types.ts`, the `BuildState` interface requires:
 
@@ -54,7 +54,7 @@ interface BuildState {
 The main challenge is **name matching**:
 
 - Overframe uses display names (e.g., "Primed Continuity")
-- Arsenix uses WFCD's `uniqueName` as the primary identifier
+- Arsenyx uses WFCD's `uniqueName` as the primary identifier
 - Names must be fuzzy-matched to handle slight differences
 
 ---
@@ -180,7 +180,7 @@ function normalizeName(name: string): string {
 
 **File**: `src/lib/overframe/convert-build.ts`
 
-Convert Overframe build data to Arsenix `BuildState`:
+Convert Overframe build data to Arsenyx `BuildState`:
 
 ```typescript
 export interface ConversionResult {
@@ -198,17 +198,17 @@ export interface ConversionWarning {
 
 export function convertOverframeBuild(
   overframeBuild: OverframeBuild,
-  arsenixItem: BrowseableItem,
+  arsenyxItem: BrowseableItem,
   compatibleMods: Mod[]
 ): ConversionResult;
 ```
 
 **Conversion steps**:
 
-1. Map item to Arsenix item (validate category matches)
+1. Map item to Arsenyx item (validate category matches)
 2. Create base `BuildState` with item info and innate polarities
 3. For each Overframe mod:
-   - Find matching Arsenix mod
+   - Find matching Arsenyx mod
    - Create `PlacedMod` with rank
    - Place in correct slot (respecting slotIndex)
 4. Apply forma polarities to slots
@@ -221,7 +221,7 @@ export function convertOverframeBuild(
 
 **File**: `src/lib/overframe/polarity-mapper.ts`
 
-Map Overframe polarity names to Arsenix `Polarity` type:
+Map Overframe polarity names to Arsenyx `Polarity` type:
 
 ```typescript
 const OVERFRAME_POLARITY_MAP: Record<string, Polarity> = {
@@ -325,7 +325,7 @@ When a mod can't be matched:
 #### 5.2 Handle Category Mismatches
 
 - If Overframe says "Rifle" but mod is "Shotgun" compatible, still try to place
-- Arsenix's existing slot validation will reject invalid placements
+- Arsenyx's existing slot validation will reject invalid placements
 - Show warning to user about incompatible mods
 
 #### 5.3 Handle New/Unknown Items

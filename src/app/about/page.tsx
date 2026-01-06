@@ -22,7 +22,7 @@ export default function AboutPage() {
                         <section>
                             <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
                             <p>
-                                Arsenix was built with one goal in mind: to be the fastest, most modern Warframe build planner.
+                                Arsenyx was built with one goal in mind: to be the fastest, most modern Warframe build planner.
                                 We believe that planning your loadout should be as fluid and fast as the game itself.
                                 Focused on keyboard-first navigation and immediate feedback, we&apos;re rethinking how Tennos
                                 share and optimize their builds.
@@ -32,7 +32,7 @@ export default function AboutPage() {
                         <section>
                             <h2 className="text-2xl font-semibold mb-4">Open Source</h2>
                             <p>
-                                We believe in the power of community. That&apos;s why Arsenix is fully open source.
+                                We believe in the power of community. That&apos;s why Arsenyx is fully open source.
                                 Anyone can contribute code, suggest features, or report bugs. We&apos;re building this together.
                             </p>
                             <div className="flex gap-4 mt-6">
