@@ -30,7 +30,7 @@ async function fetchOverframeHtml(url: string): Promise<string> {
   const res = await fetch(url, {
     headers: {
       "user-agent":
-        "Mozilla/5.0 (compatible; ArsenixBot/1.0; +https://arsenix.example)",
+        "Mozilla/5.0 (compatible; ArsenyxBot/1.0; +https://arsenyx.com)",
       accept: "text/html,application/xhtml+xml",
     },
     // Overframe content changes slowly; keep conservative caching.

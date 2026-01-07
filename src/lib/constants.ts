@@ -1,11 +1,11 @@
 // Site-wide constants and configuration
 export const SITE_CONFIG = {
-  name: "ARSENIX",
+  name: "ARSENYX",
   description:
     "Open-source Warframe build planner. Fast, keyboard-first, and community-driven.",
   tagline: "Build. Share. Dominate.",
-  github: "https://github.com/Reuzehagel/arsenix",
-  author: "Arsenix",
+  github: "https://github.com/Reuzehagel/arsenyx",
+  author: "Arsenyx",
   year: new Date().getFullYear(),
 } as const;
 
@@ -29,7 +29,7 @@ export const ROUTES = {
 
 // External links
 export const EXTERNAL_LINKS = {
-  github: "https://github.com/Reuzehagel/arsenix",
+  github: "https://github.com/Reuzehagel/arsenyx",
   wfcd: "https://warframestat.us",
 } as const;
 
@@ -126,7 +126,7 @@ export const FEATURES_SECTION = {
 export const CTA_CONTENT = {
   headline: "Ready to build your perfect loadout?",
   description:
-    "Join thousands of Tenno who use Arsenix to plan, share, and optimize their builds.",
+    "Join thousands of Tenno who use Arsenyx to plan, share, and optimize their builds.",
   primaryCta: { label: "Start Building", href: ROUTES.browse },
   secondaryCta: { label: "Star on GitHub", href: EXTERNAL_LINKS.github },
 } as const;

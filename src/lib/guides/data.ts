@@ -11,7 +11,7 @@ import { getSeedGuides, getSeedGuideBySlug } from "./seed-data";
 import { calculateReadingTime } from "./types";
 
 // Local storage key for draft guides
-const DRAFT_STORAGE_KEY = "arsenix_guide_drafts";
+const DRAFT_STORAGE_KEY = "arsenyx_guide_drafts";
 
 // =============================================================================
 // GUIDE QUERIES

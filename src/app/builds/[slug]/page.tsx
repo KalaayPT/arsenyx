@@ -33,11 +33,11 @@ export async function generateMetadata({
 
   if (!build) {
     return {
-      title: "Build Not Found | ARSENIX",
+      title: "Build Not Found | ARSENYX",
     };
   }
 
-  const title = `${build.name} - ${build.item.name} Build | ARSENIX`;
+  const title = `${build.name} - ${build.item.name} Build | ARSENYX`;
   const description =
     build.description ||
     `${build.item.name} build by ${

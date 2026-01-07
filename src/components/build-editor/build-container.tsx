@@ -324,8 +324,8 @@ function createInitialBuildState(
 }
 
 // Local storage key for auto-save
-const STORAGE_KEY_PREFIX = "arsenix_build_";
-const GUIDE_STORAGE_KEY_PREFIX = "arsenix_build_guide_";
+const STORAGE_KEY_PREFIX = "arsenyx_build_";
+const GUIDE_STORAGE_KEY_PREFIX = "arsenyx_build_guide_";
 
 export function BuildContainer({
   item,
@@ -1253,7 +1253,7 @@ export function BuildContainer({
   const handleCancel = useCallback(() => {
     // Clear build from localStorage
     const buildKey = `${STORAGE_KEY_PREFIX}${item.uniqueName}`;
-    const guideKey = `arsenix_build_guide_${item.uniqueName}`;
+    const guideKey = `${GUIDE_STORAGE_KEY_PREFIX}${item.uniqueName}`;
     try {
       localStorage.removeItem(buildKey);
       localStorage.removeItem(guideKey);

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
-    title: "Browse Builds | ARSENIX",
+    title: "Browse Builds | ARSENYX",
     description: "Discover and explore community Warframe builds.",
 };
 

@@ -12,7 +12,7 @@ import { getImageUrl } from "@/lib/warframe/images";
 import { ThumbsUp, Eye, Heart } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Favorites | ARSENIX",
+  title: "Favorites | ARSENYX",
   description: "Your favorited Warframe builds",
 };
 

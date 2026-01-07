@@ -43,24 +43,24 @@ export async function generateMetadata({
   const { category, slug } = await params;
 
   if (!isValidCategory(category)) {
-    return { title: "Item Not Found | ARSENIX" };
+    return { title: "Item Not Found | ARSENYX" };
   }
 
   const item = getItemBySlug(category as BrowseCategory, slug);
 
   if (!item) {
-    return { title: "Item Not Found | ARSENIX" };
+    return { title: "Item Not Found | ARSENYX" };
   }
 
   const categoryConfig = getCategoryConfig(category as BrowseCategory);
 
   return {
-    title: `${item.name} | ARSENIX`,
+    title: `${item.name} | ARSENYX`,
     description:
       item.description ||
       `View ${item.name} stats, builds, and create your own ${categoryConfig?.label} build.`,
     openGraph: {
-      title: `${item.name} | ARSENIX`,
+      title: `${item.name} | ARSENYX`,
       description:
         item.description ||
         `View ${item.name} stats, builds, and create your own build.`,

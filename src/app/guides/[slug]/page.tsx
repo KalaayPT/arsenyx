@@ -36,14 +36,14 @@ export async function generateMetadata(
 
     if (!guide) {
         return {
-            title: "Guide Not Found | ARSENIX",
+            title: "Guide Not Found | ARSENYX",
         };
     }
 
     const categoryLabel = GUIDE_CATEGORY_INFO[guide.category].label;
 
     return {
-        title: `${guide.title} | ARSENIX Guides`,
+        title: `${guide.title} | ARSENYX Guides`,
         description: guide.summary,
         keywords: [categoryLabel, ...guide.tags],
         openGraph: {

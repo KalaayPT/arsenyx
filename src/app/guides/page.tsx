@@ -7,7 +7,7 @@ import { getGuides } from "@/lib/guides";
 import { CURATED_RESOURCES } from "@/lib/guides/curated-resources";
 
 export const metadata: Metadata = {
-    title: "Guides | ARSENIX",
+    title: "Guides | ARSENYX",
     description:
         "Learn about Warframe mechanics, farming strategies, and game systems with in-depth guides.",
 };

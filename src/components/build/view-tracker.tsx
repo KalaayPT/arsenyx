@@ -15,7 +15,7 @@ export function ViewTracker({ buildId }: ViewTrackerProps) {
         if (attemptedRef.current) return;
         attemptedRef.current = true;
 
-        const storageKey = `arsenix_viewed_${buildId}`;
+        const storageKey = `arsenyx_viewed_${buildId}`;
 
         // Check if already viewed this session
         if (sessionStorage.getItem(storageKey)) {

@@ -1,4 +1,4 @@
-# Code Audit — Arsenix (Next.js App Router)
+# Code Audit — Arsenyx (Next.js App Router)
 
 Date: 2026-01-05
 
