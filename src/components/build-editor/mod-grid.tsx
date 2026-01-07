@@ -59,7 +59,7 @@ interface ModGridProps {
   isWarframe: boolean;
   draggedMod?: Mod | PlacedMod;
   // Arcane props
-  arcaneSlots?: PlacedArcane[];
+  arcaneSlots?: (PlacedArcane | null)[];
   onRemoveArcane?: (index: number) => void;
   onChangeArcaneRank?: (index: number, rank: number) => void;
   draggedArcane?: Arcane | PlacedArcane;
@@ -185,7 +185,7 @@ export function ModGrid({
             {arcaneSlots.map((arcane, index) => (
               <ArcaneSlotCard
                 key={`arcane-${index}`}
-                arcane={arcane}
+                arcane={arcane ?? undefined}
                 slotIndex={index}
                 isActive={activeSlotId === `arcane-${index}`}
                 onSelect={() => onSelectSlot(`arcane-${index}`)}

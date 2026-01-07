@@ -89,6 +89,8 @@ export function applyOverframeImportToBuildState(
   };
 
   // 1) Apply slot polarities (forma)
+  // Compare Overframe's reported polarity with the slot's innate polarity
+  // to determine if forma was applied.
   for (const sp of importResult.slotPolarities ?? []) {
     const slot = resolveSlot(next, sp.slotId);
     if (!slot) {
@@ -100,10 +102,35 @@ export function applyOverframeImportToBuildState(
       continue;
     }
 
-    if (sp.polarity) {
-      slot.formaPolarity = sp.polarity as Polarity;
+    // Overframe polarity: the FINAL polarity of the slot (after any forma)
+    // - undefined/null means "no polarity" (either innate empty or cleared via universal)
+    // - A polarity value means that's what the slot shows
+    const importedPolarity = sp.polarity as Polarity | undefined;
+
+    // Case 1: Overframe says "no polarity" but slot has innate
+    // → This means the innate polarity was CLEARED (universal forma)
+    if (!importedPolarity && slot.innatePolarity) {
+      slot.formaPolarity = "universal";
       writeSlot(next, sp.slotId, slot);
+      continue;
     }
+
+    // Case 2: Overframe says "no polarity" and slot has no innate
+    // → No change, slot is naturally empty
+    if (!importedPolarity && !slot.innatePolarity) {
+      continue;
+    }
+
+    // Case 3: Overframe polarity matches innate
+    // → No forma needed, slot uses innate polarity
+    if (importedPolarity === slot.innatePolarity) {
+      continue;
+    }
+
+    // Case 4: Overframe polarity differs from innate
+    // → Forma was applied to change the polarity
+    slot.formaPolarity = importedPolarity;
+    writeSlot(next, sp.slotId, slot);
   }
 
   // 2) Place mods

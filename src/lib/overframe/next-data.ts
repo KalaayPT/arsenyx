@@ -186,6 +186,9 @@ export function extractOverframeDataFromHtml(
     "forma",
     "formaCount",
     "forma_count",
+    "formas",
+    "numForma",
+    "num_forma",
   ]);
   if (formaRes) extractedKeys.push(formaRes.keyPath);
 

@@ -259,37 +259,111 @@ export function getMatchState(
 // =============================================================================
 
 /**
- * Calculate the forma count for a build.
+ * Calculate forma needed for a group of slots using NET polarity comparison.
  *
- * We treat forma as the number of slots whose final polarity differs from the
- * innate polarity:
- * - Changing polarity (madurai -> vazarin) counts as 1
- * - Adding polarity to a neutral slot counts as 1
- * - Clearing an innate polarity (via "universal") counts as 1
+ * In Warframe, you can swap polarity positions freely within the same slot type.
+ * So we use a multiset comparison of REAL polarities (excluding "none"):
+ * - Count how many of each real polarity type you need vs have innate
+ * - Additions: polarities you need but don't have enough of
+ * - Removals: polarities you have but don't need
+ * - forma = additions + removals
  *
- * Note: Swapping polarities between slots still requires forma per slot, so it
- * counts as 2 changes.
+ * @param slots - Array of slots to calculate forma for (should all be same type)
+ * @returns Number of forma needed
+ */
+function calculateSlotGroupForma(slots: ModSlot[]): number {
+  // Count innate and effective REAL polarities (excluding "none")
+  const innateCounts: Record<string, number> = {};
+  const effectiveCounts: Record<string, number> = {};
+
+  for (const slot of slots) {
+    const innate = slot.innatePolarity; // undefined = no polarity
+    const effective = getSlotPolarity(slot); // undefined = no polarity
+
+    // Only count real polarities, skip "none"/undefined
+    if (innate) {
+      innateCounts[innate] = (innateCounts[innate] ?? 0) + 1;
+    }
+    if (effective) {
+      effectiveCounts[effective] = (effectiveCounts[effective] ?? 0) + 1;
+    }
+  }
+
+  // Get all real polarity types
+  const allPolarities = new Set([
+    ...Object.keys(innateCounts),
+    ...Object.keys(effectiveCounts),
+  ]);
+
+  let additions = 0;
+  let removals = 0;
+
+  for (const polarity of allPolarities) {
+    const innateCount = innateCounts[polarity] ?? 0;
+    const effectiveCount = effectiveCounts[polarity] ?? 0;
+
+    if (effectiveCount > innateCount) {
+      // Need to ADD this polarity (costs forma)
+      additions += effectiveCount - innateCount;
+    } else if (innateCount > effectiveCount) {
+      // Need to REMOVE this polarity (costs forma)
+      removals += innateCount - effectiveCount;
+    }
+  }
+
+  // Total forma = additions + removals
+  // (each is a separate forma operation, can't be combined across slots)
+  return additions + removals;
+}
+
+/**
+ * Calculate forma for a single slot (simple: changed or not)
+ */
+function calculateSingleSlotForma(slot: ModSlot): number {
+  const innate = slot.innatePolarity;
+  const effective = getSlotPolarity(slot);
+  return innate !== effective ? 1 : 0;
+}
+
+/**
+ * Calculate the forma count for a build using NET polarity changes.
+ *
+ * IMPORTANT: Polarities can only be swapped within the same slot type!
+ * - Aura slot polarities can't move to normal slots
+ * - Exilus slot polarities can't move to normal slots
+ * - Normal slot polarities can swap among themselves
+ *
+ * So we calculate forma separately for each slot type, then sum them.
+ *
+ * Examples:
+ * - Normal [naramon, vazarin] -> [vazarin, naramon]: 0 forma (swapped)
+ * - Normal [naramon, none] -> [none, naramon]: 0 forma (moved)
+ * - Normal [none, none] -> [madurai, madurai]: 2 forma (added 2)
+ * - Aura [madurai] -> [any]: 1 forma (changed type)
  */
 export function calculateFormaCount(
   normalSlots: ModSlot[],
   auraSlot?: ModSlot,
   exilusSlot?: ModSlot
 ): number {
-  const allSlots = [auraSlot, exilusSlot, ...normalSlots].filter(
-    Boolean
-  ) as ModSlot[];
+  let total = 0;
 
-  let changes = 0;
-  for (const slot of allSlots) {
-    const innate = slot.innatePolarity;
-    const effective = getSlotPolarity(slot);
-
-    if (innate !== effective) {
-      changes += 1;
-    }
+  // Aura slot (single slot - just check if changed)
+  if (auraSlot) {
+    total += calculateSingleSlotForma(auraSlot);
   }
 
-  return changes;
+  // Exilus slot (single slot - just check if changed)
+  if (exilusSlot) {
+    total += calculateSingleSlotForma(exilusSlot);
+  }
+
+  // Normal slots (multiple slots - use multiset formula for swapping)
+  if (normalSlots.length > 0) {
+    total += calculateSlotGroupForma(normalSlots);
+  }
+
+  return total;
 }
 
 // =============================================================================

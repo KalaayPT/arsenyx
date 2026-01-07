@@ -99,9 +99,14 @@ function parseOverframeSlots(slots: unknown): Array<{
     }
 
     if (slotId >= 1 && slotId <= 8) {
+      // Overframe numbers slots in reverse visual order:
+      // - slot_id 8 = top-left (visually first)
+      // - slot_id 1 = bottom-right (visually last)
+      // Our app displays normal-0 at top-left, normal-7 at bottom-right
+      // So we reverse: slotIndex = 8 - slotId
       out.push({
         slotType: "normal",
-        slotIndex: slotId - 1,
+        slotIndex: 8 - slotId,
         overframeId,
         rank,
         polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,

@@ -7,6 +7,7 @@ import type {
   Polarity,
   BrowseCategory,
   PlacedShard,
+  PlacedArcane,
 } from "./warframe/types";
 import { SHARD_COLORS, getStatIndex, getStatByIndex } from "./warframe/shards";
 
@@ -65,7 +66,7 @@ export function encodeBuild(state: BuildState): string {
 
   if (state.arcaneSlots?.length > 0) {
     const placedArcanes = state.arcaneSlots.filter(
-      (a): a is { uniqueName: string; rank: number } => Boolean(a)
+      (a): a is PlacedArcane => a !== null
     );
 
     if (placedArcanes.length > 0) {

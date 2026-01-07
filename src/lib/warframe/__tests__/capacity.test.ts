@@ -477,8 +477,8 @@ describe("calculateFormaCount", () => {
     expect(calculateFormaCount(slots)).toBe(1);
   });
 
-  it("counts swapped polarities as net change", () => {
-    // Swapping still requires forma per slot
+  it("counts swapped polarities as free (net 0)", () => {
+    // Swapping polarity positions is free in Warframe
     const slots = [
       {
         ...createModSlot("0", "normal", "madurai"),
@@ -489,7 +489,23 @@ describe("calculateFormaCount", () => {
         formaPolarity: "madurai" as Polarity,
       },
     ];
-    expect(calculateFormaCount(slots)).toBe(2);
+    expect(calculateFormaCount(slots)).toBe(0);
+  });
+
+  it("counts moved polarity as free (net 0)", () => {
+    // Moving a polarity from one slot to another is free
+    // e.g., slot 0 had naramon, slot 1 had none -> slot 0 none, slot 1 naramon
+    const slots = [
+      {
+        ...createModSlot("0", "normal", "naramon"),
+        formaPolarity: "universal" as Polarity, // clear to none
+      },
+      {
+        ...createModSlot("1", "normal"),
+        formaPolarity: "naramon" as Polarity, // add naramon here
+      },
+    ];
+    expect(calculateFormaCount(slots)).toBe(0);
   });
 
   it("handles complex forma scenarios", () => {

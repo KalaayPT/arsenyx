@@ -237,7 +237,37 @@ function createInitialBuildState(
 
   // Apply imported build data if available
   if (importedBuild) {
-    const hydratedState = {
+    // Merge slots: keep innatePolarity from baseState, take formaPolarity/mod from import
+    const mergeSlot = (
+      baseSlot: ModSlot,
+      importedSlot?: ModSlot
+    ): ModSlot => {
+      if (!importedSlot) return baseSlot;
+      return {
+        ...baseSlot,
+        formaPolarity: importedSlot.formaPolarity,
+        mod: importedSlot.mod,
+        // Keep innatePolarity from baseSlot (item's actual innate)
+      };
+    };
+
+    // Merge normal slots (preserve innate polarities from item data)
+    const mergedNormalSlots = baseState.normalSlots.map((baseSlot, i) =>
+      mergeSlot(baseSlot, importedBuild.normalSlots?.[i])
+    );
+
+    // Merge aura slot
+    const mergedAuraSlot = baseState.auraSlot
+      ? mergeSlot(baseState.auraSlot, importedBuild.auraSlot)
+      : importedBuild.auraSlot;
+
+    // Merge exilus slot
+    const mergedExilusSlot = mergeSlot(
+      baseState.exilusSlot,
+      importedBuild.exilusSlot
+    );
+
+    const hydratedState: BuildState = {
       ...baseState,
       ...importedBuild,
       // Ensure these are always from base state
@@ -245,6 +275,10 @@ function createInitialBuildState(
       itemName: item.name,
       itemCategory: category,
       itemImageName: item.imageName,
+      // Use merged slots (with innate polarities preserved)
+      normalSlots: mergedNormalSlots,
+      auraSlot: mergedAuraSlot,
+      exilusSlot: mergedExilusSlot,
     };
 
     // Hydrate mods with full data (including levelStats)
@@ -598,7 +632,9 @@ export function BuildContainer({
 
   // Get all used arcane names for duplicate checking
   const usedArcaneNames = useMemo((): string[] => {
-    return (buildState.arcaneSlots || []).filter(Boolean).map((a) => a.name);
+    return (buildState.arcaneSlots || [])
+      .filter((a): a is PlacedArcane => a !== null)
+      .map((a) => a.name);
   }, [buildState.arcaneSlots]);
 
   // Create a map of arcane uniqueName -> full Arcane data for hydration
@@ -1056,24 +1092,41 @@ export function BuildContainer({
   }, []);
 
   // Apply forma to a slot (or clear to blank with "universal")
+  // If the selected polarity matches the slot's innate, clear formaPolarity instead
+  // (this represents "reverting to innate" rather than "forma'd to match innate")
   const handleApplyForma = useCallback((slotId: string, polarity: Polarity) => {
     setBuildState((prev) => {
       const newState = { ...prev };
 
+      // Helper to determine the effective formaPolarity value
+      // If polarity matches innate, use undefined (revert to innate)
+      // If polarity is "universal" and innate is undefined, also use undefined
+      const getFormaValue = (
+        innate: Polarity | undefined
+      ): Polarity | undefined => {
+        if (polarity === innate) return undefined;
+        if (polarity === "universal" && innate === undefined) return undefined;
+        return polarity;
+      };
+
       if (slotId.startsWith("aura") && newState.auraSlot) {
-        newState.auraSlot = { ...newState.auraSlot, formaPolarity: polarity };
+        const formaValue = getFormaValue(newState.auraSlot.innatePolarity);
+        newState.auraSlot = { ...newState.auraSlot, formaPolarity: formaValue };
       } else if (slotId.startsWith("exilus")) {
+        const formaValue = getFormaValue(newState.exilusSlot.innatePolarity);
         newState.exilusSlot = {
           ...newState.exilusSlot,
-          formaPolarity: polarity,
+          formaPolarity: formaValue,
         };
       } else {
         const slotIndex = parseInt(slotId.replace("normal-", ""));
         if (!isNaN(slotIndex)) {
           newState.normalSlots = [...newState.normalSlots];
+          const slot = newState.normalSlots[slotIndex];
+          const formaValue = getFormaValue(slot.innatePolarity);
           newState.normalSlots[slotIndex] = {
-            ...newState.normalSlots[slotIndex],
-            formaPolarity: polarity,
+            ...slot,
+            formaPolarity: formaValue,
           };
         }
       }

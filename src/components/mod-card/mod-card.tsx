@@ -288,7 +288,7 @@ function ExpandedModCard({
         <div className="relative z-20 flex flex-col items-center px-2 pt-1.5 pb-2">
           {/* Mod Name */}
           <span
-            className="text-[14px] font-normal text-center leading-tight"
+            className="text-[14px] font-medium text-center leading-tight"
             style={{
               fontFamily: "Roboto, sans-serif",
               color: getRarityColor(rarity),
