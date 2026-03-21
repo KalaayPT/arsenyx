@@ -7,19 +7,19 @@ export default function PrivacyPage() {
         <div className="relative min-h-screen flex flex-col">
             <Header />
             <main className="flex-1 container py-12 max-w-3xl">
-                <div className="space-y-6">
+                <div className="flex flex-col gap-6">
                     <h1 className="text-4xl font-bold tracking-tight">Privacy Policy</h1>
                     <p className="text-muted-foreground">
                         Last updated: {new Date().toLocaleDateString()}
                     </p>
 
-                    <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
+                    <div className="prose prose-neutral dark:prose-invert max-w-none flex flex-col gap-8">
                         <section>
                             <h2 className="text-2xl font-semibold mb-4">1. Information We Collect</h2>
                             <p>
                                 {SITE_CONFIG.name} is designed to be privacy-friendly. We minimize the data we collect.
                             </p>
-                            <ul className="list-disc pl-6 space-y-2 mt-2">
+                            <ul className="list-disc pl-6 flex flex-col gap-2 mt-2">
                                 <li>
                                     <strong>Authentication Data:</strong> If you sign in, we store your basic profile information provided
                                     by the authentication provider (e.g., GitHub, Discord).

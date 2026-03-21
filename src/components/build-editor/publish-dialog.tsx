@@ -82,7 +82,7 @@ export function PublishDialog({
                         Cancel
                     </Button>
                     <Button onClick={handlePublish} disabled={isPublishing}>
-                        {isPublishing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isPublishing && <Loader2 data-icon="inline-start" className="animate-spin" />}
                         {isUpdate ? "Update Build" : "Publish Build"}
                     </Button>
                 </DialogFooter>
@@ -124,7 +124,7 @@ function VisibilityOption({
             )}>
                 <Icon className="h-4 w-4" />
             </div>
-            <div className="flex-1 space-y-1">
+            <div className="flex-1 flex flex-col gap-1">
                 <p className="text-sm font-medium leading-none">{title}</p>
                 <p className="text-sm text-muted-foreground">{description}</p>
             </div>

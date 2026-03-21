@@ -22,11 +22,11 @@ export function HeroSection() {
       <HeroBackground />
 
       <div className="container py-24 md:py-32">
-        <div className="mx-auto max-w-3xl text-center space-y-8">
+        <div className="mx-auto max-w-3xl text-center flex flex-col gap-8">
           <StatusBadge text={badge} />
 
           {/* Headline */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
               {headline.prefix}{" "}
               <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -73,7 +73,7 @@ export function FeaturesSection() {
   return (
     <section className="border-b bg-muted/30">
       <div className="container py-24">
-        <div className="mx-auto max-w-3xl text-center space-y-4 mb-16">
+        <div className="mx-auto max-w-3xl text-center flex flex-col gap-4 mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {FEATURES_SECTION.headline}
           </h2>
@@ -98,7 +98,7 @@ export function CTASection() {
   return (
     <section className="border-b">
       <div className="container py-24">
-        <div className="mx-auto max-w-3xl text-center space-y-8">
+        <div className="mx-auto max-w-3xl text-center flex flex-col gap-8">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {headline}
           </h2>
@@ -110,7 +110,7 @@ export function CTASection() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Icons.github className="h-4 w-4" />
+                <Icons.github data-icon="inline-start" />
                 {secondaryCta.label}
               </Link>
             </Button>

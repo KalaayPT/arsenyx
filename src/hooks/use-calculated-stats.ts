@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { calculateStats, buildHasConditionalMods } from "@/lib/warframe/stats-calculator";
+import { calculateStats, buildHasConditionalMods } from "@/lib/warframe/stats";
 import type { BrowseableItem, BuildState } from "@/lib/warframe/types";
 import type { CalculatedStats } from "@/lib/warframe/stat-types";
 

@@ -99,6 +99,8 @@ export interface GuideInput {
     status: GuideStatus;
     relatedBuildIds?: string[];
     relatedGuideIds?: string[];
+    authorName?: string;
+    authorAvatar?: string;
 }
 
 // Filter options for guide listings

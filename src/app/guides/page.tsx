@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -29,9 +28,9 @@ export default function GuidesPage() {
         <div className="relative min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
-                <div className="container py-6 space-y-8">
+                <div className="container py-6 flex flex-col gap-8">
                     {/* Page Header */}
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
                         <h1 className="text-3xl font-bold tracking-tight">Guides</h1>
                         <p className="text-muted-foreground">
                             Learn about Warframe mechanics, farming strategies, and game systems.
@@ -39,14 +38,12 @@ export default function GuidesPage() {
                     </div>
 
                     {/* Search and New Guide - Always at top */}
-                    <Suspense>
-                        <GuidesContent
-                            curatedResources={CURATED_RESOURCES}
-                            curatedGuides={curatedGuides}
-                            communityGuides={communityGuides}
-                            hasCuratedContent={hasCuratedContent}
-                        />
-                    </Suspense>
+                    <GuidesContent
+                        curatedResources={CURATED_RESOURCES}
+                        curatedGuides={curatedGuides}
+                        communityGuides={communityGuides}
+                        hasCuratedContent={hasCuratedContent}
+                    />
                 </div>
             </main>
             <Footer />

@@ -43,13 +43,13 @@ export function CalculatedStatRow({
           <span
             className={cn(
               "font-medium tabular-nums",
-              isModified && (isIncrease ? "text-green-500" : "text-red-500")
+              isModified && (isIncrease ? "text-positive" : "text-destructive")
             )}
           >
             {formatDisplayValue(stat.modified, format)}
             {unit}
             {hasCap && (
-              <span className="text-yellow-500 ml-1">
+              <span className="text-warning ml-1">
                 ({formatDisplayValue(stat.capped!, format)}
                 {unit} uncapped)
               </span>

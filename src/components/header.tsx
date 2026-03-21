@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
@@ -35,11 +33,11 @@ export function Header() {
 
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Icons.search className="h-4 w-4" />
+            <Icons.search />
             <span className="sr-only">Search</span>
           </Button>
           <Button variant="ghost" size="icon" className="hidden sm:flex">
-            <Icons.bell className="h-4 w-4" />
+            <Icons.bell />
             <span className="sr-only">Notifications</span>
           </Button>
           <ThemeToggle />

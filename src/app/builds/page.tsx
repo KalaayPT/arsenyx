@@ -64,7 +64,7 @@ function BuildCard({ build }: { build: BuildWithUser }) {
             </div>
 
             {/* Build Info */}
-            <div className="p-3 space-y-2">
+            <div className="p-3 flex flex-col gap-2">
                 <div>
                     <h3 className="font-semibold text-sm line-clamp-1">
                         {build.name}
@@ -81,11 +81,11 @@ function BuildCard({ build }: { build: BuildWithUser }) {
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
                         <span className="flex items-center gap-0.5">
-                            <ThumbsUp className="w-3 h-3" />
+                            <ThumbsUp className="size-3" />
                             {build.voteCount}
                         </span>
                         <span className="flex items-center gap-0.5">
-                            <Eye className="w-3 h-3" />
+                            <Eye className="size-3" />
                             {build.viewCount}
                         </span>
                     </div>
@@ -135,7 +135,7 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
         <div className="relative min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
-                <div className="container py-6 space-y-6">
+                <div className="container py-6 flex flex-col gap-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div>

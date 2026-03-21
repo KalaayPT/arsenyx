@@ -45,7 +45,7 @@ export default async function FavoritesPage({
     <div className="relative min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="container py-6 space-y-6">
+        <div className="container py-6 flex flex-col gap-6">
           <div>
             <h1 className="text-2xl font-bold">Favorites</h1>
             <p className="text-muted-foreground">
@@ -80,7 +80,7 @@ export default async function FavoritesPage({
                         className="object-cover"
                       />
                     </div>
-                    <div className="p-2 space-y-1">
+                    <div className="p-2 flex flex-col gap-1">
                       <h3 className="font-medium text-sm line-clamp-1">
                         {build.name}
                       </h3>

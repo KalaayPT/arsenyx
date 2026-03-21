@@ -1,5 +1,3 @@
-"use client";
-
 import { Clock, Calendar, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Guide } from "@/lib/guides";

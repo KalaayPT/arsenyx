@@ -12,8 +12,8 @@ export default function ImportTestPage() {
     <div className="relative min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="container py-6 space-y-6">
-          <div className="space-y-2">
+        <div className="container py-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">
               Overframe Import Test
             </h1>

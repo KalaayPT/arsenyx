@@ -59,11 +59,11 @@ export function FavoriteButton({
     <Button
       variant="ghost"
       size="sm"
-      className={cn("gap-1.5 h-8", hasFavorited && "text-red-500")}
+      className={cn("gap-1.5 h-8", hasFavorited && "text-destructive")}
       onClick={handleFavorite}
       disabled={isDisabled}
     >
-      <Heart className={cn("h-4 w-4", hasFavorited && "fill-current")} />
+      <Heart data-icon="inline-start" className={cn(hasFavorited && "fill-current")} />
       {showCount && <span className="tabular-nums">{favoriteCount}</span>}
     </Button>
   );

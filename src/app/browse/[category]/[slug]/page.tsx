@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Icons } from "@/components/icons";
 // Server-only imports (uses Node.js fs via @wfcd/items)
 import { getItemBySlug, getStaticItems } from "@/lib/warframe/items";
@@ -104,7 +106,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
     <div className="relative min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="container py-6 space-y-8">
+        <div className="container py-6 flex flex-col gap-8">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link
@@ -128,7 +130,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
           <div className="flex flex-col md:flex-row gap-8">
             {/* Image */}
             <div className="shrink-0">
-              <div className="relative w-48 h-48 md:w-64 md:h-64 bg-muted/30 rounded-xl flex items-center justify-center border">
+              <div className="relative size-48 md:w-64 md:h-64 bg-muted/30 rounded-xl flex items-center justify-center border">
                 <Image
                   src={imageUrl}
                   alt={item.name}
@@ -142,8 +144,8 @@ export default async function ItemPage({ params }: ItemPageProps) {
             </div>
 
             {/* Info */}
-            <div className="flex-1 space-y-4">
-              <div className="space-y-2">
+            <div className="flex-1 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-3xl font-bold tracking-tight">
                     {item.name}
@@ -294,7 +296,7 @@ export default async function ItemPage({ params }: ItemPageProps) {
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2">
                     {(item as Warframe).abilities?.map((ability, index) => (
-                      <div key={ability.uniqueName} className="space-y-1">
+                      <div key={ability.uniqueName} className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
                             {index + 1}
@@ -315,16 +317,35 @@ export default async function ItemPage({ params }: ItemPageProps) {
           <Separator />
 
           {/* Community Builds Section */}
-          <CommunityBuildsSection
-            itemUniqueName={item.uniqueName}
-            itemName={item.name}
-            category={category}
-            slug={slug}
-          />
+          <Suspense fallback={<CommunityBuildsSkeleton />}>
+            <CommunityBuildsSection
+              itemUniqueName={item.uniqueName}
+              itemName={item.name}
+              category={category}
+              slug={slug}
+            />
+          </Suspense>
         </div>
       </main>
       <Footer />
     </div>
+  );
+}
+
+function CommunityBuildsSkeleton() {
+  return (
+    <section className="flex flex-col gap-4">
+      <Skeleton className="h-8 w-48" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-2">
+            <Skeleton className="aspect-video rounded-lg" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-3 w-1/2" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -345,7 +366,7 @@ async function CommunityBuildsSection({
   });
 
   return (
-    <section className="space-y-4">
+    <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">
           Community Builds
@@ -396,7 +417,7 @@ async function CommunityBuildsSection({
                   className="object-cover"
                 />
               </div>
-              <div className="p-2 space-y-1">
+              <div className="p-2 flex flex-col gap-1">
                 <h3 className="font-medium text-sm line-clamp-1">
                   {build.name}
                 </h3>

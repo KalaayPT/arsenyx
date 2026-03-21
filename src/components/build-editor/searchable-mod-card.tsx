@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { ModCard } from "@/components/mod-card";
+import { ModCard } from "@/components/mod-card/mod-card";
 import type { Mod } from "@/lib/warframe/types";
 import { useDraggable } from "@dnd-kit/core";
 
@@ -33,11 +33,6 @@ export function SearchableModCard({
     disabled: isDisabled,
   });
 
-  const style = {
-    // Hide the original element when dragging - DragOverlay shows the ghost
-    opacity: isDragging ? 0 : 1,
-  };
-
   const handleClick = useCallback(() => {
     if (!isDisabled) {
       onSelect(mod, maxRank);
@@ -47,14 +42,14 @@ export function SearchableModCard({
   return (
     <div
       ref={setNodeRef}
-      style={style}
       {...listeners}
       {...attributes}
       data-index={dataIndex}
       className={cn(
-        "relative flex flex-col items-center cursor-pointer transition-all rounded-lg p-2 group touch-none select-none",
+        "search-grid-item relative flex flex-col items-center cursor-pointer transition-all rounded-lg p-2 group touch-none select-none",
         "bg-card/30 border border-transparent",
-        isDisabled && "opacity-40 grayscale cursor-not-allowed"
+        isDisabled && "opacity-40 grayscale cursor-not-allowed",
+        isDragging && "opacity-0"
       )}
       onClick={handleClick}
     >

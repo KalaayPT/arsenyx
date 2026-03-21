@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +47,7 @@ export function ItemCard({ item, index }: ItemCardProps) {
         </div>
 
         {/* Info section */}
-        <div className="p-3 space-y-1">
+        <div className="p-3 flex flex-col gap-1">
           <h3 className="font-medium text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
             {item.name}
           </h3>

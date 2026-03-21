@@ -15,7 +15,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DescriptionEditor } from "./description-editor";
+import dynamic from "next/dynamic";
+
+const DescriptionEditor = dynamic(
+  () => import("./description-editor").then((mod) => mod.DescriptionEditor),
+  { ssr: false, loading: () => <div className="h-[200px] rounded-md border bg-muted/30 animate-pulse" /> }
+);
 import {
   PartnerBuildSelector,
   type PartnerBuildOption,
@@ -171,9 +176,9 @@ export function GuideEditor({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         {/* Summary Section */}
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="guide-summary" className="text-sm">
               Summary
@@ -207,7 +212,7 @@ export function GuideEditor({
         </div>
 
         {/* Description Section */}
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           <Label className="text-sm">Description</Label>
           <DescriptionEditor
             description={description}
@@ -223,7 +228,7 @@ export function GuideEditor({
 
         {/* Partner Builds Section */}
         {showPartnerBuilds && (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label className="text-sm">Partner Builds</Label>
             <PartnerBuildSelector
               currentBuildId={buildId}
@@ -239,7 +244,7 @@ export function GuideEditor({
         {showSaveButtons && (
           <div className="flex items-center gap-2 pt-2">
             {saveStatus === "saved" && (
-              <span className="text-sm text-green-600 dark:text-green-400">
+              <span className="text-sm text-positive">
                 Saved
               </span>
             )}

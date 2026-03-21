@@ -28,7 +28,7 @@ export function GuideList({ initialGuides, newGuideButton }: GuideListProps) {
     }, [initialGuides, search]);
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
             {/* Search Row - Full Width */}
             <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">

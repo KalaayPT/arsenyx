@@ -48,7 +48,7 @@ export function FilterDropdown({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="default" className="gap-2 shrink-0">
-          <Icons.filter className="h-4 w-4" />
+          <Icons.filter data-icon="inline-start" />
           Filters
           {activeFilterCount > 0 && (
             <Badge variant="secondary" className="text-xs ml-1">
@@ -58,7 +58,7 @@ export function FilterDropdown({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80" align="end">
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Filters</h4>
             {activeFilterCount > 0 && (
@@ -74,7 +74,7 @@ export function FilterDropdown({
           </div>
 
           {/* Mastery Rank Slider */}
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label className="text-sm">Max Mastery Rank</Label>
               <span className="text-sm text-muted-foreground tabular-nums">
@@ -97,7 +97,7 @@ export function FilterDropdown({
           </div>
 
           {/* Quick Filters */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label className="text-sm">Quick Filters</Label>
             <div className="flex flex-wrap gap-2">
               <Button

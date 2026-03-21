@@ -7,6 +7,7 @@
 import { prisma } from "../db";
 import { favoriteLimiter, RateLimitError } from "../rate-limit";
 import type { BuildState } from "@/lib/warframe/types";
+import { BuildStateSchema, safeParseOrCast } from "@/lib/warframe/schemas";
 
 // =============================================================================
 // TYPES
@@ -161,7 +162,7 @@ export async function getUserFavoriteBuilds(
     slug: f.build.slug,
     name: f.build.name,
     description: f.build.description,
-    buildData: f.build.buildData as unknown as BuildState,
+    buildData: safeParseOrCast(BuildStateSchema, f.build.buildData, `favorite build ${f.build.id} buildData`),
     voteCount: f.build.voteCount,
     favoriteCount: f.build.favoriteCount,
     viewCount: f.build.viewCount,

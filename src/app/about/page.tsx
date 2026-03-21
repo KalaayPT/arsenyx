@@ -10,15 +10,15 @@ export default function AboutPage() {
         <div className="relative min-h-screen flex flex-col">
             <Header />
             <main className="flex-1 container py-12 max-w-3xl">
-                <div className="space-y-8">
-                    <div className="space-y-4">
+                <div className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-4">
                         <h1 className="text-4xl font-bold tracking-tight">About {SITE_CONFIG.name}</h1>
                         <p className="text-xl text-muted-foreground">
                             {SITE_CONFIG.description}
                         </p>
                     </div>
 
-                    <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
+                    <div className="prose prose-neutral dark:prose-invert max-w-none flex flex-col gap-8">
                         <section>
                             <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
                             <p>

@@ -65,10 +65,10 @@ export function DamageBreakdownSection({ breakdown }: DamageBreakdownProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {/* Physical damage (IPS) first */}
       {hasPhysical && (
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
             Physical
           </span>
@@ -86,7 +86,7 @@ export function DamageBreakdownSection({ breakdown }: DamageBreakdownProps) {
 
       {/* Elemental damage after physical */}
       {hasElemental && (
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
             Elemental
           </span>
@@ -156,7 +156,7 @@ function DamageIcon({ type }: { type: DamageType }) {
   // Simple colored dot as a damage type indicator
   return (
     <div
-      className={cn("w-2 h-2 rounded-full", {
+      className={cn("size-2 rounded-full", {
         // Physical
         "bg-blue-400": type === "impact",
         "bg-gray-400": type === "puncture",

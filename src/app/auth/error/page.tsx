@@ -18,8 +18,8 @@ export default async function AuthErrorPage({
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <div className="mx-auto w-full max-w-sm space-y-6 px-4 text-center">
-        <div className="space-y-2">
+      <div className="mx-auto w-full max-w-sm flex flex-col gap-6 px-4 text-center">
+        <div className="flex flex-col gap-2">
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
             <svg
               className="size-6 text-destructive"

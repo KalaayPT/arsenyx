@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * ModCardFrame - Unified frame renderer for all mod card variants
  *

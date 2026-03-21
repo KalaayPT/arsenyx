@@ -156,7 +156,7 @@ export function ItemSidebar({
                 <TooltipTrigger asChild>
                   <button
                     className={cn(
-                      "w-10 h-10 rounded bg-muted border overflow-hidden relative transition-colors",
+                      "size-10 rounded bg-muted border overflow-hidden relative transition-colors",
                       displayAbility.isHelminth ? "border-destructive" : "border-border",
                       !readOnly && "hover:border-primary hover:cursor-pointer"
                     )}
@@ -217,7 +217,7 @@ export function ItemSidebar({
       {isWarframeOrNecramech && <Separator />}
 
       {/* Capacity */}
-      <div className="p-3 space-y-3">
+      <div className="p-3 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">{capacityBoosterLabel}</span>
           {!readOnly && (
@@ -234,7 +234,7 @@ export function ItemSidebar({
           )}
         </div>
 
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           <div className="h-4 bg-muted rounded-full overflow-hidden relative">
             <div
               className={cn(
@@ -268,7 +268,7 @@ export function ItemSidebar({
 
       {/* Warframe Base Stats - Calculated */}
       {isWarframeOrNecramech && warframeStats && (
-        <div className="p-3 space-y-2">
+        <div className="p-3 flex flex-col gap-2">
           <CalculatedStatRow
             label="Energy"
             stat={warframeStats.energy}
@@ -295,7 +295,7 @@ export function ItemSidebar({
 
       {/* Warframe Base Stats - Fallback to static display */}
       {isWarframeOrNecramech && !warframeStats && (
-        <div className="p-3 space-y-2">
+        <div className="p-3 flex flex-col gap-2">
           <SimpleStatRow
             label="Energy"
             value={itemStats?.energy?.toString() ?? "—"}
@@ -321,7 +321,7 @@ export function ItemSidebar({
 
       {/* Weapon Stats - Calculated */}
       {isWeapon && weaponStats && weaponStats.attackModes.length > 0 && (
-        <div className="p-3 space-y-2">
+        <div className="p-3 flex flex-col gap-2">
           {/* For multiple attack modes, show shared stats first */}
           {weaponStats.attackModes.length > 1 && (
             <>
@@ -378,7 +378,7 @@ export function ItemSidebar({
 
           {/* Attack mode stats */}
           {weaponStats.attackModes.map((mode, i) => (
-            <div key={i} className="space-y-2">
+            <div key={i} className="flex flex-col gap-2">
               {/* Separator between sections */}
               {(weaponStats.attackModes.length > 1 || i > 0) && <Separator className="my-2" />}
               {weaponStats.attackModes.length > 1 && (
@@ -460,7 +460,7 @@ export function ItemSidebar({
 
       {/* Weapon Stats - Fallback to static display */}
       {isWeapon && !weaponStats && (
-        <div className="p-3 space-y-2">
+        <div className="p-3 flex flex-col gap-2">
           <SimpleStatRow
             label="Total Damage"
             value={itemStats?.totalDamage?.toFixed(0) ?? "—"}
@@ -512,7 +512,7 @@ export function ItemSidebar({
       {isWarframeOrNecramech && warframeStats && (
         <>
           <Separator />
-          <div className="p-3 space-y-2">
+          <div className="p-3 flex flex-col gap-2">
             <CalculatedStatRow
               label="Duration"
               stat={warframeStats.abilityDuration}
@@ -541,7 +541,7 @@ export function ItemSidebar({
       {isWarframeOrNecramech && !warframeStats && (
         <>
           <Separator />
-          <div className="p-3 space-y-2">
+          <div className="p-3 flex flex-col gap-2">
             <SimpleStatRow
               label="Duration"
               value="100%"

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Check, ChevronsUpDown, Search, AlertCircle } from "lucide-react";
+import { Check, ChevronsUpDown, Search } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe";
@@ -121,15 +122,14 @@ export function PartnerBuildSelector({
 
   if (hasNoOtherBuilds) {
     return (
-      <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed bg-muted/30 text-muted-foreground">
-        <AlertCircle className="w-4 h-4 shrink-0" />
-        <p className="text-sm">Create more builds to link partners</p>
-      </div>
+      <Alert>
+        <AlertDescription>Create more builds to link partners</AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {/* Search Combobox */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
@@ -141,7 +141,7 @@ export function PartnerBuildSelector({
             disabled={disabled || !canAddMore}
           >
             <span className="flex items-center gap-2 text-muted-foreground">
-              <Search className="w-4 h-4" />
+              <Search className="size-4" />
               {canAddMore
                 ? "Search your builds..."
                 : `Maximum ${MAX_PARTNER_BUILDS} partners reached`}
@@ -175,7 +175,7 @@ export function PartnerBuildSelector({
                       )}
                     >
                       {/* Item image */}
-                      <div className="relative w-8 h-8 rounded bg-muted/50 shrink-0 overflow-hidden">
+                      <div className="relative size-8 rounded bg-muted/50 shrink-0 overflow-hidden">
                         <Image
                           src={imageUrl}
                           alt={build.item.name}
@@ -202,7 +202,7 @@ export function PartnerBuildSelector({
                         </span>
                       )}
                       {!isSelected && (
-                        <Check className="w-4 h-4 opacity-0 group-data-[selected=true]:opacity-100" />
+                        <Check className="size-4 opacity-0 group-data-[selected=true]:opacity-100" />
                       )}
                     </CommandItem>
                   );

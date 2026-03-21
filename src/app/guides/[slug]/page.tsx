@@ -6,12 +6,10 @@ import { Pencil, Share2, Copy } from "lucide-react";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import {
-    GuideReader,
-    GuideBreadcrumbs,
-    GuideHeader,
-    RelatedGuides,
-} from "@/components/guides";
+import { GuideReader } from "@/components/guides/guide-reader";
+import { GuideBreadcrumbs } from "@/components/guides/guide-breadcrumbs";
+import { GuideHeader } from "@/components/guides/guide-header";
+import { RelatedGuides } from "@/components/guides/related-guides";
 import {
     getGuideBySlug,
     getRelatedGuides,
@@ -121,7 +119,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
                         </article>
 
                         {/* Related Guides */}
-                        <Suspense>
+                        <Suspense fallback={null}>
                             <RelatedGuides guides={relatedGuides} />
                         </Suspense>
                     </div>

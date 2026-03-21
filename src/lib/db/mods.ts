@@ -7,6 +7,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import type { Mod, Arcane, ModCompatibility, Polarity } from "@/lib/warframe/types";
+import { ModDataSchema, ArcaneDataSchema, safeParseOrCast } from "@/lib/warframe/schemas";
 
 /**
  * Get all mods from the database
@@ -33,7 +34,7 @@ export const getAllModsFromDb = unstable_cache(
       isPrime: mod.isPrime,
       isExilus: mod.isExilus,
       // Include additional data from the JSON field
-      ...(mod.data as object),
+      ...safeParseOrCast(ModDataSchema, mod.data, `mod ${mod.uniqueName} data`),
     }));
   },
   ["all-mods"],
@@ -137,7 +138,7 @@ export async function getModByUniqueNameFromDb(uniqueName: string): Promise<Mod 
     isAugment: mod.isAugment,
     isPrime: mod.isPrime,
     isExilus: mod.isExilus,
-    ...(mod.data as object),
+    ...safeParseOrCast(ModDataSchema, mod.data, `mod ${mod.uniqueName} data`),
   };
 }
 
@@ -158,7 +159,7 @@ export const getAllArcanesFromDb = unstable_cache(
       rarity: arcane.rarity as Arcane["rarity"],
       type: arcane.type,
       tradable: arcane.tradable,
-      ...(arcane.data as object),
+      ...safeParseOrCast(ArcaneDataSchema, arcane.data, `arcane ${arcane.uniqueName} data`),
     }));
   },
   ["all-arcanes"],

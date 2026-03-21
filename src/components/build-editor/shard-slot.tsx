@@ -47,7 +47,7 @@ export function ShardSlot({
         onClick={readOnly ? undefined : onSelect}
         disabled={readOnly}
         className={cn(
-          "w-10 h-10 rounded border border-dashed border-border/60 bg-muted/30",
+          "size-10 rounded border border-dashed border-border/60 bg-muted/30",
           "flex items-center justify-center transition-all",
           !readOnly && "hover:border-primary/50 hover:bg-muted/50 cursor-pointer",
           readOnly && "cursor-default opacity-60"
@@ -55,7 +55,7 @@ export function ShardSlot({
         title={readOnly ? undefined : "Click to add shard"}
       >
         {!readOnly && (
-          <Plus className="w-4 h-4 text-muted-foreground/40" />
+          <Plus className="size-4 text-muted-foreground/40" />
         )}
       </button>
     );
@@ -82,7 +82,7 @@ export function ShardSlot({
   const shardSlot = (
     <div
       className={cn(
-        "relative w-10 h-10 rounded overflow-hidden",
+        "relative size-10 rounded overflow-hidden",
         "border border-border transition-all",
         !readOnly && "cursor-pointer hover:scale-105 hover:border-primary",
         readOnly && "cursor-default"
@@ -153,7 +153,7 @@ export function ShardSlot({
           Change Shard
         </ContextMenuItem>
         <ContextMenuItem onClick={onRemove} className="text-destructive">
-          <X className="w-4 h-4 mr-2" />
+          <X className="size-4 mr-2" />
           Remove Shard
         </ContextMenuItem>
       </ContextMenuContent>

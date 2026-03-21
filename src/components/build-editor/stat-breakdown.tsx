@@ -33,7 +33,7 @@ export function StatBreakdownTooltip({
   const formatValue = (value: number) => formatDisplayValue(value, format);
 
   return (
-    <div className="space-y-1.5 text-xs min-w-[180px]">
+    <div className="flex flex-col gap-1.5 text-xs min-w-[180px]">
       {/* Base value */}
       <div className="font-medium border-b border-border pb-1">
         Base: {formatValue(stat.base)}
@@ -42,7 +42,7 @@ export function StatBreakdownTooltip({
 
       {/* Mod contributions */}
       {modContributions.length > 0 && (
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           {modContributions.map((contrib, i) => (
             <ContributionRow
               key={`mod-${i}`}
@@ -58,7 +58,7 @@ export function StatBreakdownTooltip({
 
       {/* Set bonus contributions */}
       {setBonusContributions.length > 0 && (
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-[10px]">Set Bonus</span>
           {setBonusContributions.map((contrib, i) => (
             <ContributionRow
@@ -76,7 +76,7 @@ export function StatBreakdownTooltip({
 
       {/* Shard contributions */}
       {shardContributions.length > 0 && (
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-[10px]">Archon Shards</span>
           {shardContributions.map((contrib, i) => (
             <ContributionRow
@@ -93,7 +93,7 @@ export function StatBreakdownTooltip({
 
       {/* Aura contributions */}
       {auraContributions.length > 0 && (
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <span className="text-muted-foreground text-[10px]">Aura</span>
           {auraContributions.map((contrib, i) => (
             <ContributionRow
@@ -116,7 +116,7 @@ export function StatBreakdownTooltip({
 
       {/* Capped warning */}
       {stat.capped !== undefined && (
-        <div className="text-yellow-500 text-[10px]">
+        <div className="text-warning text-[10px]">
           Capped from {formatValue(stat.capped)}
           {unit}
         </div>

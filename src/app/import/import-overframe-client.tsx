@@ -55,13 +55,13 @@ export function ImportOverframeClient() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle>Import from Overframe</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="space-y-2">
+        <CardContent className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Overframe URL</label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input

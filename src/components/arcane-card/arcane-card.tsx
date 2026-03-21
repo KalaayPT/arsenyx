@@ -145,7 +145,7 @@ function ArcaneCardComponent({
           className="max-w-[280px] p-3"
           sideOffset={4}
         >
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <div className="font-medium">{arcane.name}</div>
             <div className="text-[10px] uppercase opacity-70">
               {rarity} • Rank {currentRank}

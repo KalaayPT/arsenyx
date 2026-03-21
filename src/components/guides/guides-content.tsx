@@ -62,7 +62,7 @@ export function GuidesContent({
         filteredCuratedResources.length > 0 || filteredCuratedGuides.length > 0;
 
     return (
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
             {/* Search Row - Full Width */}
             <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -85,9 +85,9 @@ export function GuidesContent({
 
             {/* Curated Section - External Resources + Promoted Guides */}
             {hasCuratedContent && hasFilteredCuratedContent && (
-                <section className="space-y-4">
+                <section className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
-                        <Star className="h-5 w-5 text-yellow-500" />
+                        <Star className="h-5 w-5 text-warning" />
                         <h2 className="text-xl font-semibold">Curated</h2>
                     </div>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -122,7 +122,7 @@ export function GuidesContent({
             )}
 
             {/* Community Section */}
-            <section className="space-y-4">
+            <section className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                     <Users className="h-5 w-5 text-muted-foreground" />
                     <h2 className="text-xl font-semibold">Community</h2>

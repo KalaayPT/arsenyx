@@ -10,6 +10,7 @@ import { prisma } from "../db";
 import { nanoid } from "nanoid";
 import type { BuildVisibility, Prisma } from "@prisma/client";
 import type { BuildState } from "@/lib/warframe/types";
+import { BuildStateSchema, safeParseOrCast } from "@/lib/warframe/schemas";
 
 // =============================================================================
 // TYPES
@@ -98,6 +99,10 @@ function sanitizeBuildDataForDb(buildData: BuildState): BuildState {
     arcaneSlots: (buildData.arcaneSlots ?? []).map((a) => a ?? null),
     shardSlots: (buildData.shardSlots ?? []).map((s) => s ?? null),
   };
+}
+
+function detectHasShards(buildData: BuildState): boolean {
+  return (buildData.shardSlots ?? []).some((s) => s !== null);
 }
 
 // =============================================================================
@@ -215,7 +220,7 @@ function mapBuildResult(
 
   return {
     ...build,
-    buildData: build.buildData as unknown as BuildState,
+    buildData: safeParseOrCast(BuildStateSchema, build.buildData, `build ${build.id} buildData`),
     buildGuide: build.buildGuide,
     partnerBuilds: filteredPartners.map((pb) => ({
       id: pb.id,
@@ -278,7 +283,7 @@ export async function createBuild(
       buildData: sanitizeBuildDataForDb(
         input.buildData
       ) as unknown as Prisma.JsonObject,
-      hasShards: false, // TODO: Detect from buildData when shards are implemented
+      hasShards: detectHasShards(input.buildData),
       buildGuide: guideCreate,
       partnerBuilds: partnerBuildsConnect,
     },
@@ -511,6 +516,7 @@ export async function updateBuild(
     updateData.buildData = sanitizeBuildDataForDb(
       input.buildData
     ) as unknown as Prisma.JsonObject;
+    updateData.hasShards = detectHasShards(input.buildData);
   }
 
   // Handle guide summary and description

@@ -363,6 +363,14 @@ const MOD_FAMILIES: Record<string, string[]> = {
   "Fever Strike": ["Fever Strike", "Primed Fever Strike"],
 };
 
+// Pre-built reverse map: mod name → family name (O(1) lookups)
+const MOD_NAME_TO_FAMILY = new Map<string, string>();
+for (const [familyName, members] of Object.entries(MOD_FAMILIES)) {
+  for (const member of members) {
+    MOD_NAME_TO_FAMILY.set(member, familyName);
+  }
+}
+
 /**
  * Get the family name for a mod (for duplicate prevention)
  * Mods in the same family cannot be equipped together
@@ -370,12 +378,9 @@ const MOD_FAMILIES: Record<string, string[]> = {
 export function getModFamily(mod: Mod): string | null {
   const modName = mod.name;
 
-  // Check if this mod is in any known family
-  for (const [familyName, members] of Object.entries(MOD_FAMILIES)) {
-    if (members.includes(modName)) {
-      return familyName;
-    }
-  }
+  // O(1) lookup in pre-built reverse map
+  const family = MOD_NAME_TO_FAMILY.get(modName);
+  if (family) return family;
 
   // Check for Primed/Umbral/Sacrificial variants
   if (modName.startsWith("Primed ")) {

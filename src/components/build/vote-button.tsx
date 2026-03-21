@@ -60,7 +60,7 @@ export function VoteButton({
       onClick={handleVote}
       disabled={isDisabled}
     >
-      <ThumbsUp className={cn("h-4 w-4", hasVoted && "fill-current")} />
+      <ThumbsUp data-icon="inline-start" className={cn(hasVoted && "fill-current")} />
       <span className="tabular-nums">{voteCount}</span>
     </Button>
   );

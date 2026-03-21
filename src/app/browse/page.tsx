@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { BrowseContainer, BrowseKeyboardHandler } from "@/components/browse";
+import { BrowseContainer } from "@/components/browse/browse-container";
+import { BrowseKeyboardHandler } from "@/components/browse/keyboard-handler";
 // Server-only imports (uses Node.js fs via @wfcd/items)
 import { getItemsByCategory, getCategoryCounts } from "@/lib/warframe/items";
 import { getDefaultCategory, isValidCategory } from "@/lib/warframe";
@@ -46,9 +47,9 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         <BrowseKeyboardHandler />
       </Suspense>
       <main className="flex-1">
-        <div className="container py-6 space-y-6">
+        <div className="container py-6 flex flex-col gap-6">
           {/* Page Header */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">Browse Items</h1>
             <p className="text-muted-foreground">
               Find and explore Warframes, weapons, and companions for your

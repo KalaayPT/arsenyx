@@ -1,10 +1,9 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
-import { Gem, X } from "lucide-react";
+import { Gem } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getImageUrl } from "@/lib/warframe";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export interface VisiblePartnerBuild {
   id: string;
@@ -41,7 +40,7 @@ export function PartnerBuildsSection({
   }
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("flex flex-col gap-3", className)}>
       <h3 className="text-sm font-medium text-muted-foreground">
         Partner Builds
       </h3>
@@ -76,7 +75,7 @@ function PartnerBuildViewCard({ build }: PartnerBuildViewCardProps) {
       className="group flex items-center gap-3 p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
     >
       {/* Item image */}
-      <div className="relative w-10 h-10 rounded bg-muted/50 shrink-0 overflow-hidden">
+      <div className="relative size-10 rounded bg-muted/50 shrink-0 overflow-hidden">
         <Image
           src={imageUrl}
           alt={build.item.name}
@@ -99,7 +98,7 @@ function PartnerBuildViewCard({ build }: PartnerBuildViewCardProps) {
       {/* Forma count */}
       {formaCount > 0 && (
         <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-          <Gem className="w-3 h-3" />
+          <Gem className="size-3" />
           <span>{formaCount}</span>
         </div>
       )}
@@ -109,11 +108,8 @@ function PartnerBuildViewCard({ build }: PartnerBuildViewCardProps) {
 
 function DeletedPartnerCard() {
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg border bg-muted/30 opacity-60">
-      <div className="w-10 h-10 rounded bg-muted/50 shrink-0 flex items-center justify-center">
-        <X className="w-4 h-4 text-muted-foreground" />
-      </div>
-      <p className="text-sm text-muted-foreground">Build no longer available</p>
-    </div>
+    <Alert className="opacity-60">
+      <AlertDescription>Build no longer available</AlertDescription>
+    </Alert>
   );
 }

@@ -32,9 +32,9 @@ function FooterLinkSection({
   links: readonly NavLink[];
 }) {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       <h4 className="text-sm font-semibold">{title}</h4>
-      <ul className="space-y-2">
+      <ul className="flex flex-col gap-2">
         {links.map((link) => (
           <FooterLink key={link.href} {...link} />
         ))}
@@ -49,7 +49,7 @@ export function Footer() {
       <div className="container py-10">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="text-lg font-semibold tracking-tight">
               {SITE_CONFIG.name}
             </h3>
@@ -72,7 +72,7 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <span>Made with</span>
-            <Icons.heart className="h-4 w-4 text-red-500 fill-red-500" />
+            <Icons.heart className="h-4 w-4 text-destructive fill-destructive" />
             <span>for the Warframe community</span>
           </div>
         </div>

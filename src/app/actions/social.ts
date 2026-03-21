@@ -14,6 +14,7 @@ import {
   toggleBuildFavorite,
   hasUserFavoritedBuild,
 } from "@/lib/db/index";
+import { ok, err, type Result } from "@/lib/result";
 import { RateLimitError } from "@/lib/rate-limit";
 import { revalidatePath } from "next/cache";
 
@@ -21,19 +22,8 @@ import { revalidatePath } from "next/cache";
 // TYPES
 // =============================================================================
 
-export interface VoteResult {
-  success: boolean;
-  voted?: boolean;
-  voteCount?: number;
-  error?: string;
-}
-
-export interface FavoriteResult {
-  success: boolean;
-  favorited?: boolean;
-  favoriteCount?: number;
-  error?: string;
-}
+export type VoteResult = Result<{ voted: boolean; voteCount: number }>;
+export type FavoriteResult = Result<{ favorited: boolean; favoriteCount: number }>;
 
 export interface SocialStatusResult {
   hasVoted: boolean;
@@ -54,10 +44,7 @@ export async function toggleVoteAction(buildId: string): Promise<VoteResult> {
     });
 
     if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "You must be signed in to vote",
-      };
+      return err("You must be signed in to vote");
     }
 
     const result = await toggleBuildVote(session.user.id, buildId);
@@ -65,23 +52,13 @@ export async function toggleVoteAction(buildId: string): Promise<VoteResult> {
     // Revalidate build page to show updated count
     revalidatePath(`/builds/[slug]`, "page");
 
-    return {
-      success: true,
-      voted: result.voted,
-      voteCount: result.voteCount,
-    };
+    return ok({ voted: result.voted, voteCount: result.voteCount });
   } catch (error) {
     if (error instanceof RateLimitError) {
-      return {
-        success: false,
-        error: "Too many votes. Please wait a moment.",
-      };
+      return err("Too many votes. Please wait a moment.");
     }
     console.error("Failed to toggle vote:", error);
-    return {
-      success: false,
-      error: "Failed to update vote",
-    };
+    return err("Failed to update vote");
   }
 }
 
@@ -101,10 +78,7 @@ export async function toggleFavoriteAction(
     });
 
     if (!session?.user?.id) {
-      return {
-        success: false,
-        error: "You must be signed in to save favorites",
-      };
+      return err("You must be signed in to save favorites");
     }
 
     const result = await toggleBuildFavorite(session.user.id, buildId);
@@ -113,23 +87,13 @@ export async function toggleFavoriteAction(
     revalidatePath(`/builds/[slug]`, "page");
     revalidatePath("/favorites", "page");
 
-    return {
-      success: true,
-      favorited: result.favorited,
-      favoriteCount: result.favoriteCount,
-    };
+    return ok({ favorited: result.favorited, favoriteCount: result.favoriteCount });
   } catch (error) {
     if (error instanceof RateLimitError) {
-      return {
-        success: false,
-        error: "Too many favorites. Please wait a moment.",
-      };
+      return err("Too many favorites. Please wait a moment.");
     }
     console.error("Failed to toggle favorite:", error);
-    return {
-      success: false,
-      error: "Failed to update favorite",
-    };
+    return err("Failed to update favorite");
   }
 }
 

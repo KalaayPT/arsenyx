@@ -111,7 +111,7 @@ export function ShardSelectionDialog({
                 )}
               >
                 <div
-                  className="relative w-12 h-12 rounded-lg overflow-hidden border border-border"
+                  className="relative size-12 rounded-lg overflow-hidden border border-border"
                 >
                   <Image
                     src={getShardImageUrl(color, false)}
@@ -129,7 +129,7 @@ export function ShardSelectionDialog({
           </div>
         ) : (
           // Step 2: Stat Selection
-          <div className="space-y-3 py-1">
+          <div className="flex flex-col gap-3 py-1">
             {/* Tauforged Toggle */}
             <div className="flex items-center justify-between px-2 py-1.5 bg-muted/50 rounded">
               <Label htmlFor="tauforged" className="text-sm">
@@ -144,7 +144,7 @@ export function ShardSelectionDialog({
             </div>
 
             {/* Stats List */}
-            <div className="space-y-1">
+            <div className="flex flex-col gap-1">
               {stats.map((stat) => (
                 <button
                   key={stat.name}

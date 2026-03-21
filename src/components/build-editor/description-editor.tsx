@@ -113,7 +113,7 @@ export function DescriptionEditor({
   const buttonTextSizeClass = toolbarSize === "sm" ? "text-xs" : "";
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center border rounded-md overflow-hidden">
           <Button
@@ -123,7 +123,7 @@ export function DescriptionEditor({
             className={cn("rounded-none", toolbarButtonHeightClass, toolbarButtonPaddingClass, buttonTextSizeClass)}
             onClick={() => setMode("edit")}
           >
-            <Pencil className="w-3 h-3 mr-1" />
+            <Pencil className="size-3 mr-1" />
             Edit
           </Button>
           <Button
@@ -133,14 +133,14 @@ export function DescriptionEditor({
             className={cn("rounded-none", toolbarButtonHeightClass, toolbarButtonPaddingClass, buttonTextSizeClass)}
             onClick={() => setMode("preview")}
           >
-            <Eye className="w-3 h-3 mr-1" />
+            <Eye className="size-3 mr-1" />
             Preview
           </Button>
         </div>
       </div>
 
       {mode === "edit" ? (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {/* Toolbar */}
           <TooltipProvider delayDuration={300}>
             <div className="flex items-center gap-1 p-1 border rounded-md bg-muted/30">
@@ -154,7 +154,7 @@ export function DescriptionEditor({
                       className={toolbarClass}
                       onClick={button.action}
                     >
-                      <button.icon className="w-4 h-4" />
+                      <button.icon className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">

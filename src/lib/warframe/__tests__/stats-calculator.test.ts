@@ -5,7 +5,7 @@ import {
   calculateWarframeStats,
   calculateWeaponStats,
   buildHasConditionalMods,
-} from "../stats-calculator";
+} from "../stats";
 import { EXCALIBUR, INAROS, BRATON, SOMA_PRIME } from "@/test/fixtures/items";
 import {
   VITALITY,

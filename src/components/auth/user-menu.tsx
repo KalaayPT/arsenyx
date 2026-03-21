@@ -51,7 +51,7 @@ export function UserMenu() {
           <p className="text-xs text-muted-foreground">{session.user.email}</p>
         </div>
         <Separator className="my-2" />
-        <div className="space-y-1">
+        <div className="flex flex-col gap-1">
           {session.user.username && (
             <MenuLink href={`/profile/${session.user.username}`}>
               My Profile

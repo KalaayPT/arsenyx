@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ArcaneCard } from "@/components/arcane-card";
+import { ArcaneCard } from "@/components/arcane-card/arcane-card";
 import type { Arcane, PlacedArcane } from "@/lib/warframe/types";
 import { Plus } from "lucide-react";
 
@@ -146,7 +146,7 @@ export const ArcaneSlotCard = memo(function ArcaneSlotCard({
             style={{ isolation: "isolate" }}
             onClick={onSelect}
           >
-            <Plus className="w-6 h-6 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
+            <Plus className="size-6 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
             {/* Label */}
             <span className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider mt-1">
               Arcane

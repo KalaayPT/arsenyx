@@ -62,20 +62,20 @@ export async function generateMetadata({
 
 function BuildViewSkeleton() {
   return (
-    <div className="container py-6 space-y-6">
+    <div className="container py-6 flex flex-col gap-6">
       <div className="flex items-center gap-4">
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-6 w-32" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left sidebar skeleton */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 flex flex-col gap-4">
           <Skeleton className="aspect-square w-full rounded-xl" />
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-24 w-full" />
         </div>
         {/* Center mod grid skeleton */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="lg:col-span-6 flex flex-col gap-4">
           <div className="grid grid-cols-4 gap-2">
             {Array.from({ length: 10 }).map((_, i) => (
               <Skeleton key={i} className="aspect-square rounded-lg" />
@@ -83,7 +83,7 @@ function BuildViewSkeleton() {
           </div>
         </div>
         {/* Right panel skeleton */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 flex flex-col gap-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-64 w-full" />
         </div>

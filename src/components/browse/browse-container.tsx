@@ -170,7 +170,7 @@ export function BrowseContainer({
   ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Search and Filters Row */}
       <div className="flex flex-col sm:flex-row gap-3">
         <SearchBar

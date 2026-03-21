@@ -18,7 +18,7 @@ export * from "./stat-types";
 export * from "./stat-caps";
 export * from "./stat-parser";
 export * from "./aura-effects";
-export * from "./stats-calculator";
+export * from "./stats";
 
 // Server-only exports should be imported directly:
 // import { getItemsByCategory, ... } from "@/lib/warframe/items";

@@ -22,7 +22,7 @@ import {
   getMatchState,
   type MatchState,
 } from "@/lib/warframe/capacity";
-import { ModCard } from "@/components/mod-card";
+import { ModCard } from "@/components/mod-card/mod-card";
 import type {
   ModSlot,
   Polarity,
@@ -289,8 +289,6 @@ const ModSlotCard = memo(function ModSlotCard({
   const style = transform
     ? {
         transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0 : 1,
-        willChange: "transform",
       }
     : undefined;
 
@@ -360,7 +358,7 @@ const ModSlotCard = memo(function ModSlotCard({
             )}
             title="None (clear polarity)"
           >
-            <span className="w-4 h-4 flex items-center justify-center">✕</span>
+            <span className="size-4 flex items-center justify-center">✕</span>
           </button>
         </div>
       </div>
@@ -390,11 +388,13 @@ const ModSlotCard = memo(function ModSlotCard({
               {...(readOnly ? {} : listeners)}
               {...(readOnly ? {} : attributes)}
               style={style}
-              className={
+              className={cn(
                 readOnly
                   ? "cursor-default"
-                  : "cursor-grab active:cursor-grabbing"
-              }
+                  : "cursor-grab active:cursor-grabbing",
+                isDragging && "opacity-0",
+                transform && "will-change-transform"
+              )}
               onClick={(e) => {
                 if (readOnly) return;
                 if (e.shiftKey) {
@@ -471,7 +471,7 @@ const ModSlotCard = memo(function ModSlotCard({
       )}
 
       {!readOnly && (
-        <Plus className="w-5 h-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
+        <Plus className="size-5 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
       )}
     </div>
   );

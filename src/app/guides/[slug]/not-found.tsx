@@ -10,7 +10,7 @@ export default function GuideNotFound() {
             <Header />
             <main className="flex-1 flex items-center justify-center">
                 <div className="container max-w-md text-center py-16">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-6">
+                    <div className="inline-flex items-center justify-center size-16 rounded-full bg-muted mb-6">
                         <FileQuestion className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <h1 className="text-2xl font-bold mb-2">Guide Not Found</h1>

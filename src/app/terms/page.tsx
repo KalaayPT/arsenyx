@@ -7,13 +7,13 @@ export default function TermsPage() {
     <div className="relative min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container py-12 max-w-3xl">
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           <h1 className="text-4xl font-bold tracking-tight">Terms of Service</h1>
           <p className="text-muted-foreground">
             Last updated: {new Date().toLocaleDateString()}
           </p>
 
-          <div className="prose prose-neutral dark:prose-invert max-w-none space-y-8">
+          <div className="prose prose-neutral dark:prose-invert max-w-none flex flex-col gap-8">
             <section>
               <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
               <p>

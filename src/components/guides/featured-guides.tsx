@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +17,7 @@ export function FeaturedGuides({ guides }: FeaturedGuidesProps) {
         <section className="py-16 bg-muted/30">
             <div className="container">
                 <div className="flex items-center justify-between mb-8">
-                    <div className="space-y-1">
+                    <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                             <BookOpen className="h-5 w-5 text-primary" />
                             <h2 className="text-2xl font-bold tracking-tight">

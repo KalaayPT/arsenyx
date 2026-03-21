@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
+import { toast } from "sonner";
 import { GuideReader } from "@/components/guides/guide-reader";
 import {
   GuideEditor,
@@ -59,8 +60,8 @@ export function BuildGuideSection({
   useEffect(() => {
     if (isOwner) {
       getUserBuildsForPartnerSelectorAction().then((result) => {
-        if (result.success && result.builds) {
-          setAvailableBuilds(result.builds);
+        if (result.success && result.data) {
+          setAvailableBuilds(result.data);
         }
       });
     }
@@ -99,8 +100,7 @@ export function BuildGuideSection({
     if (result.success) {
       router.refresh();
     } else {
-      console.error("Failed to save guide:", result.error);
-      // TODO: Show error toast
+      toast.error(result.error || "Failed to save guide");
     }
   };
 
@@ -133,7 +133,7 @@ export function BuildGuideSection({
                     size="icon"
                     className="h-8 w-8 hover:bg-background"
                   >
-                    <Pen className="w-4 h-4" />
+                    <Pen className="size-4" />
                     <span className="sr-only">Edit Guide</span>
                   </Button>
                 </DialogTrigger>
@@ -170,7 +170,7 @@ export function BuildGuideSection({
             </span>
           )}
         </div>
-        <div className="p-6 space-y-6">
+        <div className="p-6 flex flex-col gap-6">
           {hasContent ? (
             <>
               {/* Summary */}

@@ -45,7 +45,7 @@ export function PartnerBuildCard({
       )}
     >
       {/* Item image */}
-      <div className="relative w-10 h-10 rounded bg-muted/50 shrink-0 overflow-hidden">
+      <div className="relative size-10 rounded bg-muted/50 shrink-0 overflow-hidden">
         <Image
           src={imageUrl}
           alt={build.item.name}
@@ -66,7 +66,7 @@ export function PartnerBuildCard({
       {/* Forma count */}
       {formaCount > 0 && (
         <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-          <Gem className="w-3 h-3" />
+          <Gem className="size-3" />
           <span>{formaCount}</span>
         </div>
       )}
@@ -84,7 +84,7 @@ export function PartnerBuildCard({
             onRemove();
           }}
         >
-          <X className="w-3 h-3" />
+          <X className="size-3" />
           <span className="sr-only">Remove partner build</span>
         </Button>
       )}
@@ -114,8 +114,8 @@ export function DeletedPartnerCard({ className }: DeletedPartnerCardProps) {
         className
       )}
     >
-      <div className="w-10 h-10 rounded bg-muted/50 shrink-0 flex items-center justify-center">
-        <X className="w-4 h-4 text-muted-foreground" />
+      <div className="size-10 rounded bg-muted/50 shrink-0 flex items-center justify-center">
+        <X className="size-4 text-muted-foreground" />
       </div>
       <p className="text-sm text-muted-foreground">Build no longer available</p>
     </div>

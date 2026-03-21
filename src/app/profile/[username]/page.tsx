@@ -55,7 +55,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     <div className="relative min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="container py-8 space-y-8">
+        <div className="container py-8 flex flex-col gap-8">
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row gap-6 items-start">
             {/* Avatar */}
@@ -69,14 +69,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center text-4xl font-bold">
+                <div className="size-32 rounded-full bg-muted flex items-center justify-center text-4xl font-bold">
                   {(user.username || user.name || "U").charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
 
             {/* User Info */}
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold">
                   {user.username || user.name || "Anonymous"}
@@ -116,7 +116,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           </div>
 
           {/* User's Builds */}
-          <section className="space-y-4">
+          <section className="flex flex-col gap-4">
             <h2 className="text-xl font-semibold">Public Builds</h2>
 
             {builds.length === 0 ? (
@@ -142,7 +142,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                         className="object-cover"
                       />
                     </div>
-                    <div className="p-2 space-y-1">
+                    <div className="p-2 flex flex-col gap-1">
                       <h3 className="font-medium text-sm line-clamp-1">
                         {build.name}
                       </h3>

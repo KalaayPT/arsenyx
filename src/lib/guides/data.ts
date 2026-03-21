@@ -173,7 +173,8 @@ export function createGuide(input: GuideInput): Guide {
         createdAt: now,
         updatedAt: now,
         author: {
-            name: "Anonymous", // TODO: Get from auth
+            name: input.authorName ?? "Anonymous",
+            avatar: input.authorAvatar,
         },
         content: input.content,
         status: input.status,

@@ -63,9 +63,9 @@ export function FilterPanel({
   ).length;
 
   const filterContent = (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Mastery Requirement */}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium">Max Mastery Rank</Label>
           <span className="text-sm text-muted-foreground tabular-nums">
@@ -89,7 +89,7 @@ export function FilterPanel({
       </div>
 
       {/* Quick Filters */}
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         <Label className="text-sm font-medium">Quick Filters</Label>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -129,7 +129,7 @@ export function FilterPanel({
     <>
       {/* Desktop: Sidebar panel */}
       <div className={cn("hidden lg:block", className)}>
-        <div className="sticky top-20 space-y-4">
+        <div className="sticky top-20 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Filters</h3>
             {activeFilterCount > 0 && (
@@ -147,7 +147,7 @@ export function FilterPanel({
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm" className="gap-2">
-              <Icons.settings className="h-4 w-4" />
+              <Icons.settings data-icon="inline-start" />
               Filters
               {activeFilterCount > 0 && (
                 <Badge variant="secondary" className="text-xs ml-1">

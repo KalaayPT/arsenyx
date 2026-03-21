@@ -7,6 +7,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { unstable_cache } from "next/cache";
 import type { BrowseCategory, BrowseItem, BrowseableItem } from "@/lib/warframe/types";
+import { ItemDataSchema, safeParseOrCast } from "@/lib/warframe/schemas";
 import { slugify, unslugify } from "@/lib/warframe/slugs";
 
 /**
@@ -48,7 +49,7 @@ export const getItemByUniqueNameFromDb = unstable_cache(
     if (!item) return null;
 
     // Return the full WFCD data stored in the data JSON field
-    return item.data as unknown as BrowseableItem;
+    return safeParseOrCast(ItemDataSchema, item.data, `item ${uniqueName}`) as BrowseableItem;
   },
   ["item-by-unique-name"],
   { revalidate: 3600, tags: ["items"] }
@@ -72,7 +73,7 @@ export async function getItemBySlugFromDb(
 
   for (const item of candidates) {
     if (slugify(item.name) === slug) {
-      return item.data as unknown as BrowseableItem;
+      return safeParseOrCast(ItemDataSchema, item.data, `item ${item.uniqueName}`) as BrowseableItem;
     }
   }
 

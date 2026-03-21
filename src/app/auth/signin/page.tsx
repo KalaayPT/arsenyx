@@ -20,8 +20,8 @@ function SignInContent() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <div className="mx-auto w-full max-w-sm space-y-6 px-4">
-        <div className="space-y-2 text-center">
+      <div className="mx-auto w-full max-w-sm flex flex-col gap-6 px-4">
+        <div className="flex flex-col gap-2 text-center">
           <h1 className="text-2xl font-bold">Sign in to Arsenyx</h1>
           <p className="text-muted-foreground">
             Sign in to save builds, vote, and more
@@ -65,8 +65,8 @@ export default function SignInPage() {
 function SignInFallback() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center">
-      <div className="mx-auto w-full max-w-sm space-y-6 px-4">
-        <div className="space-y-2 text-center">
+      <div className="mx-auto w-full max-w-sm flex flex-col gap-6 px-4">
+        <div className="flex flex-col gap-2 text-center">
           <h1 className="text-2xl font-bold">Sign in to Arsenyx</h1>
           <p className="text-muted-foreground">
             Sign in to save builds, vote, and more

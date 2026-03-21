@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +16,7 @@ export function RelatedGuides({ guides }: RelatedGuidesProps) {
                 <CardTitle className="text-lg">Related Guides</CardTitle>
             </CardHeader>
             <CardContent>
-                <ul className="space-y-3">
+                <ul className="flex flex-col gap-3">
                     {guides.map((guide) => (
                         <li key={guide.id}>
                             <Link

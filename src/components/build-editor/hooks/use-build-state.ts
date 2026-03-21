@@ -1,0 +1,786 @@
+import { useReducer, useCallback, useMemo } from "react";
+import type {
+  BuildState,
+  ModSlot,
+  PlacedMod,
+  PlacedArcane,
+  PlacedShard,
+  Polarity,
+  BrowseCategory,
+  BrowseableItem,
+  Mod,
+  Arcane,
+  HelminthAbility,
+} from "@/lib/warframe/types";
+import { getModBaseName } from "@/lib/warframe/mod-variants";
+import { normalizePolarity } from "@/lib/warframe/mods";
+import {
+  getCapacityStatus,
+  calculateTotalEndoCost,
+  calculateFormaCount,
+} from "@/lib/warframe/capacity";
+
+// ---------------------------------------------------------------------------
+// Exported types
+// ---------------------------------------------------------------------------
+
+export type DragItem =
+  | { type: "search-mod"; mod: Mod; rank: number }
+  | { type: "placed-mod"; mod: PlacedMod; slotId: string; rank?: number }
+  | { type: "search-arcane"; arcane: Arcane; rank: number }
+  | { type: "placed-arcane"; arcane: PlacedArcane; slotIndex: number };
+
+export interface BuildContainerProps {
+  item: BrowseableItem;
+  category: BrowseCategory;
+  categoryLabel: string;
+  compatibleMods: Mod[];
+  compatibleArcanes?: Arcane[];
+  importedBuild?: Partial<BuildState>;
+  savedBuildId?: string;
+  savedBuildSlug?: string;
+  readOnly?: boolean;
+  isOwner?: boolean;
+  initialGuide?: {
+    summary?: string | null;
+    description?: string | null;
+    updatedAt?: Date;
+  };
+  initialPartnerBuilds?: {
+    id: string;
+    slug: string;
+    name: string;
+    item: {
+      name: string;
+      imageName: string | null;
+      browseCategory: string;
+    };
+    buildData: { formaCount: number };
+  }[];
+}
+
+export interface ItemStats {
+  health?: number;
+  shield?: number;
+  armor?: number;
+  energy?: number;
+  sprintSpeed?: number;
+  abilities?: Array<{ name: string; imageName?: string; description: string }>;
+  fireRate?: number;
+  criticalChance?: number;
+  criticalMultiplier?: number;
+  procChance?: number;
+  totalDamage?: number;
+  magazineSize?: number;
+  reloadTime?: number;
+  range?: number;
+  comboDuration?: number;
+}
+
+// ---------------------------------------------------------------------------
+// Helper functions
+// ---------------------------------------------------------------------------
+
+export function extractItemStats(item: BrowseableItem): ItemStats {
+  const data = item as {
+    health?: number;
+    shield?: number;
+    armor?: number;
+    power?: number;
+    sprintSpeed?: number;
+    abilities?: Array<{
+      name: string;
+      imageName?: string;
+      description: string;
+    }>;
+    fireRate?: number;
+    criticalChance?: number;
+    criticalMultiplier?: number;
+    procChance?: number;
+    totalDamage?: number;
+    magazineSize?: number;
+    reloadTime?: number;
+    range?: number;
+    comboDuration?: number;
+  };
+  return {
+    health: data.health,
+    shield: data.shield,
+    armor: data.armor,
+    energy: data.power,
+    sprintSpeed: data.sprintSpeed,
+    abilities: data.abilities,
+    fireRate: data.fireRate,
+    criticalChance: data.criticalChance,
+    criticalMultiplier: data.criticalMultiplier,
+    procChance: data.procChance,
+    totalDamage: data.totalDamage,
+    magazineSize: data.magazineSize,
+    reloadTime: data.reloadTime,
+    range: data.range,
+    comboDuration: data.comboDuration,
+  };
+}
+
+export function createInitialSlots(polarities?: string[]): ModSlot[] {
+  return Array.from({ length: 8 }, (_, i) => ({
+    id: `normal-${i}`,
+    type: "normal" as const,
+    innatePolarity: polarities?.[i]
+      ? normalizePolarity(polarities[i])
+      : undefined,
+  }));
+}
+
+export function createInitialBuildState(
+  item: BrowseableItem,
+  category: BrowseCategory,
+  compatibleMods: Mod[],
+  importedBuild?: Partial<BuildState>
+): BuildState {
+  const isWarframe = category === "warframes" || category === "necramechs";
+
+  const itemPolarities = (item as { polarities?: string[] }).polarities;
+  const auraPolarity = (item as { aura?: string }).aura;
+
+  const baseState: BuildState = {
+    itemUniqueName: item.uniqueName,
+    itemName: item.name,
+    itemCategory: category,
+    itemImageName: item.imageName,
+    hasReactor: true,
+    exilusSlot: { id: "exilus-0", type: "exilus" },
+    normalSlots: createInitialSlots(itemPolarities),
+    arcaneSlots: [],
+    shardSlots: [],
+    baseCapacity: 60,
+    currentCapacity: 60,
+    formaCount: 0,
+  };
+
+  if (isWarframe) {
+    baseState.auraSlot = {
+      id: "aura-0",
+      type: "aura",
+      innatePolarity: auraPolarity
+        ? normalizePolarity(auraPolarity)
+        : undefined,
+    };
+    baseState.arcaneSlots = [null, null];
+    if (category === "warframes") {
+      baseState.shardSlots = [null, null, null, null, null];
+    }
+  } else if (["primary", "secondary", "melee"].includes(category)) {
+    baseState.arcaneSlots = [null];
+  }
+
+  if (importedBuild) {
+    const mergeSlot = (
+      baseSlot: ModSlot,
+      importedSlot?: ModSlot
+    ): ModSlot => {
+      if (!importedSlot) return baseSlot;
+      return {
+        ...baseSlot,
+        formaPolarity: importedSlot.formaPolarity,
+        mod: importedSlot.mod,
+      };
+    };
+
+    const mergedNormalSlots = baseState.normalSlots.map(
+      (baseSlot: ModSlot, i: number) =>
+        mergeSlot(baseSlot, importedBuild.normalSlots?.[i])
+    );
+
+    const mergedAuraSlot = baseState.auraSlot
+      ? mergeSlot(baseState.auraSlot, importedBuild.auraSlot)
+      : importedBuild.auraSlot;
+
+    const mergedExilusSlot = mergeSlot(
+      baseState.exilusSlot,
+      importedBuild.exilusSlot
+    );
+
+    const hydratedState: BuildState = {
+      ...baseState,
+      ...importedBuild,
+      itemUniqueName: item.uniqueName,
+      itemName: item.name,
+      itemCategory: category,
+      itemImageName: item.imageName,
+      normalSlots: mergedNormalSlots,
+      auraSlot: mergedAuraSlot,
+      exilusSlot: mergedExilusSlot,
+    };
+
+    const hydrateSlot = (slot: ModSlot) => {
+      if (slot.mod) {
+        const fullMod = compatibleMods.find(
+          (m) => m.uniqueName === slot.mod!.uniqueName
+        );
+        if (fullMod) {
+          slot.mod = {
+            ...slot.mod,
+            name: fullMod.name,
+            imageName: fullMod.imageName,
+            polarity: fullMod.polarity,
+            baseDrain: fullMod.baseDrain,
+            fusionLimit: fullMod.fusionLimit,
+            rarity: fullMod.rarity,
+            compatName: fullMod.compatName,
+            type: fullMod.type,
+            levelStats: fullMod.levelStats,
+            modSet: fullMod.modSet,
+            modSetStats: fullMod.modSetStats,
+            isExilus: fullMod.isExilus,
+            isUtility: fullMod.isUtility,
+          };
+        }
+      }
+      return slot;
+    };
+
+    if (hydratedState.auraSlot) {
+      hydratedState.auraSlot = hydrateSlot(hydratedState.auraSlot);
+    }
+    if (hydratedState.exilusSlot) {
+      hydratedState.exilusSlot = hydrateSlot(hydratedState.exilusSlot);
+    }
+    hydratedState.normalSlots = hydratedState.normalSlots.map(hydrateSlot);
+
+    return hydratedState;
+  }
+
+  return baseState;
+}
+
+// ---------------------------------------------------------------------------
+// Reducer
+// ---------------------------------------------------------------------------
+
+export type BuildAction =
+  | { type: "PLACE_MOD"; mod: Mod; rank: number; slotId: string }
+  | { type: "MOVE_MOD"; sourceSlotId: string; targetSlotId: string }
+  | { type: "REMOVE_MOD"; slotId: string }
+  | { type: "CHANGE_RANK"; slotId: string; newRank: number }
+  | { type: "APPLY_FORMA"; slotId: string; polarity: Polarity }
+  | { type: "TOGGLE_REACTOR" }
+  | {
+      type: "CLEAR_BUILD";
+      item: BrowseableItem;
+      category: BrowseCategory;
+      compatibleMods: Mod[];
+    }
+  | {
+      type: "SET_HELMINTH";
+      slotIndex: number;
+      ability: HelminthAbility | null;
+    }
+  | { type: "PLACE_ARCANE"; arcane: Arcane; rank: number; slotIndex: number }
+  | { type: "MOVE_ARCANE"; sourceIndex: number; targetIndex: number }
+  | { type: "REMOVE_ARCANE"; slotIndex: number }
+  | { type: "CHANGE_ARCANE_RANK"; slotIndex: number; newRank: number }
+  | { type: "PLACE_SHARD"; slotIndex: number; shard: PlacedShard }
+  | { type: "REMOVE_SHARD"; slotIndex: number }
+  | {
+      type: "HYDRATE";
+      state: Partial<BuildState>;
+      item: BrowseableItem;
+      category: BrowseCategory;
+    };
+
+// Slot-level helpers used by multiple actions
+function getModFromSlot(
+  id: string,
+  state: BuildState
+): PlacedMod | undefined {
+  if (id.startsWith("aura")) return state.auraSlot?.mod;
+  if (id.startsWith("exilus")) return state.exilusSlot.mod;
+  const idx = parseInt(id.replace("normal-", ""));
+  return state.normalSlots[idx]?.mod;
+}
+
+function setModInSlot(
+  id: string,
+  mod: PlacedMod | undefined,
+  state: BuildState
+) {
+  if (id.startsWith("aura") && state.auraSlot) {
+    state.auraSlot = { ...state.auraSlot, mod };
+  } else if (id.startsWith("exilus")) {
+    state.exilusSlot = { ...state.exilusSlot, mod };
+  } else {
+    const idx = parseInt(id.replace("normal-", ""));
+    if (!isNaN(idx)) {
+      state.normalSlots = [...state.normalSlots];
+      state.normalSlots[idx] = { ...state.normalSlots[idx], mod };
+    }
+  }
+}
+
+function updateModRankInSlot(
+  slot: ModSlot | undefined,
+  newRank: number
+): ModSlot | undefined {
+  if (!slot?.mod) return slot;
+  const clampedRank = Math.max(0, Math.min(newRank, slot.mod.fusionLimit));
+  return { ...slot, mod: { ...slot.mod, rank: clampedRank } };
+}
+
+function buildReducer(state: BuildState, action: BuildAction): BuildState {
+  switch (action.type) {
+    case "PLACE_MOD": {
+      const { mod, rank, slotId } = action;
+      const placedMod: PlacedMod = {
+        uniqueName: mod.uniqueName,
+        name: mod.name,
+        imageName: mod.imageName,
+        polarity: mod.polarity,
+        baseDrain: mod.baseDrain,
+        fusionLimit: mod.fusionLimit,
+        rank,
+        rarity: mod.rarity,
+        compatName: mod.compatName,
+        type: mod.type,
+        levelStats: mod.levelStats,
+        modSet: mod.modSet,
+        modSetStats: mod.modSetStats,
+        isExilus: mod.isExilus,
+        isUtility: mod.isUtility,
+      };
+
+      const newState = { ...state };
+      const baseName = getModBaseName(mod.name);
+
+      // Remove existing instance of this mod or its variants
+      if (
+        newState.auraSlot?.mod &&
+        getModBaseName(newState.auraSlot.mod.name) === baseName
+      ) {
+        newState.auraSlot = { ...newState.auraSlot, mod: undefined };
+      }
+      if (
+        newState.exilusSlot?.mod &&
+        getModBaseName(newState.exilusSlot.mod.name) === baseName
+      ) {
+        newState.exilusSlot = { ...newState.exilusSlot, mod: undefined };
+      }
+      newState.normalSlots = newState.normalSlots.map((s: ModSlot) =>
+        s.mod && getModBaseName(s.mod.name) === baseName
+          ? { ...s, mod: undefined }
+          : s
+      );
+
+      // Place in target slot
+      if (slotId.startsWith("aura") && newState.auraSlot) {
+        newState.auraSlot = { ...newState.auraSlot, mod: placedMod };
+      } else if (slotId.startsWith("exilus")) {
+        newState.exilusSlot = { ...newState.exilusSlot, mod: placedMod };
+      } else {
+        const slotIndex = parseInt(slotId.replace("normal-", ""));
+        if (!isNaN(slotIndex)) {
+          newState.normalSlots = [...newState.normalSlots];
+          newState.normalSlots[slotIndex] = {
+            ...newState.normalSlots[slotIndex],
+            mod: placedMod,
+          };
+        }
+      }
+
+      return newState;
+    }
+
+    case "MOVE_MOD": {
+      const { sourceSlotId, targetSlotId } = action;
+      const newState = { ...state };
+
+      if (newState.auraSlot) newState.auraSlot = { ...newState.auraSlot };
+      newState.exilusSlot = { ...newState.exilusSlot };
+      newState.normalSlots = [...newState.normalSlots];
+
+      const sourceMod = getModFromSlot(sourceSlotId, newState);
+      const targetMod = getModFromSlot(targetSlotId, newState);
+
+      setModInSlot(sourceSlotId, targetMod, newState);
+      setModInSlot(targetSlotId, sourceMod, newState);
+
+      return newState;
+    }
+
+    case "REMOVE_MOD": {
+      const { slotId } = action;
+      const newState = { ...state };
+
+      if (slotId.startsWith("aura") && newState.auraSlot) {
+        newState.auraSlot = { ...newState.auraSlot, mod: undefined };
+      } else if (slotId.startsWith("exilus")) {
+        newState.exilusSlot = { ...newState.exilusSlot, mod: undefined };
+      } else {
+        const slotIndex = parseInt(slotId.replace("normal-", ""));
+        if (!isNaN(slotIndex)) {
+          newState.normalSlots = [...newState.normalSlots];
+          newState.normalSlots[slotIndex] = {
+            ...newState.normalSlots[slotIndex],
+            mod: undefined,
+          };
+        }
+      }
+
+      return newState;
+    }
+
+    case "CHANGE_RANK": {
+      const { slotId, newRank } = action;
+      const newState = { ...state };
+
+      if (slotId.startsWith("aura") && newState.auraSlot) {
+        newState.auraSlot = updateModRankInSlot(newState.auraSlot, newRank);
+      } else if (slotId.startsWith("exilus")) {
+        newState.exilusSlot = updateModRankInSlot(
+          newState.exilusSlot,
+          newRank
+        )!;
+      } else {
+        const slotIndex = parseInt(slotId.replace("normal-", ""));
+        if (!isNaN(slotIndex)) {
+          newState.normalSlots = [...newState.normalSlots];
+          newState.normalSlots[slotIndex] = updateModRankInSlot(
+            newState.normalSlots[slotIndex],
+            newRank
+          )!;
+        }
+      }
+
+      return newState;
+    }
+
+    case "APPLY_FORMA": {
+      const { slotId, polarity } = action;
+      const newState = { ...state };
+
+      const getFormaValue = (
+        innate: Polarity | undefined
+      ): Polarity | undefined => {
+        if (polarity === innate) return undefined;
+        if (polarity === "universal" && innate === undefined) return undefined;
+        return polarity;
+      };
+
+      if (slotId.startsWith("aura") && newState.auraSlot) {
+        const formaValue = getFormaValue(newState.auraSlot.innatePolarity);
+        newState.auraSlot = { ...newState.auraSlot, formaPolarity: formaValue };
+      } else if (slotId.startsWith("exilus")) {
+        const formaValue = getFormaValue(newState.exilusSlot.innatePolarity);
+        newState.exilusSlot = {
+          ...newState.exilusSlot,
+          formaPolarity: formaValue,
+        };
+      } else {
+        const slotIndex = parseInt(slotId.replace("normal-", ""));
+        if (!isNaN(slotIndex)) {
+          newState.normalSlots = [...newState.normalSlots];
+          const slot = newState.normalSlots[slotIndex];
+          const formaValue = getFormaValue(slot.innatePolarity);
+          newState.normalSlots[slotIndex] = {
+            ...slot,
+            formaPolarity: formaValue,
+          };
+        }
+      }
+
+      return newState;
+    }
+
+    case "TOGGLE_REACTOR": {
+      return {
+        ...state,
+        hasReactor: !state.hasReactor,
+        baseCapacity: !state.hasReactor ? 60 : 30,
+      };
+    }
+
+    case "CLEAR_BUILD": {
+      return createInitialBuildState(
+        action.item,
+        action.category,
+        action.compatibleMods
+      );
+    }
+
+    case "SET_HELMINTH": {
+      const { slotIndex, ability } = action;
+      return {
+        ...state,
+        helminthAbility: ability ? { slotIndex, ability } : undefined,
+      };
+    }
+
+    case "PLACE_ARCANE": {
+      const { arcane, rank, slotIndex } = action;
+      const placedArcane: PlacedArcane = {
+        uniqueName: arcane.uniqueName,
+        name: arcane.name,
+        imageName: arcane.imageName,
+        rank,
+        rarity: arcane.rarity,
+      };
+
+      const newArcaneSlots = [...(state.arcaneSlots || [])];
+      const existingIndex = newArcaneSlots.findIndex(
+        (a) => a?.uniqueName === arcane.uniqueName
+      );
+      if (existingIndex !== -1 && existingIndex !== slotIndex) {
+        newArcaneSlots[existingIndex] = null;
+      }
+      newArcaneSlots[slotIndex] = placedArcane;
+
+      return { ...state, arcaneSlots: newArcaneSlots };
+    }
+
+    case "MOVE_ARCANE": {
+      const { sourceIndex, targetIndex } = action;
+      const newArcaneSlots = [...(state.arcaneSlots || [])];
+      const sourceArcane = newArcaneSlots[sourceIndex];
+      const targetArcane = newArcaneSlots[targetIndex];
+      newArcaneSlots[sourceIndex] = targetArcane;
+      newArcaneSlots[targetIndex] = sourceArcane;
+      return { ...state, arcaneSlots: newArcaneSlots };
+    }
+
+    case "REMOVE_ARCANE": {
+      const newArcaneSlots = [...(state.arcaneSlots || [])];
+      newArcaneSlots[action.slotIndex] = null;
+      return { ...state, arcaneSlots: newArcaneSlots };
+    }
+
+    case "CHANGE_ARCANE_RANK": {
+      const { slotIndex, newRank } = action;
+      const newArcaneSlots = [...(state.arcaneSlots || [])];
+      const arcane = newArcaneSlots[slotIndex];
+      if (arcane) {
+        const maxRank = 5;
+        const clampedRank = Math.max(0, Math.min(newRank, maxRank));
+        newArcaneSlots[slotIndex] = { ...arcane, rank: clampedRank };
+      }
+      return { ...state, arcaneSlots: newArcaneSlots };
+    }
+
+    case "PLACE_SHARD": {
+      const newShardSlots = [
+        ...(state.shardSlots || [null, null, null, null, null]),
+      ];
+      newShardSlots[action.slotIndex] = action.shard;
+      return { ...state, shardSlots: newShardSlots };
+    }
+
+    case "REMOVE_SHARD": {
+      const newShardSlots = [
+        ...(state.shardSlots || [null, null, null, null, null]),
+      ];
+      newShardSlots[action.slotIndex] = null;
+      return { ...state, shardSlots: newShardSlots };
+    }
+
+    case "HYDRATE": {
+      const { state: partial, item, category } = action;
+      return {
+        ...state,
+        ...partial,
+        itemUniqueName: item.uniqueName,
+        itemName: item.name,
+        itemCategory: category,
+        itemImageName: item.imageName,
+      };
+    }
+
+    default:
+      return state;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
+
+export interface UseBuildStateProps {
+  item: BrowseableItem;
+  category: BrowseCategory;
+  compatibleMods: Mod[];
+  compatibleArcanes: Arcane[];
+  importedBuild?: Partial<BuildState>;
+}
+
+export function useBuildState({
+  item,
+  category,
+  compatibleMods,
+  compatibleArcanes,
+  importedBuild,
+}: UseBuildStateProps) {
+  const [buildState, dispatch] = useReducer(
+    buildReducer,
+    { item, category, compatibleMods, importedBuild },
+    (init) =>
+      createInitialBuildState(
+        init.item,
+        init.category,
+        init.compatibleMods,
+        init.importedBuild
+      )
+  );
+
+  // --- Mod actions ---
+
+  const placeModInSlot = useCallback(
+    (mod: Mod, rank: number, slotId: string) => {
+      dispatch({ type: "PLACE_MOD", mod, rank, slotId });
+    },
+    []
+  );
+
+  const moveMod = useCallback(
+    (sourceSlotId: string, targetSlotId: string) => {
+      dispatch({ type: "MOVE_MOD", sourceSlotId, targetSlotId });
+    },
+    []
+  );
+
+  const handleRemoveMod = useCallback((slotId: string) => {
+    dispatch({ type: "REMOVE_MOD", slotId });
+  }, []);
+
+  const handleChangeRank = useCallback((slotId: string, newRank: number) => {
+    dispatch({ type: "CHANGE_RANK", slotId, newRank });
+  }, []);
+
+  const handleApplyForma = useCallback((slotId: string, polarity: Polarity) => {
+    dispatch({ type: "APPLY_FORMA", slotId, polarity });
+  }, []);
+
+  const handleToggleReactor = useCallback(() => {
+    dispatch({ type: "TOGGLE_REACTOR" });
+  }, []);
+
+  const handleClearBuild = useCallback(() => {
+    dispatch({ type: "CLEAR_BUILD", item, category, compatibleMods });
+  }, [item, category, compatibleMods]);
+
+  const handleHelminthAbilityChange = useCallback(
+    (slotIndex: number, ability: HelminthAbility | null) => {
+      dispatch({ type: "SET_HELMINTH", slotIndex, ability });
+    },
+    []
+  );
+
+  // --- Arcane actions ---
+
+  const placeArcaneInSlot = useCallback(
+    (arcane: Arcane, rank: number, slotIndex: number) => {
+      dispatch({ type: "PLACE_ARCANE", arcane, rank, slotIndex });
+    },
+    []
+  );
+
+  const moveArcane = useCallback(
+    (sourceIndex: number, targetIndex: number) => {
+      dispatch({ type: "MOVE_ARCANE", sourceIndex, targetIndex });
+    },
+    []
+  );
+
+  const handleRemoveArcane = useCallback((slotIndex: number) => {
+    dispatch({ type: "REMOVE_ARCANE", slotIndex });
+  }, []);
+
+  const handleChangeArcaneRank = useCallback(
+    (slotIndex: number, newRank: number) => {
+      dispatch({ type: "CHANGE_ARCANE_RANK", slotIndex, newRank });
+    },
+    []
+  );
+
+  // --- Shard actions ---
+
+  const handlePlaceShard = useCallback(
+    (slotIndex: number, shard: PlacedShard) => {
+      dispatch({ type: "PLACE_SHARD", slotIndex, shard });
+    },
+    []
+  );
+
+  const handleRemoveShard = useCallback((slotIndex: number) => {
+    dispatch({ type: "REMOVE_SHARD", slotIndex });
+  }, []);
+
+  // --- Derived state ---
+
+  const usedModNames = useMemo((): Set<string> => {
+    const names = new Set<string>();
+    if (buildState.auraSlot?.mod)
+      names.add(getModBaseName(buildState.auraSlot.mod.name));
+    if (buildState.exilusSlot?.mod)
+      names.add(getModBaseName(buildState.exilusSlot.mod.name));
+    for (const slot of buildState.normalSlots) {
+      if (slot.mod) names.add(getModBaseName(slot.mod.name));
+    }
+    return names;
+  }, [buildState]);
+
+  const usedArcaneNames = useMemo((): Set<string> => {
+    const names = new Set<string>();
+    for (const a of buildState.arcaneSlots || []) {
+      if (a !== null) names.add(a.name);
+    }
+    return names;
+  }, [buildState.arcaneSlots]);
+
+  const arcaneDataMap = useMemo(() => {
+    const map = new Map<string, Arcane>();
+    for (const arcane of compatibleArcanes) {
+      map.set(arcane.uniqueName, arcane);
+    }
+    return map;
+  }, [compatibleArcanes]);
+
+  const { capacityStatus, totalEndoCost, formaCount } = useMemo(
+    () => ({
+      capacityStatus: getCapacityStatus(buildState),
+      totalEndoCost: calculateTotalEndoCost(buildState),
+      formaCount: calculateFormaCount(
+        buildState.normalSlots,
+        buildState.auraSlot,
+        buildState.exilusSlot
+      ),
+    }),
+    [buildState]
+  );
+
+  return {
+    buildState,
+    dispatch,
+
+    placeModInSlot,
+    moveMod,
+    handleRemoveMod,
+    handleChangeRank,
+    handleApplyForma,
+    handleToggleReactor,
+    handleClearBuild,
+    handleHelminthAbilityChange,
+
+    placeArcaneInSlot,
+    moveArcane,
+    handleRemoveArcane,
+    handleChangeArcaneRank,
+
+    handlePlaceShard,
+    handleRemoveShard,
+
+    usedModNames,
+    usedArcaneNames,
+    arcaneDataMap,
+    capacityStatus,
+    totalEndoCost,
+    formaCount,
+  };
+}

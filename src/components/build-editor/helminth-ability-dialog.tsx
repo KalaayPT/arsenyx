@@ -69,7 +69,7 @@ export function HelminthAbilityDialog({
                                 onOpenChange(false);
                             }}
                         >
-                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center border">
+                            <div className="size-10 rounded bg-muted flex items-center justify-center border">
                                 <Undo2 className="h-5 w-5 text-muted-foreground" />
                             </div>
                             <div className="flex flex-col items-start text-left">
@@ -88,7 +88,7 @@ export function HelminthAbilityDialog({
                                     onOpenChange(false);
                                 }}
                             >
-                                <div className="w-10 h-10 rounded bg-muted overflow-hidden relative border shrink-0">
+                                <div className="size-10 rounded bg-muted overflow-hidden relative border shrink-0">
                                     {ability.imageName ? (
                                         <Image
                                             src={getImageUrl(ability.imageName)}

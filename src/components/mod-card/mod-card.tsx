@@ -316,7 +316,7 @@ function ExpandedModCard({
                         <div
                           key={i}
                           className={cn(
-                            "w-1 h-1 rounded-full border border-white/30",
+                            "size-1 rounded-full border border-white/30",
                             i < setCount ? "bg-white" : "bg-transparent"
                           )}
                         />

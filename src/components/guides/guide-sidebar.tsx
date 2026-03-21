@@ -29,7 +29,7 @@ export function GuideSidebar({ guidesByCategory, currentSlug }: GuideSidebarProp
         <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-20">
                 <ScrollArea className="h-[calc(100vh-6rem)] pr-4">
-                    <nav className="space-y-6">
+                    <nav className="flex flex-col gap-6">
                         {/* All Guides Link */}
                         <Link
                             href="/guides"
@@ -59,7 +59,7 @@ export function GuideSidebar({ guidesByCategory, currentSlug }: GuideSidebarProp
                                             {categoryInfo.label}
                                         </span>
                                     </div>
-                                    <ul className="space-y-1 border-l border-border pl-4">
+                                    <ul className="flex flex-col gap-1 border-l border-border pl-4">
                                         {guides.map((guide) => {
                                             const isActive = guide.slug === currentSlug;
 
