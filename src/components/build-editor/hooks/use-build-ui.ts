@@ -66,7 +66,7 @@ export function useBuildUI({
     const success = await copyBuildToClipboard(buildState);
     if (success) {
       setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
+      window.setTimeout(() => setShowCopied(false), 2000);
     }
   }, [buildState]);
 

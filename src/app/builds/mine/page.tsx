@@ -35,15 +35,15 @@ interface MyBuildsPageProps {
 export default async function MyBuildsPage({
   searchParams,
 }: MyBuildsPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const [session, params] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    searchParams,
+  ]);
 
   if (!session?.user?.id) {
     redirect("/auth/signin?callbackUrl=/builds/mine");
   }
 
-  const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
   const sortBy =
     (params.sort as "newest" | "votes" | "updated" | "views") || "newest";

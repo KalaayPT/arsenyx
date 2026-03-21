@@ -19,6 +19,7 @@ import {
   type BuildWithUser,
   incrementBuildViewCount,
 } from "@/lib/db/index";
+import { after } from "next/server";
 import { ok, err, getErrorMessage, type Result } from "@/lib/result";
 import type { BuildVisibility } from "@prisma/client";
 import type { BuildState } from "@/lib/warframe/types";
@@ -176,11 +177,13 @@ export async function forkBuildAction(
  * Safe to call from client - handles its own errors silently
  */
 export async function incrementViewCountAction(buildId: string): Promise<void> {
-  try {
-    await incrementBuildViewCount(buildId);
-  } catch {
-    // Silently fail for analytics
-  }
+  after(async () => {
+    try {
+      await incrementBuildViewCount(buildId);
+    } catch {
+      // Silently fail for analytics
+    }
+  });
 }
 
 // =============================================================================

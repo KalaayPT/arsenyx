@@ -47,6 +47,9 @@ const ALL_POLARITIES: Polarity[] = [
   "any",
 ];
 
+// Hoisted default value to avoid new reference on every render
+const EMPTY_ARCANE_SLOTS: (PlacedArcane | null)[] = [];
+
 interface ModGridProps {
   auraSlot?: ModSlot;
   exilusSlot: ModSlot;
@@ -80,7 +83,7 @@ export function ModGrid({
   onApplyForma,
   isWarframe,
   draggedMod,
-  arcaneSlots = [],
+  arcaneSlots = EMPTY_ARCANE_SLOTS,
   onRemoveArcane,
   onChangeArcaneRank,
   draggedArcane,

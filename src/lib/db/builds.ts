@@ -243,17 +243,18 @@ export async function createBuild(
   userId: string,
   input: CreateBuildInput
 ): Promise<BuildWithUser> {
-  // Find the item by uniqueName
-  const item = await prisma.item.findUnique({
-    where: { uniqueName: input.itemUniqueName },
-    select: { id: true },
-  });
+  // Parallelize independent lookups
+  const [item, slug] = await Promise.all([
+    prisma.item.findUnique({
+      where: { uniqueName: input.itemUniqueName },
+      select: { id: true },
+    }),
+    generateUniqueSlug(),
+  ]);
 
   if (!item) {
     throw new Error(`Item not found: ${input.itemUniqueName}`);
   }
-
-  const slug = await generateUniqueSlug();
 
   // Prepare guide data if provided
   const hasGuideData = input.guideSummary || input.guideDescription;

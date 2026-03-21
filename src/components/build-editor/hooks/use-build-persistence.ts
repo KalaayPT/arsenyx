@@ -128,7 +128,7 @@ export function useBuildPersistence({
           if (!result.success) {
             setSaveStatus("error");
             setSaveError(result.error || "Failed to save build");
-            setTimeout(() => setSaveStatus("idle"), 3000);
+            window.setTimeout(() => setSaveStatus("idle"), 3000);
           } else {
             setBuildId(result.data.id);
             setBuildSlug(result.data.slug);
@@ -156,7 +156,7 @@ export function useBuildPersistence({
           console.error("Save build error:", error);
           setSaveStatus("error");
           setSaveError("An unexpected error occurred");
-          setTimeout(() => setSaveStatus("idle"), 3000);
+          window.setTimeout(() => setSaveStatus("idle"), 3000);
         }
         return;
       }

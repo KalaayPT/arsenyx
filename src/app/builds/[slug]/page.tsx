@@ -93,22 +93,14 @@ function BuildViewSkeleton() {
 }
 
 export default async function BuildPage({ params }: BuildPageProps) {
-  const { slug } = await params;
-
-  // Get current user session for visibility checks
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const [{ slug }, session] = await Promise.all([
+    params,
+    auth.api.getSession({ headers: await headers() }),
+  ]);
   const viewerId = session?.user?.id;
 
   // Fetch the build with visibility check
   const build = await getBuildBySlug(slug, viewerId);
-
-  if (!build) {
-    notFound();
-  }
-
-  // ... inside the component ...
 
   if (!build) {
     notFound();

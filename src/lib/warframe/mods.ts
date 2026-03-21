@@ -12,7 +12,9 @@ const allArcanes = ArcanesData as unknown as Arcane[];
 
 // Caches to avoid re-normalizing large mod lists on every call
 let cachedAllMods: Mod[] | null = null;
+let cachedAllArcanes: Arcane[] | null = null;
 const cachedModsByCompat = new Map<ModCompatibility, Mod[]>();
+const cachedArcanesBySlot = new Map<string, Arcane[]>();
 
 // =============================================================================
 // POLARITY UTILITIES
@@ -431,7 +433,9 @@ export function canAddModToBuild(mod: Mod, existingMods: Mod[]): boolean {
  * Get all arcanes from the data
  */
 export function getAllArcanes(): Arcane[] {
-  return allArcanes.filter((arcane) => {
+  if (cachedAllArcanes) return cachedAllArcanes;
+
+  cachedAllArcanes = allArcanes.filter((arcane) => {
     if (!arcane.name) return false;
     if (arcane.name === "Arcane") return false;
     // Filter out duplicate/legacy arcanes marked as excluded from codex
@@ -440,6 +444,8 @@ export function getAllArcanes(): Arcane[] {
       return false;
     return true;
   });
+
+  return cachedAllArcanes;
 }
 
 /**
@@ -454,9 +460,12 @@ export function getArcanesForSlot(
     | "melee"
     | "weapon"
 ): Arcane[] {
+  const cached = cachedArcanesBySlot.get(slotType);
+  if (cached) return cached;
+
   const allArcanesData = getAllArcanes();
 
-  return allArcanesData.filter((arcane) => {
+  const filtered = allArcanesData.filter((arcane) => {
     const type = arcane.type?.toLowerCase() ?? "";
 
     switch (slotType) {
@@ -495,6 +504,9 @@ export function getArcanesForSlot(
         return false;
     }
   });
+
+  cachedArcanesBySlot.set(slotType, filtered);
+  return filtered;
 }
 
 /**

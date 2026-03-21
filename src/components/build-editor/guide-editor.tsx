@@ -116,7 +116,7 @@ export function GuideEditor({
       }
 
       setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 3000);
+      window.setTimeout(() => setSaveStatus("idle"), 3000);
     } catch (error) {
       console.error("Failed to save guide:", error);
       setSaveStatus("error");

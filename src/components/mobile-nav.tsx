@@ -11,7 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { UserMenu } from "@/components/auth";
+import { UserMenu } from "@/components/auth/user-menu";
 import { NAV_ITEMS, SITE_CONFIG } from "@/lib/constants";
 import { Separator } from "@/components/ui/separator";
 

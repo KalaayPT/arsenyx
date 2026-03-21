@@ -20,7 +20,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { GuideReader } from "@/components/guides/guide-reader";
+import dynamic from "next/dynamic";
+
+const GuideReader = dynamic(
+  () => import("@/components/guides/guide-reader").then((mod) => mod.GuideReader),
+  { ssr: false, loading: () => <div className="h-[200px] rounded-md border bg-muted/30 animate-pulse" /> }
+);
 
 interface DescriptionEditorProps {
   description: string;

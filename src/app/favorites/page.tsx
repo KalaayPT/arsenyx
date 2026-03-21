@@ -23,15 +23,15 @@ interface FavoritesPageProps {
 export default async function FavoritesPage({
   searchParams,
 }: FavoritesPageProps) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const [session, params] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    searchParams,
+  ]);
 
   if (!session?.user?.id) {
     redirect("/auth/signin?callbackUrl=/favorites");
   }
 
-  const params = await searchParams;
   const page = parseInt(params.page || "1", 10);
 
   const { builds, total } = await getUserFavoriteBuilds(session.user.id, {

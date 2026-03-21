@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Pen } from "lucide-react";
 import { toast } from "sonner";
-import { GuideReader } from "@/components/guides/guide-reader";
+import dynamic from "next/dynamic";
+
+const GuideReader = dynamic(
+  () => import("@/components/guides/guide-reader").then((mod) => mod.GuideReader),
+  { ssr: false, loading: () => <div className="h-[100px] rounded-md border bg-muted/30 animate-pulse" /> }
+);
 import {
   GuideEditor,
   type GuideEditorData,

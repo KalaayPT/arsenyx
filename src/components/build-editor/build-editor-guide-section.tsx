@@ -1,7 +1,12 @@
 "use client";
 
 import { GuideEditor } from "./guide-editor";
-import { GuideReader } from "@/components/guides/guide-reader";
+import dynamic from "next/dynamic";
+
+const GuideReader = dynamic(
+  () => import("@/components/guides/guide-reader").then((mod) => mod.GuideReader),
+  { ssr: false, loading: () => <div className="h-[100px] rounded-md border bg-muted/30 animate-pulse" /> }
+);
 import { PartnerBuildsSection } from "@/components/build/partner-builds-section";
 import type { PartnerBuild } from "./partner-build-card";
 import type { PartnerBuildOption } from "./partner-build-selector";
