@@ -7,21 +7,23 @@ import type {
   Polarity,
 } from "@/lib/warframe/types";
 import { getImageUrl } from "@/lib/warframe/images";
+import type { PolarityIcons } from "./render";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
 
 const COLORS = {
-  bg: "#09090b",
-  cardBg: "#18181b",
-  border: "#27272a",
+  bg: "#0f0f13",
+  cardBg: "#1a1a21",
+  border: "#2a2a35",
   text: "#fafafa",
   textMuted: "#a1a1aa",
   textDim: "#71717a",
   accent: "#3b82f6",
-  emptySlot: "#141417",
-  polarityMatch: "#4ade80", // green-400
-  polarityNeutral: "#71717a", // zinc-500
+  emptySlot: "#15151b",
+  polarityMatch: "#4ade80",   // green-400
+  polarityNeutral: "#6b7280", // gray-500
+  polarityMismatch: "#f87171", // red-400
 };
 
 const RARITY_TEXT_COLORS: Record<string, string> = {
@@ -40,49 +42,33 @@ function getRarityTextColor(rarity?: string): string {
   return RARITY_TEXT_COLORS[rarity] ?? COLORS.textMuted;
 }
 
-/**
- * Determine the effective polarity of a slot (forma overrides innate).
- */
 function getSlotPolarity(slot: ModSlot): Polarity | undefined {
   if (slot.formaPolarity === "universal") return undefined;
   return slot.formaPolarity ?? slot.innatePolarity;
 }
 
 /**
- * Check if a mod's polarity matches the slot's effective polarity.
+ * Determine polarity status:
+ * - "match": slot polarity matches mod polarity (green)
+ * - "mismatch": slot has polarity but doesn't match mod (red)
+ * - "neutral": no slot polarity, or no mod (gray)
  */
-function polarityMatches(slot: ModSlot, mod?: PlacedMod): boolean {
-  if (!mod) return false;
+function getPolarityStatus(
+  slot: ModSlot,
+  mod?: PlacedMod
+): "match" | "mismatch" | "neutral" {
   const slotPol = getSlotPolarity(slot);
-  if (!slotPol || !mod.polarity) return false;
-  return slotPol === mod.polarity;
+  if (!slotPol || !mod) return "neutral";
+  if (!mod.polarity) return "neutral";
+  return slotPol === mod.polarity ? "match" : "mismatch";
 }
 
-function PolarityIcon({
-  polarity,
-  isMatch,
-  polarityIcons,
-  size,
-}: {
-  polarity: Polarity;
-  isMatch: boolean;
-  polarityIcons: Map<string, string>;
-  size: number;
-}) {
-  const iconSrc = polarityIcons.get(polarity);
-  if (!iconSrc) {
-    return <div style={{ width: size, height: size, display: "flex" }} />;
+function getPolarityColor(status: "match" | "mismatch" | "neutral"): string {
+  switch (status) {
+    case "match": return COLORS.polarityMatch;
+    case "mismatch": return COLORS.polarityMismatch;
+    case "neutral": return COLORS.polarityNeutral;
   }
-  return (
-    <img
-      src={iconSrc}
-      width={size}
-      height={size}
-      style={{
-        opacity: isMatch ? 1 : 0.5,
-      }}
-    />
-  );
 }
 
 function ModCard({
@@ -92,41 +78,42 @@ function ModCard({
 }: {
   slot: ModSlot;
   imageSrc?: string;
-  polarityIcons: Map<string, string>;
+  polarityIcons: PolarityIcons;
 }) {
   const mod = slot.mod!;
   const textColor = getRarityTextColor(mod.rarity);
   const slotPol = getSlotPolarity(slot);
-  const isMatch = polarityMatches(slot, mod);
+  const status = getPolarityStatus(slot, mod);
+  const polColor = getPolarityColor(status);
+  const polIconSrc = slotPol ? polarityIcons.tint(slotPol, polColor) : undefined;
 
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
-        padding: "6px 10px",
+        gap: 10,
+        padding: "8px 12px",
         backgroundColor: COLORS.cardBg,
         border: `1px solid ${COLORS.border}`,
         borderRadius: 8,
         width: 270,
-        height: 58,
+        height: 64,
         overflow: "hidden",
       }}
     >
-      {/* Mod thumbnail */}
       {imageSrc ? (
         <img
           src={imageSrc}
-          width={40}
-          height={40}
+          width={44}
+          height={44}
           style={{ borderRadius: 4, flexShrink: 0, objectFit: "contain" }}
         />
       ) : (
         <div
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             backgroundColor: COLORS.bg,
             borderRadius: 4,
             display: "flex",
@@ -139,7 +126,6 @@ function ModCard({
         </div>
       )}
 
-      {/* Mod name */}
       <span
         style={{
           fontSize: 13,
@@ -153,24 +139,13 @@ function ModCard({
         {mod.name || "Unknown"}
       </span>
 
-      {/* Polarity icon + Rank */}
-      <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
-        {slotPol ? (
-          <PolarityIcon
-            polarity={slotPol}
-            isMatch={isMatch}
-            polarityIcons={polarityIcons}
-            size={14}
-          />
+      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+        {polIconSrc ? (
+          <img src={polIconSrc} width={16} height={16} />
         ) : (
           <div style={{ display: "flex" }} />
         )}
-        <span
-          style={{
-            fontSize: 11,
-            color: isMatch ? COLORS.polarityMatch : COLORS.textDim,
-          }}
-        >
+        <span style={{ fontSize: 11, color: COLORS.textDim }}>
           R{mod.rank ?? 0}
         </span>
       </div>
@@ -183,9 +158,13 @@ function EmptySlot({
   polarityIcons,
 }: {
   slot: ModSlot;
-  polarityIcons: Map<string, string>;
+  polarityIcons: PolarityIcons;
 }) {
   const slotPol = getSlotPolarity(slot);
+  const polIconSrc = slotPol
+    ? polarityIcons.tint(slotPol, COLORS.polarityNeutral)
+    : undefined;
+
   return (
     <div
       style={{
@@ -193,21 +172,16 @@ function EmptySlot({
         alignItems: "center",
         justifyContent: "center",
         width: 270,
-        height: 58,
+        height: 64,
         backgroundColor: COLORS.emptySlot,
         border: `1px dashed ${COLORS.border}`,
         borderRadius: 8,
         position: "relative",
       }}
     >
-      {slotPol ? (
-        <div style={{ position: "absolute", top: 6, right: 8, display: "flex" }}>
-          <PolarityIcon
-            polarity={slotPol}
-            isMatch={false}
-            polarityIcons={polarityIcons}
-            size={12}
-          />
+      {polIconSrc ? (
+        <div style={{ position: "absolute", top: 8, right: 10, display: "flex" }}>
+          <img src={polIconSrc} width={14} height={14} />
         </div>
       ) : (
         <div style={{ display: "flex" }} />
@@ -230,18 +204,18 @@ function ArcaneCard({
         display: "flex",
         alignItems: "center",
         gap: 8,
-        padding: "6px 12px",
+        padding: "8px 14px",
         backgroundColor: COLORS.cardBg,
         border: `1px solid ${COLORS.accent}`,
         borderRadius: 8,
-        height: 48,
+        height: 52,
       }}
     >
       {imageSrc ? (
         <img
           src={imageSrc}
-          width={32}
-          height={32}
+          width={34}
+          height={34}
           style={{ borderRadius: 4, flexShrink: 0, objectFit: "contain" }}
         />
       ) : (
@@ -273,18 +247,20 @@ function SlotCard({
 }: {
   slot: ModSlot;
   imageMap: Map<string, string>;
-  polarityIcons: Map<string, string>;
+  polarityIcons: PolarityIcons;
   label?: string;
 }) {
   const modImageUrl = slot.mod?.imageName ? getImageUrl(slot.mod.imageName) : undefined;
   const modImageSrc = modImageUrl ? imageMap.get(modImageUrl) : undefined;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      {label && (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      {label ? (
         <span style={{ fontSize: 10, color: COLORS.textDim, textTransform: "uppercase", letterSpacing: 1 }}>
           {label}
         </span>
+      ) : (
+        <div style={{ display: "flex" }} />
       )}
       {slot.mod ? (
         <ModCard slot={slot} imageSrc={modImageSrc} polarityIcons={polarityIcons} />
@@ -302,7 +278,7 @@ export interface BuildCardProps {
   authorName: string;
   itemImageSrc?: string;
   imageMap: Map<string, string>;
-  polarityIcons: Map<string, string>;
+  polarityIcons: PolarityIcons;
 }
 
 export function BuildCardTemplate({
@@ -329,7 +305,7 @@ export function BuildCardTemplate({
         width: WIDTH,
         height: HEIGHT,
         backgroundColor: COLORS.bg,
-        padding: "32px 36px",
+        padding: "28px 32px",
         fontFamily: "Geist",
         color: COLORS.text,
       }}
@@ -340,21 +316,21 @@ export function BuildCardTemplate({
           display: "flex",
           alignItems: "center",
           gap: 16,
-          marginBottom: 24,
+          marginBottom: 20,
         }}
       >
         {itemImageSrc ? (
           <img
             src={itemImageSrc}
-            width={60}
-            height={60}
+            width={64}
+            height={64}
             style={{ borderRadius: 8, objectFit: "contain" }}
           />
         ) : (
           <div
             style={{
-              width: 60,
-              height: 60,
+              width: 64,
+              height: 64,
               backgroundColor: COLORS.cardBg,
               borderRadius: 8,
               display: "flex",
@@ -369,7 +345,7 @@ export function BuildCardTemplate({
         <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
           <span
             style={{
-              fontSize: 24,
+              fontSize: 26,
               fontWeight: 700,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -379,13 +355,15 @@ export function BuildCardTemplate({
             {buildName}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 14, color: COLORS.textMuted }}>
+            <span style={{ fontSize: 15, color: COLORS.textMuted }}>
               {itemName} · by {authorName}
             </span>
             {formaCount > 0 ? (
-              <span style={{ fontSize: 13, color: COLORS.textMuted }}>
+              <span style={{ fontSize: 14, color: COLORS.textMuted }}>
                 · {formaCount} forma
-              </span>) : (<div style={{ display: "flex" }} />
+              </span>
+            ) : (
+              <div style={{ display: "flex" }} />
             )}
           </div>
         </div>
@@ -403,7 +381,7 @@ export function BuildCardTemplate({
       </div>
 
       {/* Aura + Exilus row */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
         {auraSlot ? (
           <SlotCard slot={auraSlot} imageMap={imageMap} polarityIcons={polarityIcons} label="Aura" />
         ) : (
@@ -417,16 +395,16 @@ export function BuildCardTemplate({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 8,
+          gap: 10,
           marginBottom: 16,
         }}
       >
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 10 }}>
           {normalSlots.slice(0, 4).map((slot) => (
             <SlotCard slot={slot} imageMap={imageMap} polarityIcons={polarityIcons} />
           ))}
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 10 }}>
           {normalSlots.slice(4, 8).map((slot) => (
             <SlotCard slot={slot} imageMap={imageMap} polarityIcons={polarityIcons} />
           ))}
@@ -435,7 +413,7 @@ export function BuildCardTemplate({
 
       {/* Arcanes row */}
       {arcanes.length > 0 ? (
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <span
             style={{
               fontSize: 10,

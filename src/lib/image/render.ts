@@ -39,13 +39,14 @@ const POLARITY_FILES: Record<string, string> = {
   universal: "Any_Pol.svg",
 };
 
-let polarityCache: Map<string, string> | null = null;
+// Raw SVG strings cached per polarity
+let rawSvgCache: Map<string, string> | null = null;
 
 /**
- * Load all polarity SVGs from public/focus-schools/ as base64 data URIs.
+ * Load raw SVG strings for all polarity icons.
  */
-async function loadPolarityIcons(): Promise<Map<string, string>> {
-  if (polarityCache) return polarityCache;
+async function loadRawPolaritySvgs(): Promise<Map<string, string>> {
+  if (rawSvgCache) return rawSvgCache;
 
   const map = new Map<string, string>();
   const dir = join(process.cwd(), "public/focus-schools");
@@ -54,16 +55,32 @@ async function loadPolarityIcons(): Promise<Map<string, string>> {
     Object.entries(POLARITY_FILES).map(async ([polarity, filename]) => {
       try {
         const buffer = await readFile(join(dir, filename));
-        const base64 = buffer.toString("base64");
-        map.set(polarity, `data:image/svg+xml;base64,${base64}`);
+        map.set(polarity, buffer.toString("utf-8"));
       } catch {
         // Skip missing files
       }
     })
   );
 
-  polarityCache = map;
+  rawSvgCache = map;
   return map;
+}
+
+/**
+ * Tint a polarity SVG to a specific color and return as base64 data URI.
+ * Replaces fill and stroke colors in the SVG.
+ */
+function tintSvg(svgString: string, color: string): string {
+  const tinted = svgString
+    .replace(/fill:#[0-9a-fA-F]{6}/g, `fill:${color}`)
+    .replace(/stroke:#[0-9a-fA-F]{6}/g, `stroke:${color}`);
+  const base64 = Buffer.from(tinted).toString("base64");
+  return `data:image/svg+xml;base64,${base64}`;
+}
+
+export interface PolarityIcons {
+  rawSvgs: Map<string, string>;
+  tint: (polarity: string, color: string) => string | undefined;
 }
 
 /**
@@ -123,11 +140,20 @@ export interface RenderBuildImageInput {
 export async function renderBuildImage(
   input: RenderBuildImageInput
 ): Promise<Buffer> {
-  const [fonts, imageMap, polarityIcons] = await Promise.all([
+  const [fonts, imageMap, rawSvgs] = await Promise.all([
     loadFonts(),
     fetchAllImages(input.buildState, input.itemImageUrl),
-    loadPolarityIcons(),
+    loadRawPolaritySvgs(),
   ]);
+
+  const polarityIcons: PolarityIcons = {
+    rawSvgs,
+    tint: (polarity: string, color: string) => {
+      const svg = rawSvgs.get(polarity);
+      if (!svg) return undefined;
+      return tintSvg(svg, color);
+    },
+  };
 
   const element = BuildCardTemplate({
     buildState: input.buildState,
