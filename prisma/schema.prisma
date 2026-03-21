@@ -235,6 +235,10 @@ model Build {
 
   // Archon shards (for warframes) - stored in buildData but also indexed here for queries
   hasShards Boolean @default(false)
+  hasGuide  Boolean @default(false)
+
+  // Full-text search vector (managed by PostgreSQL trigger, not Prisma)
+  searchVector Unsupported("tsvector")?
 
   // Denormalized counts for performance
   voteCount     Int @default(0)
@@ -274,6 +278,7 @@ model Build {
   @@index([visibility, createdAt]) // Newest public builds
   @@index([userId, visibility]) // User profile pages
   @@index([itemId, visibility, voteCount]) // Popular builds for an item
+  @@index([hasGuide])
   @@map("builds")
 }
 
