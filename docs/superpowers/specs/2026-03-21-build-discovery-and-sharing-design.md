@@ -17,8 +17,10 @@ Users can copy mod slots from any build into the editor as a starting point. No 
 1. User views any build (own or others') at `/builds/[slug]`
 2. Clicks "Use as Template" button in the build banner area (next to social actions)
 3. Redirects to `/create?category={cat}&item={itemSlug}&fork={buildSlug}`
-4. Create page fetches the source build by slug (must be PUBLIC or UNLISTED)
-5. Extracts only `buildData.slots` from the source build
+4. Create page fetches the source build by slug (must be PUBLIC or UNLISTED; if PRIVATE, show "Build not available" message and link back to browse)
+5. Extracts mod configuration from the source build's `buildData`:
+   - **Copied:** `normalSlots`, `auraSlot`, `exilusSlot`, `hasReactor`, `formaCount`
+   - **NOT copied:** `arcaneSlots`, `shardSlots`, `itemUniqueName`, `itemName`, `itemCategory`, `itemImageName`, `buildName`, `baseCapacity`, `currentCapacity`, `createdAt`, `updatedAt`
 6. Passes stripped-down build data to `BuildContainer` as `importedBuild`
 7. User customizes and saves when ready — creates a fully independent build
 
@@ -31,9 +33,10 @@ Users can copy mod slots from any build into the editor as a starting point. No 
 ### Implementation
 
 - New `fork` search param on `/create` page — takes a build slug
-- Server-side: `getBuildBySlug(forkSlug)` → extract `slots` only → pass to editor
+- Server-side: `getBuildBySlug(forkSlug)` → extract mod fields only → pass to editor
 - No Prisma schema changes needed
 - No changes to server actions
+- **Note:** The existing `forkedFromId`/`forkedFrom`/`forks` schema fields and `forkBuildAction` stub are left in place for a potential future "true fork with attribution" feature. This "Use as Template" feature is intentionally separate — it's a convenience copy, not a tracked fork.
 
 ---
 
@@ -45,11 +48,25 @@ Full-text search and advanced filters on the `/builds/` page. PostgreSQL `tsvect
 
 ### Search Backend
 
-- Add `searchVector` column (`tsvector`) to `builds` table via Prisma migration (raw SQL)
+- Add `searchVector` column (`tsvector`) to `builds` table via raw SQL migration
+- Declare as `searchVector Unsupported("tsvector")?` in `schema.prisma` so Prisma doesn't manage it
 - GIN index on the vector
-- Vector weights: build name (A), item name (B), build description (C)
-- Trigger to auto-update the vector on INSERT/UPDATE
-- Also update vector when referenced item name changes (rare, handled by data sync)
+- Vector weights: build name (A, from `builds.name`), item name (B, via JOIN to `items.name`), build description (C, from `builds.description`)
+- PostgreSQL trigger on `builds` INSERT/UPDATE that rebuilds the vector by JOINing to the `items` table:
+  ```sql
+  CREATE OR REPLACE FUNCTION builds_search_vector_update() RETURNS trigger AS $$
+  BEGIN
+    NEW."searchVector" := (
+      setweight(to_tsvector('english', coalesce(NEW.name, '')), 'A') ||
+      setweight(to_tsvector('english', coalesce((SELECT name FROM items WHERE id = NEW."itemId"), '')), 'B') ||
+      setweight(to_tsvector('english', coalesce(NEW.description, '')), 'C')
+    );
+    RETURN NEW;
+  END;
+  $$ LANGUAGE plpgsql;
+  ```
+- Also add `hasGuide Boolean @default(false)` denormalized column to `Build` (matching existing `hasShards` pattern), updated on guide create/update/delete
+- All search queries use `prisma.$queryRaw` since Prisma doesn't support `tsvector` natively
 
 ### Query Function
 
@@ -79,7 +96,7 @@ New `searchBuilds()` in `src/lib/db/builds.ts`:
   - "Has Guide" toggle
   - "Has Shards" toggle
 - All URL-param driven (stays a server component)
-- Filter state preserved across pagination
+- Filter state preserved across pagination — all existing `<Link>` components for pagination, category tabs, and sort tabs must be updated to carry through new params (`q`, `author`, `hasGuide`, `hasShards`)
 
 ### shadcn Components Used
 
@@ -103,8 +120,9 @@ A command palette accessible via header search icon or `Ctrl+K`/`Cmd+K`. Searche
 
 ### API Route
 
-- New `src/app/api/search/route.ts` — GET endpoint
-- Query param: `?q=query`
+- New `src/app/api/search/route.ts` — GET endpoint (public, no auth required)
+- Query param: `?q=query` (min 2 chars, max 100 chars, sanitized before query)
+- Rate limited using existing `src/lib/rate-limit.ts`
 - Returns two groups:
   - **Items:** searched by name (`ILIKE`) from `items` table, limit 5
   - **Builds:** searched via `searchVector` from Feature 2, limit 5
@@ -121,7 +139,8 @@ A command palette accessible via header search icon or `Ctrl+K`/`Cmd+K`. Searche
 - Two `CommandGroup`s: "Items" and "Builds"
 - Items navigate to `/browse/{category}/{slug}`
 - Builds navigate to `/builds/{slug}`
-- Empty state: "No results found" in `CommandEmpty`
+- Initial state (no query): show nothing (empty command list)
+- Empty state (query with no results): "No results found" in `CommandEmpty`
 - Loading state: `Spinner` in the command list
 - Keyboard navigation from cmdk
 
@@ -192,5 +211,5 @@ Share dropdown on build pages with "Copy Link" and native Web Share API support.
 
 ### Schema Migration Required For
 
-- Feature 2 (Build Search) — `searchVector` column + GIN index + trigger
+- Feature 2 (Build Search) — `searchVector` column (`Unsupported("tsvector")?`) + GIN index + trigger + `hasGuide` denormalized column
 - Feature 3 (Global Search) — reuses Feature 2's search infrastructure
