@@ -9,7 +9,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { getImageUrl } from "@/lib/warframe/images";
@@ -44,20 +48,21 @@ export function HelminthAbilityDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl h-[80vh] flex flex-col overflow-hidden">
+            <DialogContent className="sm:max-w-xl h-[80vh] flex flex-col overflow-hidden">
                 <DialogHeader>
                     <DialogTitle>Subsume Ability</DialogTitle>
                 </DialogHeader>
 
-                <div className="relative shrink-0">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
+                <InputGroup className="shrink-0">
+                    <InputGroupAddon align="inline-start">
+                        <Search />
+                    </InputGroupAddon>
+                    <InputGroupInput
                         placeholder="Search abilities..."
-                        className="pl-8"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                     />
-                </div>
+                </InputGroup>
 
                 <ScrollArea className="flex-1 -mx-6 px-6 min-h-0">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-4 pt-1">
@@ -70,7 +75,7 @@ export function HelminthAbilityDialog({
                             }}
                         >
                             <div className="size-10 rounded bg-muted flex items-center justify-center border">
-                                <Undo2 className="h-5 w-5 text-muted-foreground" />
+                                <Undo2 className="text-muted-foreground" />
                             </div>
                             <div className="flex flex-col items-start text-left">
                                 <span className="font-medium">Restore Original Ability</span>
