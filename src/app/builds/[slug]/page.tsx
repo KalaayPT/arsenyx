@@ -17,6 +17,7 @@ import { BuildSocialActions } from "@/components/build/build-social-actions";
 import { slugify } from "@/lib/warframe/slugs";
 import { ViewTracker } from "@/components/build/view-tracker";
 import { TemplateButton } from "@/components/build/template-button";
+import { ShareButton } from "@/components/build/share-button";
 
 interface BuildPageProps {
   params: Promise<{
@@ -189,6 +190,10 @@ export default async function BuildPage({ params }: BuildPageProps) {
                   buildSlug={build.slug}
                   itemName={build.item.name}
                   category={category}
+                />
+                <ShareButton
+                  buildName={build.name}
+                  itemName={build.item.name}
                 />
                 <span className="text-sm text-muted-foreground">
                   Updated {new Date(build.updatedAt).toLocaleDateString()}
