@@ -3,6 +3,7 @@
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -14,25 +15,28 @@ interface SortDropdownProps {
   onSortChange: (value: SortOption) => void;
 }
 
-const sortLabels: Record<SortOption, string> = {
-  "name-asc": "Name A-Z",
-  "name-desc": "Name Z-A",
-  "date-desc": "Newest First",
-  "date-asc": "Oldest First",
-};
+const sortItems = [
+  { value: "name-asc", label: "Name A-Z" },
+  { value: "name-desc", label: "Name Z-A" },
+  { value: "date-desc", label: "Newest First" },
+  { value: "date-asc", label: "Oldest First" },
+] as const;
 
 export function SortDropdown({ sortOption, onSortChange }: SortDropdownProps) {
   return (
     <div className="shrink-0">
-      <Select value={sortOption} onValueChange={(value) => { if (value) onSortChange(value as SortOption); }}>
+      <Select items={sortItems} value={sortOption} onValueChange={(value) => { if (value) onSortChange(value as SortOption); }}>
         <SelectTrigger className="w-[140px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent align="end">
-          <SelectItem value="name-asc">{sortLabels["name-asc"]}</SelectItem>
-          <SelectItem value="name-desc">{sortLabels["name-desc"]}</SelectItem>
-          <SelectItem value="date-desc">{sortLabels["date-desc"]}</SelectItem>
-          <SelectItem value="date-asc">{sortLabels["date-asc"]}</SelectItem>
+          <SelectGroup>
+            {sortItems.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                {item.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </div>

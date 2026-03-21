@@ -6,7 +6,7 @@ import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
 import { getPublicBuilds, type BuildWithUser } from "@/lib/db/index";
 import { getImageUrl } from "@/lib/warframe/images";
-import { Eye, ThumbsUp } from "lucide-react";
+import { Eye, ThumbsUp, XIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,42 +261,20 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
                     {/* Active Filters */}
                     <div className="flex flex-wrap items-center gap-2">
                         {author && (
-                            <Badge variant="secondary" className="gap-1">
-                                Author: {author}
-                                <Link href={buildFilterUrl({ author: undefined }, filterState)}>
+                            <Link href={buildFilterUrl({ author: undefined }, filterState)}>
+                                <Badge variant="secondary" className="gap-1 cursor-pointer">
+                                    Author: {author}
+                                    <XIcon className="size-3" />
                                     <span className="sr-only">Remove author filter</span>
-                                    &times;
-                                </Link>
-                            </Badge>
-                        )}
-                        {hasGuide && (
-                            <Badge variant="secondary" className="gap-1">
-                                Has Guide
-                                <Link href={buildFilterUrl({ hasGuide: undefined }, filterState)}>
-                                    <span className="sr-only">Remove guide filter</span>
-                                    &times;
-                                </Link>
-                            </Badge>
-                        )}
-                        {hasShards && (
-                            <Badge variant="secondary" className="gap-1">
-                                Has Shards
-                                <Link href={buildFilterUrl({ hasShards: undefined }, filterState)}>
-                                    <span className="sr-only">Remove shards filter</span>
-                                    &times;
-                                </Link>
-                            </Badge>
-                        )}
-                        {!hasGuide && (
-                            <Link href={buildFilterUrl({ hasGuide: "true" }, filterState)}>
-                                <Button variant="outline" size="sm">Has Guide</Button>
+                                </Badge>
                             </Link>
                         )}
-                        {!hasShards && (
-                            <Link href={buildFilterUrl({ hasShards: "true" }, filterState)}>
-                                <Button variant="outline" size="sm">Has Shards</Button>
-                            </Link>
-                        )}
+                        <Link href={buildFilterUrl({ hasGuide: hasGuide ? undefined : "true" }, filterState)}>
+                            <Button variant={hasGuide ? "default" : "outline"} size="sm">Has Guide</Button>
+                        </Link>
+                        <Link href={buildFilterUrl({ hasShards: hasShards ? undefined : "true" }, filterState)}>
+                            <Button variant={hasShards ? "default" : "outline"} size="sm">Has Shards</Button>
+                        </Link>
                         {hasActiveFilters && (
                             <Link href="/builds">
                                 <Button variant="ghost" size="sm">Clear All</Button>

@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Icons } from "@/components/icons";
+import { cn } from "@/lib/utils";
 
 interface FilterDropdownProps {
   masteryMax: number;
@@ -59,16 +60,14 @@ export function FilterDropdown({
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Filters</h4>
-            {activeFilterCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClearFilters}
-                className="h-auto py-1 px-2 text-xs"
-              >
-                Clear all
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearFilters}
+              className={cn("h-auto py-1 px-2 text-xs", activeFilterCount === 0 && "invisible")}
+            >
+              Clear all
+            </Button>
           </div>
 
           {/* Mastery Rank Slider */}
