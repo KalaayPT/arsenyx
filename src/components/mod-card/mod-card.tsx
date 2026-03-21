@@ -162,7 +162,7 @@ function CompactModCard({
       />
 
       {/* Mod Image */}
-      <div className="absolute top-[4px] left-[3px] right-[3px] -bottom-4 z-10 overflow-hidden rounded-b-[5px]">
+      <div className="absolute top-[4px] left-[3px] right-[3px] -bottom-4 z-10 overflow-hidden rounded-b-[5px] pointer-events-none">
         <ModImage
           mod={mod}
           alt={mod.name}

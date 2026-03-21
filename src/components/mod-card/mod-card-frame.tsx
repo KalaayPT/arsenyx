@@ -44,7 +44,7 @@ export function RankCompleteLine({
   disableAnimation = false,
 }: RankCompleteLineProps) {
   return (
-    <div className={cn("overflow-hidden", className)}>
+    <div className={cn("overflow-hidden pointer-events-none", className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={getModAssetUrl(rarity, "RankCompleteLine")}
@@ -102,7 +102,7 @@ export function RankDots({ rank, maxRank, variant, className }: RankDotsProps) {
       : "absolute bottom-[4px] left-1/2 -translate-x-1/2";
 
   return (
-    <div className={cn(positionClass, "z-30 flex gap-0.5", className)}>
+    <div className={cn(positionClass, "z-30 flex gap-0.5 pointer-events-none", className)}>
       {Array.from({ length: maxRank }, (_, i) => (
         <div
           key={i}
