@@ -43,13 +43,13 @@ function getRarityTextColor(rarity?: string): string {
 }
 
 function getSlotPolarity(slot: ModSlot): Polarity | undefined {
-  if (slot.formaPolarity === "universal") return undefined;
+  if (slot.formaPolarity === "universal") return "any";
   return slot.formaPolarity ?? slot.innatePolarity;
 }
 
 /**
  * Determine polarity status:
- * - "match": slot polarity matches mod polarity (green)
+ * - "match": slot polarity matches mod polarity, or universal forma (green)
  * - "mismatch": slot has polarity but doesn't match mod (red)
  * - "neutral": no slot polarity, or no mod (gray)
  */
@@ -57,6 +57,7 @@ function getPolarityStatus(
   slot: ModSlot,
   mod?: PlacedMod
 ): "match" | "mismatch" | "neutral" {
+  if (slot.formaPolarity === "universal" && mod) return "match";
   const slotPol = getSlotPolarity(slot);
   if (!slotPol || !mod) return "neutral";
   if (!mod.polarity) return "neutral";
