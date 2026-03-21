@@ -135,7 +135,8 @@ export function createInitialBuildState(
   item: BrowseableItem,
   category: BrowseCategory,
   compatibleMods: Mod[],
-  importedBuild?: Partial<BuildState>
+  importedBuild?: Partial<BuildState>,
+  compatibleArcanes?: Arcane[]
 ): BuildState {
   const isWarframe = category === "warframes" || category === "necramechs";
 
@@ -246,6 +247,27 @@ export function createInitialBuildState(
       hydratedState.exilusSlot = hydrateSlot(hydratedState.exilusSlot);
     }
     hydratedState.normalSlots = hydratedState.normalSlots.map(hydrateSlot);
+
+    // Hydrate arcane slots — the build codec only stores uniqueName + rank,
+    // so we need to fill in name, imageName, rarity from the arcane list.
+    if (compatibleArcanes && hydratedState.arcaneSlots) {
+      hydratedState.arcaneSlots = hydratedState.arcaneSlots.map((arcane) => {
+        if (!arcane) return null;
+        if (arcane.name && arcane.imageName) return arcane; // Already hydrated
+        const fullArcane = compatibleArcanes.find(
+          (a) => a.uniqueName === arcane.uniqueName
+        );
+        if (fullArcane) {
+          return {
+            ...arcane,
+            name: fullArcane.name,
+            imageName: fullArcane.imageName,
+            rarity: fullArcane.rarity,
+          };
+        }
+        return arcane;
+      });
+    }
 
     return hydratedState;
   }
@@ -618,13 +640,14 @@ export function useBuildState({
 }: UseBuildStateProps) {
   const [buildState, dispatch] = useReducer(
     buildReducer,
-    { item, category, compatibleMods, importedBuild },
+    { item, category, compatibleMods, compatibleArcanes, importedBuild },
     (init) =>
       createInitialBuildState(
         init.item,
         init.category,
         init.compatibleMods,
-        init.importedBuild
+        init.importedBuild,
+        init.compatibleArcanes
       )
   );
 

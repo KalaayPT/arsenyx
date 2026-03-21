@@ -63,8 +63,8 @@ type OverframeSlotLike = {
   polarity?: unknown;
 };
 
-function parseOverframeSlots(slots: unknown): Array<{
-  slotType: "aura" | "exilus" | "normal";
+function parseOverframeSlots(slots: unknown, isWarframe: boolean): Array<{
+  slotType: "aura" | "exilus" | "normal" | "arcane";
   slotIndex: number;
   overframeId: string | null;
   rank: number;
@@ -73,7 +73,7 @@ function parseOverframeSlots(slots: unknown): Array<{
   if (!Array.isArray(slots)) return [];
 
   const out: Array<{
-    slotType: "aura" | "exilus" | "normal";
+    slotType: "aura" | "exilus" | "normal" | "arcane";
     slotIndex: number;
     overframeId: string | null;
     rank: number;
@@ -112,25 +112,34 @@ function parseOverframeSlots(slots: unknown): Array<{
         polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
       });
     } else if (slotId === 9) {
+      // For warframes/necramechs: slot 9 = aura
+      // For weapons: slot 9 = exilus (weapons have no aura)
       out.push({
-        slotType: "aura",
+        slotType: isWarframe ? "aura" : "exilus",
         slotIndex: 0,
         overframeId,
         rank,
         polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
       });
     } else if (slotId === 10) {
+      // For warframes/necramechs: slot 10 = exilus
+      // For weapons: slot 10 = arcane
       out.push({
-        slotType: "exilus",
+        slotType: isWarframe ? "exilus" : "arcane",
         slotIndex: 0,
         overframeId,
         rank,
         polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
       });
-    } else {
-      // slot_id 11+ are typically arcanes on Overframe (and possibly other extras).
-      // We ignore them for now; caller can extend to arcanes later.
-      continue;
+    } else if (slotId >= 11) {
+      // slot_id 11+ = arcanes (warframes have 2 arcane slots: 11=arcane-0, 12=arcane-1)
+      out.push({
+        slotType: "arcane",
+        slotIndex: isWarframe ? slotId - 11 : slotId - 10,
+        overframeId,
+        rank,
+        polarityCode: Number.isFinite(polarityCode) ? polarityCode : 0,
+      });
     }
   }
 
@@ -208,20 +217,46 @@ export async function importOverframeBuild(
     });
   }
 
-  // Prefer canonical slots[] (it includes explicit slot positions).
-  const canonicalSlots = parseOverframeSlots(extracted.slots);
+  // Item matching (best-effort): use extracted itemName when present.
+  // We do this early so we can pass category info to slot parsing.
+  const allItems = getAllBrowseItems();
+  const { item: matchedItem, score: itemScore } = matchItemByName(
+    extracted.itemName,
+    allItems
+  );
 
-  // Keep slot polarity info even when a slot is empty.
-  const slotPolarities = canonicalSlots.map((s) => {
-    const slotId =
-      s.slotType === "normal" ? `normal-${s.slotIndex}` : `${s.slotType}-0`;
-    const mapped = mapOverframePolarityCode(s.polarityCode);
-    return {
-      slotId,
-      polarityCode: s.polarityCode,
-      polarity: mapped.polarity,
-    };
-  });
+  if (!matchedItem) {
+    warnings.push({
+      type: "item_not_found",
+      message: extracted.itemName
+        ? `Could not confidently match item "${extracted.itemName}" to a known item.`
+        : "Could not find an item name in the Overframe page.",
+      details: { overframeItemName: extracted.itemName, score: itemScore },
+    });
+  }
+
+  const matchedCategory = matchedItem?.category;
+  const isWarframe =
+    matchedCategory === "warframes" || matchedCategory === "necramechs";
+
+  // Prefer canonical slots[] (it includes explicit slot positions).
+  const canonicalSlots = parseOverframeSlots(extracted.slots, isWarframe);
+
+  // Keep slot polarity info even when a slot is empty (arcanes don't have polarities).
+  const slotPolarities = canonicalSlots
+    .filter((s) => s.slotType !== "arcane")
+    .map((s) => {
+      const slotId =
+        s.slotType === "normal"
+          ? `normal-${s.slotIndex}`
+          : `${s.slotType}-0`;
+      const mapped = mapOverframePolarityCode(s.polarityCode);
+      return {
+        slotId,
+        polarityCode: s.polarityCode,
+        polarity: mapped.polarity,
+      };
+    });
   const slotPolarityById = new Map(
     slotPolarities.map((p) => [p.slotId, p] as const)
   );
@@ -229,7 +264,7 @@ export async function importOverframeBuild(
   // Fall back to buildstring decoding if slots[] is missing/unknown.
   let slotList:
     | Array<{
-        slotType: "aura" | "exilus" | "normal";
+        slotType: "aura" | "exilus" | "normal" | "arcane";
         slotIndex: number;
         overframeId: string | null;
         rank: number;
@@ -269,14 +304,18 @@ export async function importOverframeBuild(
     }
   }
 
-  // Resolve Overframe IDs → English names
+  // Split slots into mod slots and arcane slots
+  const modSlots = slotList.filter((s) => s.slotType !== "arcane");
+  const arcaneSlots = slotList.filter((s) => s.slotType === "arcane");
+
+  // Resolve Overframe IDs → English names for mod slots
   const modsWithNames: Array<{
     overframeId: string;
     rank: number;
     slotId: string;
     overframeName?: string;
   }> = [];
-  for (const slot of slotList) {
+  for (const slot of modSlots) {
     if (!slot.overframeId) continue; // empty slot
     const overframeName = await getOverframeNameById(slot.overframeId);
     const slotId =
@@ -320,7 +359,7 @@ export async function importOverframeBuild(
       });
       warnings.push({
         type: "mod_not_found",
-        message: `No WFCD mod match for “${m.overframeName}”`,
+        message: `No WFCD mod match for "${m.overframeName}"`,
         details: {
           overframeName: m.overframeName,
           overframeId: m.overframeId,
@@ -342,20 +381,61 @@ export async function importOverframeBuild(
     });
   }
 
-  // Item matching (best-effort): use extracted itemName when present.
-  const allItems = getAllBrowseItems();
-  const { item: matchedItem, score: itemScore } = matchItemByName(
-    extracted.itemName,
-    allItems
-  );
+  // Match arcane slots against WFCD arcane data
+  const { getAllArcanes } = await import("@/lib/warframe/mods");
+  const allArcanes = getAllArcanes();
+  const matchedArcanes: import("./types").OverframeMatchedArcane[] = [];
 
-  if (!matchedItem) {
-    warnings.push({
-      type: "item_not_found",
-      message: extracted.itemName
-        ? `Could not confidently match item “${extracted.itemName}” to a known item.`
-        : "Could not find an item name in the Overframe page.",
-      details: { overframeItemName: extracted.itemName, score: itemScore },
+  for (const slot of arcaneSlots) {
+    if (!slot.overframeId) continue;
+    const overframeName = await getOverframeNameById(slot.overframeId);
+
+    if (!overframeName) {
+      warnings.push({
+        type: "mod_not_found",
+        message: `Overframe arcane ID ${slot.overframeId} not found in items.csv map`,
+        details: { overframeId: slot.overframeId },
+      });
+      continue;
+    }
+
+    // Match by name against arcanes
+    const lowerName = overframeName.toLowerCase().trim();
+    const arcane = allArcanes.find(
+      (a) => a.name.toLowerCase() === lowerName
+    );
+
+    if (!arcane) {
+      warnings.push({
+        type: "mod_not_found",
+        message: `No WFCD arcane match for "${overframeName}"`,
+        details: {
+          overframeName,
+          overframeId: slot.overframeId,
+          slotIndex: slot.slotIndex,
+        },
+      });
+      matchedArcanes.push({
+        overframeId: slot.overframeId,
+        overframeName,
+        rank: slot.rank,
+        slotIndex: slot.slotIndex,
+      });
+      continue;
+    }
+
+    matchedArcanes.push({
+      overframeId: slot.overframeId,
+      overframeName,
+      rank: slot.rank,
+      slotIndex: slot.slotIndex,
+      matched: {
+        uniqueName: arcane.uniqueName,
+        name: arcane.name,
+        imageName: arcane.imageName,
+        rarity: arcane.rarity,
+        score: 1,
+      },
     });
   }
 
@@ -379,6 +459,7 @@ export async function importOverframeBuild(
     formaCount:
       typeof extracted.formaCount === "number" ? extracted.formaCount : null,
     mods: matchedMods,
+    arcanes: matchedArcanes.length > 0 ? matchedArcanes : undefined,
     slotPolarities,
     warnings,
     debug: {

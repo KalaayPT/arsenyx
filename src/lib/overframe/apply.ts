@@ -2,6 +2,7 @@ import type {
   BuildState,
   Mod,
   PlacedMod,
+  PlacedArcane,
   Polarity,
   ModSlot,
 } from "@/lib/warframe/types";
@@ -178,7 +179,31 @@ export function applyOverframeImportToBuildState(
     writeSlot(next, m.slotId, slot);
   }
 
-  // 3) Compute formaCount if not provided
+  // 3) Place arcanes
+  if (importResult.arcanes) {
+    for (const a of importResult.arcanes) {
+      if (!a.matched?.uniqueName) continue;
+      const idx = a.slotIndex;
+      if (idx < 0 || idx >= next.arcaneSlots.length) {
+        warnings.push({
+          type: "slot_unknown",
+          message: `Arcane slot index ${idx} out of range (max ${next.arcaneSlots.length - 1})`,
+          details: { slotIndex: idx, arcaneName: a.matched.name },
+        });
+        continue;
+      }
+      const placed: PlacedArcane = {
+        uniqueName: a.matched.uniqueName,
+        name: a.matched.name,
+        imageName: a.matched.imageName,
+        rank: a.rank,
+        rarity: a.matched.rarity,
+      };
+      next.arcaneSlots[idx] = placed;
+    }
+  }
+
+  // 4) Compute formaCount if not provided
   const computedFormaCount = calculateFormaCount(
     next.normalSlots,
     next.auraSlot,

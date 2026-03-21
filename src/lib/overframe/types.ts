@@ -1,4 +1,4 @@
-export type OverframeSlotType = "aura" | "exilus" | "normal";
+export type OverframeSlotType = "aura" | "exilus" | "normal" | "arcane";
 
 export interface OverframeDecodedSlot {
   overframeId: string;
@@ -58,11 +58,26 @@ export interface OverframeMatchedItem {
   };
 }
 
+export interface OverframeMatchedArcane {
+  overframeId: string;
+  overframeName?: string;
+  rank: number;
+  slotIndex: number; // 0 for weapons, 0-1 for warframes
+  matched?: {
+    uniqueName: string;
+    name: string;
+    imageName?: string;
+    rarity: string;
+    score: number;
+  };
+}
+
 export interface OverframeImportResponse {
   source: OverframeBuildSource;
   item: OverframeMatchedItem;
   formaCount: number | null;
   mods: OverframeMatchedMod[];
+  arcanes?: OverframeMatchedArcane[];
   slotPolarities?: OverframeSlotPolarity[];
   warnings: OverframeImportWarning[];
   debug?: {
