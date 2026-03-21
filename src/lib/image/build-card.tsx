@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element, jsx-a11y/alt-text, react/jsx-key */
 import type { BuildState, PlacedMod, PlacedArcane } from "@/lib/warframe/types";
 
 const WIDTH = 1200;
