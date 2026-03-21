@@ -72,3 +72,11 @@ export const favoriteLimiter = rateLimit({
   interval: 60 * 1000, // 1 minute
   uniqueTokenPerInterval: 500,
 });
+
+/**
+ * Search rate limiter: 30 searches per minute per IP
+ */
+export const searchLimiter = rateLimit({
+  interval: 60 * 1000,
+  uniqueTokenPerInterval: 500,
+});
