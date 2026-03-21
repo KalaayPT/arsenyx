@@ -269,7 +269,7 @@ export function ModCardFrame({
         height={topFrameDims.h}
         className={cn(
           "absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none",
-          rarity === "Amalgam"
+          rarity === "Amalgam" || rarity === "Galvanized"
             ? "-top-2 w-[110%] max-w-none h-auto"
             : "top-0 w-full"
         )}
@@ -288,7 +288,7 @@ export function ModCardFrame({
         className={cn(
           frameBottomPosition,
           "z-20 pointer-events-none w-full",
-          rarity === "Amalgam" ? "w-[110%] max-w-none h-auto" : "w-full"
+          rarity === "Amalgam" || rarity === "Galvanized" ? "w-[110%] max-w-none h-auto" : "w-full"
         )}
         priority={false}
       />
