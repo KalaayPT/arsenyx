@@ -27,9 +27,15 @@ Primary: Share builds visually on Discord/Reddit. User clicks "Copy Image" on a 
 - No authentication required
 - Returns 404 for private/missing builds
 
+**Visibility:** Uses `getBuildBySlug(slug)` with no `viewerId` — returns PUBLIC and UNLISTED builds, returns null for PRIVATE.
+
+**Error responses:**
+- 404: Build not found or private — return a simple JSON `{ error: "Build not found" }`
+- 429: Rate limited — return JSON `{ error: "Too many requests" }`
+
 **Response headers:**
 - `Content-Type: image/png`
-- `Cache-Control: public, max-age=60` (short cache, builds can be updated)
+- `Cache-Control: public, max-age=60, stale-while-revalidate=300`
 
 ---
 
@@ -62,6 +68,8 @@ Dark background matching the site theme. Horizontal flexbox layout (satori-compa
 ---
 
 ## Share Button Updates
+
+Add a `buildSlug: string` prop to `ShareButtonProps`. Parent page passes `build.slug`.
 
 Add two new options to the existing `DropdownMenu` in `src/components/build/share-button.tsx`:
 
@@ -99,9 +107,9 @@ Both options show a loading state while the image is being generated (~200-500ms
 
 ## Dependencies
 
-- `satori` — Converts JSX to SVG. Requires explicit font data (Buffer).
-- `sharp` — Converts SVG to PNG. May already be available via Next.js; add explicitly if not.
-- Font: Geist font files — load from `node_modules/geist/` or bundle a `.woff` file for satori.
+- `satori` — Converts JSX to SVG. Requires font data as `ArrayBuffer`.
+- `sharp` — Converts SVG to PNG. Already available via Next.js (verified). Add to `serverExternalPackages` in `next.config.ts` alongside `"pg"` to prevent bundling issues.
+- `geist` — Add as explicit dependency (`bun add geist`) to access `.woff` font files. Satori needs the font loaded as `ArrayBuffer` via `fs.readFile()`. Load from `node_modules/geist/dist/fonts/geist-sans/Geist-Regular.woff`.
 
 ---
 
@@ -109,10 +117,20 @@ Both options show a loading state while the image is being generated (~200-500ms
 
 ### Satori Limitations
 - Only supports flexbox (no CSS grid)
-- No `position: absolute` overlays (use nested flexbox instead)
-- Limited CSS: no `box-shadow`, no `backdrop-filter`, no gradients with stops
+- `position: absolute` works within `position: relative` containers (use sparingly)
+- Supports `linear-gradient` and `radial-gradient` with color stops
+- No `box-shadow`, `backdrop-filter`, `filter`, `conic-gradient`, or complex `transform`
 - Images must be fetched as ArrayBuffer and embedded — no `<Image>` component
-- Font must be loaded as a Buffer and passed to satori options
+- Font must be loaded as `ArrayBuffer` and passed to satori `fonts` option
+
+### Text Truncation
+- Build name: max ~40 chars, truncate with ellipsis (`overflow: hidden`, `textOverflow: ellipsis`, `whiteSpace: nowrap`)
+- Item name: max ~30 chars, same truncation
+- Mod names: max ~20 chars, truncate with ellipsis
+- Satori does NOT auto-truncate — explicit CSS required on each text element
+
+### Empty Builds
+- If a build has zero mods, show the empty slot placeholders (same as normal). This is an uncommon edge case and the grid layout still looks coherent with placeholders.
 
 ### Image Fetching
 - Item images from `cdn.warframestat.us` need to be fetched server-side and passed as base64/ArrayBuffer to satori
