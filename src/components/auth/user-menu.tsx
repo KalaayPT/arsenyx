@@ -66,6 +66,7 @@ export function UserMenu() {
               My Profile
             </MenuLink>
           )}
+          <MenuLink href="/settings">Settings</MenuLink>
           <MenuLink href="/builds/mine">My Builds</MenuLink>
           <MenuLink href="/favorites">Favorites</MenuLink>
         </div>
