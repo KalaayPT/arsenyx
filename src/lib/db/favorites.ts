@@ -36,7 +36,6 @@ export interface FavoriteBuildWithDetails {
     image: string | null
   }
   item: {
-    id: string
     uniqueName: string
     name: string
     imageName: string | null
@@ -129,22 +128,26 @@ export async function getUserFavoriteBuilds(
       where: { userId },
       include: {
         build: {
-          include: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            description: true,
+            buildData: true,
+            voteCount: true,
+            favoriteCount: true,
+            viewCount: true,
+            createdAt: true,
+            itemUniqueName: true,
+            itemName: true,
+            itemImageName: true,
+            itemCategory: true,
             user: {
               select: {
                 id: true,
                 name: true,
                 username: true,
                 image: true,
-              },
-            },
-            item: {
-              select: {
-                id: true,
-                uniqueName: true,
-                name: true,
-                imageName: true,
-                browseCategory: true,
               },
             },
           },
@@ -173,7 +176,12 @@ export async function getUserFavoriteBuilds(
     viewCount: f.build.viewCount,
     createdAt: f.build.createdAt,
     user: f.build.user,
-    item: f.build.item,
+    item: {
+      uniqueName: f.build.itemUniqueName,
+      name: f.build.itemName,
+      imageName: f.build.itemImageName,
+      browseCategory: f.build.itemCategory,
+    },
   }))
 
   return { builds, total }
