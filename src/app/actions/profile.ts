@@ -5,7 +5,13 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { auth, getServerSession } from "@/lib/auth"
-import { isUsernameTaken, updateUserBio } from "@/lib/db"
+import {
+  getUserBuilds,
+  isUsernameTaken,
+  updateUserBio,
+  type BuildListItem,
+  type GetBuildsOptions,
+} from "@/lib/db"
 import { profileLimiter, RateLimitError } from "@/lib/rate-limit"
 import { err, getErrorMessage, ok, type Result } from "@/lib/result"
 
@@ -78,5 +84,41 @@ export async function updateProfileAction(
       return err("Too many requests. Please try again later.")
     }
     return err(getErrorMessage(error, "Failed to update profile"))
+  }
+}
+
+// =============================================================================
+// PROFILE BUILDS
+// =============================================================================
+
+interface ProfileBuildsResult {
+  builds: BuildListItem[]
+  hasMore: boolean
+}
+
+export async function getProfileBuildsAction(
+  userId: string,
+  options: { query?: string; category?: string; page?: number },
+): Promise<Result<ProfileBuildsResult>> {
+  try {
+    const session = await getServerSession()
+    const viewerId = session?.user?.id
+
+    const limit = 12
+    const page = options.page ?? 1
+    const buildOptions: GetBuildsOptions = {
+      page,
+      limit,
+      sortBy: "votes",
+      ...(options.query && { query: options.query }),
+      ...(options.category && options.category !== "all" && { category: options.category }),
+    }
+
+    const { builds, total } = await getUserBuilds(userId, viewerId, buildOptions)
+    const hasMore = total > page * limit
+
+    return ok({ builds, hasMore })
+  } catch (error) {
+    return err(getErrorMessage(error, "Failed to load builds"))
   }
 }
