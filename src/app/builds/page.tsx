@@ -3,8 +3,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 
-import { BuildStats } from "@/components/build/build-card-link"
 import { SearchBar } from "@/components/browse/search-bar"
+import { BuildStats } from "@/components/build/build-card-link"
 import { BuildsFilterDropdown, BuildsSortDropdown } from "@/components/builds"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
@@ -127,7 +127,6 @@ const CATEGORY_OPTIONS = [
   { value: "", label: "All Categories" },
   ...BROWSE_CATEGORIES.map((c) => ({ value: c.id, label: c.label })),
 ]
-
 
 export default async function BuildsPage({ searchParams }: BuildsPageProps) {
   const params = await searchParams

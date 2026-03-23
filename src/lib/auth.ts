@@ -6,16 +6,22 @@ import { headers } from "next/headers"
 
 import { prisma } from "@/lib/db"
 
+const githubId = process.env.GITHUB_ID?.trim()
+const githubSecret = process.env.GITHUB_SECRET?.trim()
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
-    },
-  },
+  socialProviders:
+    githubId && githubSecret
+      ? {
+          github: {
+            clientId: githubId,
+            clientSecret: githubSecret,
+          },
+        }
+      : {},
   plugins: [
     username(),
     nextCookies(), // Must be last plugin

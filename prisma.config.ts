@@ -27,6 +27,10 @@ if (!process.env.DATABASE_URL) {
   }
 }
 
+// `prisma generate` only needs a syntactically valid URL. Default to a local
+// placeholder so dependency updates and installs can run before local env setup.
+process.env.DATABASE_URL ??= "postgresql://postgres:postgres@localhost:5432/arsenyx";
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
