@@ -4,8 +4,8 @@ import { Header } from "@/components/header"
 import { ImportOverframeClient } from "./import-overframe-client"
 
 export const metadata = {
-  title: "Import Test | ARSENYX",
-  description: "Temporary page to test Overframe import.",
+  title: "Import from Overframe | ARSENYX",
+  description: "Import your Warframe builds from Overframe.",
 }
 
 export default function ImportTestPage() {
@@ -16,7 +16,7 @@ export default function ImportTestPage() {
         <div className="container flex flex-col gap-6 py-6">
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">
-              Overframe Import Test
+              Import from Overframe
             </h1>
             <p className="text-muted-foreground">
               Paste an Overframe build URL and inspect the API response.

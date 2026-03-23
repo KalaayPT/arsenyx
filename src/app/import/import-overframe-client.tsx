@@ -77,7 +77,7 @@ export function ImportOverframeClient() {
                 onClick={runImport}
                 disabled={isLoading || url.trim().length === 0}
               >
-                {isLoading ? "Importing…" : "Import"}
+                {isLoading ? "Importing..." : "Import"}
               </Button>
               {createUrl ? (
                 <Button
