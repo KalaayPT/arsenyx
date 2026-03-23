@@ -75,8 +75,9 @@ export function FilterPanel({
         </div>
         <Slider
           value={masteryMax}
-          onValueChange={(value: number) => {
-            updateFilter("mastery", value < 16 ? String(value) : null)
+          onValueChange={(value: number | readonly number[]) => {
+            const v = typeof value === "number" ? value : value[0]
+            updateFilter("mastery", v < 16 ? String(v) : null)
           }}
           min={0}
           max={16}

@@ -38,12 +38,12 @@ export function FilterDropdown({
   const [localMastery, setLocalMastery] = useState(masteryMax)
 
   // Update local state during drag, commit on release
-  const handleMasteryDrag = (value: number) => {
-    setLocalMastery(value)
+  const handleMasteryDrag = (value: number | readonly number[]) => {
+    setLocalMastery(typeof value === "number" ? value : value[0])
   }
 
-  const handleMasteryCommit = (value: number) => {
-    onMasteryChange(value)
+  const handleMasteryCommit = (value: number | readonly number[]) => {
+    onMasteryChange(typeof value === "number" ? value : value[0])
   }
 
   return (

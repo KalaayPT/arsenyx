@@ -45,7 +45,7 @@ export function ProfileBuildsFilters({
       </div>
       <Select
         value={category}
-        onValueChange={onCategoryChange}
+        onValueChange={(value) => { if (value) onCategoryChange(value) }}
         items={CATEGORY_ITEMS}
       >
         <SelectTrigger className="w-full sm:w-[180px]">

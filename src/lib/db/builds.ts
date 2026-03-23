@@ -295,7 +295,7 @@ function mapBuildResult(
         `partner build ${pb.id} buildData`,
       ),
     })),
-  } as BuildWithUser
+  } as unknown as BuildWithUser
 }
 
 function mapBuildListItem(

@@ -11,7 +11,8 @@ function createPrismaClient() {
     connectionString: process.env.DATABASE_URL,
     max: 3, // Limit connections per worker during build
   })
-  const adapter = new PrismaPg(pool)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- @types/pg version mismatch between pg and @prisma/adapter-pg
+  const adapter = new PrismaPg(pool as any)
 
   return new PrismaClient({
     adapter,

@@ -27,7 +27,8 @@ export function BuildsSortDropdown() {
   const current = (searchParams.get("sort") as BuildSortOption) || "newest"
 
   const handleChange = useCallback(
-    (value: string) => {
+    (value: string | null) => {
+      if (!value) return
       const params = new URLSearchParams(searchParams.toString())
       if (value === "newest") {
         params.delete("sort")
