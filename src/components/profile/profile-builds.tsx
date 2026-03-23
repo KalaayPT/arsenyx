@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
-import type { BuildListItem } from "@/lib/db"
+import type { BuildListItem } from "@/lib/db/index"
 
 import { ProfileBuildsFilters } from "./profile-builds-filters"
 

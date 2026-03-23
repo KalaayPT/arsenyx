@@ -11,7 +11,7 @@ import {
   updateUserBio,
   type BuildListItem,
   type GetBuildsOptions,
-} from "@/lib/db"
+} from "@/lib/db/index"
 import { profileLimiter, RateLimitError } from "@/lib/rate-limit"
 import { err, getErrorMessage, ok, type Result } from "@/lib/result"
 
@@ -47,7 +47,7 @@ export async function updateProfileAction(
 
     const parsed = updateProfileSchema.safeParse(input)
     if (!parsed.success) {
-      return err(parsed.error.errors[0]?.message ?? "Invalid input")
+      return err(parsed.error.issues[0]?.message ?? "Invalid input")
     }
 
     const { username, bio } = parsed.data

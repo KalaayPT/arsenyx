@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 
 import { SettingsForm } from "@/components/settings"
 import { getServerSession } from "@/lib/auth"
-import { getUserForSettings } from "@/lib/db"
+import { getUserForSettings } from "@/lib/db/index"
 
 export const metadata: Metadata = {
   title: "Settings",

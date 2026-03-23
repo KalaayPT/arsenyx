@@ -24,7 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
-import type { UserProfileFull } from "@/lib/db"
+import type { UserProfileFull } from "@/lib/db/index"
 
 interface SettingsFormProps {
   user: UserProfileFull
