@@ -1,14 +1,12 @@
 import { Calendar } from "lucide-react"
 import type { Metadata } from "next"
 import Image from "next/image"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { ProfileBuilds } from "@/components/profile"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { getServerSession } from "@/lib/auth"
 import { getUserByUsername, getUserStats, getUserBuilds } from "@/lib/db/index"
 
@@ -95,16 +93,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 </h1>
                 {user.role !== "USER" && (
                   <Badge variant="secondary">{user.role}</Badge>
-                )}
-                {session?.user?.id === user.id && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    render={<Link href="/settings" />}
-                    nativeButton={false}
-                  >
-                    Edit Profile
-                  </Button>
                 )}
               </div>
 

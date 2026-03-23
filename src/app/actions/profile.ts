@@ -7,10 +7,12 @@ import { z } from "zod"
 import { auth, getServerSession } from "@/lib/auth"
 import {
   getUserBuilds,
+  getUserForSettings,
   isUsernameTaken,
   updateUserBio,
   type BuildListItem,
   type GetBuildsOptions,
+  type UserProfileFull,
 } from "@/lib/db/index"
 import { profileLimiter, RateLimitError } from "@/lib/rate-limit"
 import { err, getErrorMessage, ok, type Result } from "@/lib/result"
@@ -129,5 +131,27 @@ export async function getProfileBuildsAction(
     return ok({ builds, hasMore })
   } catch (error) {
     return err(getErrorMessage(error, "Failed to load builds"))
+  }
+}
+
+// =============================================================================
+// SETTINGS DATA
+// =============================================================================
+
+export async function getSettingsDataAction(): Promise<Result<UserProfileFull>> {
+  try {
+    const session = await getServerSession()
+    if (!session?.user?.id) {
+      return err("You must be signed in")
+    }
+
+    const user = await getUserForSettings(session.user.id)
+    if (!user) {
+      return err("User not found")
+    }
+
+    return ok(user)
+  } catch (error) {
+    return err(getErrorMessage(error, "Failed to load settings"))
   }
 }
