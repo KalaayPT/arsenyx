@@ -62,12 +62,14 @@ export function UserMenu() {
           )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            <span className="block font-medium">{session.user.name}</span>
-            <span className="text-muted-foreground block text-xs font-normal">
-              {session.user.email}
-            </span>
-          </DropdownMenuLabel>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <span className="block font-medium">{session.user.name}</span>
+              <span className="text-muted-foreground block text-xs font-normal">
+                {session.user.email}
+              </span>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             {session.user.username && (
