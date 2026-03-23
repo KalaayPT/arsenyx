@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation"
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 
+import { SettingsForm } from "@/components/settings"
 import { getServerSession } from "@/lib/auth"
 import { getUserForSettings } from "@/lib/db"
-import { SettingsForm } from "@/components/settings"
 
 export const metadata: Metadata = {
   title: "Settings",

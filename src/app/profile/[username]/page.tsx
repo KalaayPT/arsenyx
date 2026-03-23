@@ -28,7 +28,8 @@ export async function generateMetadata({
     return { title: "User Not Found | ARSENYX" }
   }
 
-  const displayName = user.displayUsername || user.username || user.name || "User"
+  const displayName =
+    user.displayUsername || user.username || user.name || "User"
 
   return {
     title: `${displayName} | ARSENYX`,
@@ -87,7 +88,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex flex-1 flex-col gap-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold">
-                  {user.displayUsername || user.username || user.name || "Anonymous"}
+                  {user.displayUsername ||
+                    user.username ||
+                    user.name ||
+                    "Anonymous"}
                 </h1>
                 {user.role !== "USER" && (
                   <Badge variant="secondary">{user.role}</Badge>

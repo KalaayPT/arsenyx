@@ -1,7 +1,7 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 import { z } from "zod"
 
 import { auth, getServerSession } from "@/lib/auth"
@@ -25,7 +25,11 @@ const updateProfileSchema = z.object({
       "Only letters, numbers, hyphens, and underscores",
     )
     .optional(),
-  bio: z.string().max(300, "Bio must be at most 300 characters").optional().or(z.literal("")),
+  bio: z
+    .string()
+    .max(300, "Bio must be at most 300 characters")
+    .optional()
+    .or(z.literal("")),
 })
 
 type UpdateProfileInput = z.infer<typeof updateProfileSchema>
@@ -111,10 +115,15 @@ export async function getProfileBuildsAction(
       limit,
       sortBy: "votes",
       ...(options.query && { query: options.query }),
-      ...(options.category && options.category !== "all" && { category: options.category }),
+      ...(options.category &&
+        options.category !== "all" && { category: options.category }),
     }
 
-    const { builds, total } = await getUserBuilds(userId, viewerId, buildOptions)
+    const { builds, total } = await getUserBuilds(
+      userId,
+      viewerId,
+      buildOptions,
+    )
     const hasMore = total > page * limit
 
     return ok({ builds, hasMore })

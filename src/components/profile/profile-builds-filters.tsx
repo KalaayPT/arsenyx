@@ -29,7 +29,7 @@ export function ProfileBuildsFilters({
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
       <div className="relative flex-1">
-        <SearchIcon className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+        <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2" />
         <Input
           placeholder="Search builds..."
           value={search}

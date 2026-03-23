@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { updateProfileAction } from "@/app/actions/profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -24,14 +25,15 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import type { UserProfileFull } from "@/lib/db"
-import { updateProfileAction } from "@/app/actions/profile"
 
 interface SettingsFormProps {
   user: UserProfileFull
 }
 
 export function SettingsForm({ user }: SettingsFormProps) {
-  const [username, setUsername] = useState(user.displayUsername ?? user.username ?? "")
+  const [username, setUsername] = useState(
+    user.displayUsername ?? user.username ?? "",
+  )
   const [bio, setBio] = useState(user.bio ?? "")
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
@@ -63,7 +65,9 @@ export function SettingsForm({ user }: SettingsFormProps) {
       <Card>
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
-          <CardDescription>Update your public profile information</CardDescription>
+          <CardDescription>
+            Update your public profile information
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
@@ -71,12 +75,19 @@ export function SettingsForm({ user }: SettingsFormProps) {
               <FieldLabel>Avatar</FieldLabel>
               <div className="flex items-center gap-4">
                 <Avatar className="size-16">
-                  <AvatarImage src={user.image ?? undefined} alt={user.username ?? "Avatar"} />
+                  <AvatarImage
+                    src={user.image ?? undefined}
+                    alt={user.username ?? "Avatar"}
+                  />
                   <AvatarFallback>
-                    {(user.displayUsername ?? user.username ?? "?")[0]?.toUpperCase()}
+                    {(user.displayUsername ??
+                      user.username ??
+                      "?")[0]?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <FieldDescription>Synced from your GitHub account</FieldDescription>
+                <FieldDescription>
+                  Synced from your GitHub account
+                </FieldDescription>
               </div>
             </Field>
 
@@ -92,7 +103,8 @@ export function SettingsForm({ user }: SettingsFormProps) {
                 aria-invalid={usernameError ? true : undefined}
               />
               <FieldDescription>
-                3-20 characters. Letters, numbers, hyphens, and underscores only.
+                3-20 characters. Letters, numbers, hyphens, and underscores
+                only.
               </FieldDescription>
               {usernameError && <FieldError>{usernameError}</FieldError>}
             </Field>
@@ -113,7 +125,9 @@ export function SettingsForm({ user }: SettingsFormProps) {
             <Field data-disabled>
               <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input id="email" value={user.email} disabled />
-              <FieldDescription>Managed by your GitHub account</FieldDescription>
+              <FieldDescription>
+                Managed by your GitHub account
+              </FieldDescription>
             </Field>
           </FieldGroup>
         </CardContent>
