@@ -7,11 +7,14 @@ import { useState } from "react"
 import { SettingsSheet } from "@/components/settings"
 import { Button } from "@/components/ui/button"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useSession, signOut } from "@/lib/auth-client"
 
 export function UserMenu() {
@@ -37,8 +40,8 @@ export function UserMenu() {
 
   return (
     <>
-      <Popover>
-        <PopoverTrigger
+      <DropdownMenu>
+        <DropdownMenuTrigger
           render={
             <button className="focus-visible:ring-ring flex items-center gap-2 rounded-full outline-none focus-visible:ring-2" />
           }
@@ -57,65 +60,53 @@ export function UserMenu() {
               {session.user.name?.charAt(0).toUpperCase() ?? "U"}
             </div>
           )}
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-56 p-2">
-          <div className="px-2 py-1.5">
-            <p className="font-medium">{session.user.name}</p>
-            <p className="text-muted-foreground text-xs">
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>
+            <span className="block font-medium">{session.user.name}</span>
+            <span className="text-muted-foreground block text-xs font-normal">
               {session.user.email}
-            </p>
-          </div>
-          <Separator className="my-2" />
-          <div className="flex flex-col gap-1">
+            </span>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
             {session.user.username && (
-              <MenuLink href={`/profile/${session.user.username}`}>
+              <DropdownMenuItem
+                render={<Link href={`/profile/${session.user.username}`} />}
+              >
                 My Profile
-              </MenuLink>
+              </DropdownMenuItem>
             )}
-            <button
-              onClick={() => setSettingsOpen(true)}
-              className="hover:bg-accent block w-full rounded-md px-2 py-1.5 text-left text-sm"
-            >
+            <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
               Settings
-            </button>
-            <MenuLink href="/builds/mine">My Builds</MenuLink>
-            <MenuLink href="/favorites">Favorites</MenuLink>
-          </div>
-          <Separator className="my-2" />
-          <button
-            onClick={() =>
-              signOut({
-                fetchOptions: {
-                  onSuccess: () => {
-                    window.location.href = "/"
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/builds/mine" />}>
+              My Builds
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/favorites" />}>
+              Favorites
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onSuccess: () => {
+                      window.location.href = "/"
+                    },
                   },
-                },
-              })
-            }
-            className="text-destructive hover:bg-destructive/10 w-full rounded-md px-2 py-1.5 text-left text-sm"
-          >
-            Sign Out
-          </button>
-        </PopoverContent>
-      </Popover>
+                })
+              }
+            >
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
-  )
-}
-
-function MenuLink({
-  href,
-  children,
-}: {
-  href: string
-  children: React.ReactNode
-}) {
-  return (
-    <Link
-      href={href}
-      className="hover:bg-accent block rounded-md px-2 py-1.5 text-sm"
-    >
-      {children}
-    </Link>
   )
 }
