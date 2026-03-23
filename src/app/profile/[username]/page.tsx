@@ -1,13 +1,15 @@
-import { Calendar, Hammer } from "lucide-react"
+import { Calendar } from "lucide-react"
 import type { Metadata } from "next"
 import Image from "next/image"
+import Link from "next/link"
 import { notFound } from "next/navigation"
 
-import { BuildCardLink } from "@/components/build/build-card-link"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+import { ProfileBuilds } from "@/components/profile"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { getServerSession } from "@/lib/auth"
 import { getUserByUsername, getUserStats, getUserBuilds } from "@/lib/db/index"
 
 export const revalidate = 3600 // 1 hour
@@ -26,7 +28,7 @@ export async function generateMetadata({
     return { title: "User Not Found | ARSENYX" }
   }
 
-  const displayName = user.username || user.name || "User"
+  const displayName = user.displayUsername || user.username || user.name || "User"
 
   return {
     title: `${displayName} | ARSENYX`,
@@ -42,10 +44,14 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound()
   }
 
-  const [stats, { builds }] = await Promise.all([
+  const session = await getServerSession()
+  const viewerId = session?.user?.id
+
+  const [stats, { builds, total }] = await Promise.all([
     getUserStats(user.id),
-    getUserBuilds(user.id, undefined, { limit: 12, sortBy: "votes" }),
+    getUserBuilds(user.id, viewerId, { limit: 12, sortBy: "votes" }),
   ])
+  const hasMore = total > 12
 
   const joinDate = new Date(user.createdAt).toLocaleDateString("en-US", {
     month: "long",
@@ -81,10 +87,20 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <div className="flex flex-1 flex-col gap-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold">
-                  {user.username || user.name || "Anonymous"}
+                  {user.displayUsername || user.username || user.name || "Anonymous"}
                 </h1>
                 {user.role !== "USER" && (
                   <Badge variant="secondary">{user.role}</Badge>
+                )}
+                {session?.user?.id === user.id && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    render={<Link href="/settings" />}
+                    nativeButton={false}
+                  >
+                    Edit Profile
+                  </Button>
                 )}
               </div>
 
@@ -119,30 +135,12 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
           {/* User's Builds */}
           <section className="flex flex-col gap-4">
-            <h2 className="text-xl font-semibold">Public Builds</h2>
-
-            {builds.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Hammer className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                  <p className="text-muted-foreground">No public builds yet</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                {builds.map((build) => (
-                  <BuildCardLink
-                    key={build.id}
-                    slug={build.slug}
-                    name={build.name}
-                    itemName={build.item.name}
-                    itemImageName={build.item.imageName}
-                    voteCount={build.voteCount}
-                    viewCount={build.viewCount}
-                  />
-                ))}
-              </div>
-            )}
+            <h2 className="text-xl font-semibold">Builds</h2>
+            <ProfileBuilds
+              userId={user.id}
+              initialBuilds={builds}
+              initialHasMore={hasMore}
+            />
           </section>
         </div>
       </main>
