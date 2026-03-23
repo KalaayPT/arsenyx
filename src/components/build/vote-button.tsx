@@ -34,18 +34,16 @@ export function VoteButton({
     }
 
     // Optimistic update
-    const newVoted = !hasVoted
-    const newCount = newVoted ? voteCount + 1 : voteCount - 1
-    setHasVoted(newVoted)
-    setVoteCount(newCount)
+    setHasVoted((prev) => !prev)
+    setVoteCount((prev) => (hasVoted ? prev - 1 : prev + 1))
 
     startTransition(async () => {
       const result = await toggleVoteAction(buildId)
 
       if (!result.success) {
         // Revert on error
-        setHasVoted(hasVoted)
-        setVoteCount(voteCount)
+        setHasVoted((prev) => !prev)
+        setVoteCount((prev) => (hasVoted ? prev + 1 : prev - 1))
         toast.error(result.error ?? "Failed to vote")
       }
     })

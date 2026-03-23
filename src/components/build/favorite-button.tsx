@@ -37,18 +37,16 @@ export function FavoriteButton({
     }
 
     // Optimistic update
-    const newFavorited = !hasFavorited
-    const newCount = newFavorited ? favoriteCount + 1 : favoriteCount - 1
-    setHasFavorited(newFavorited)
-    setFavoriteCount(newCount)
+    setHasFavorited((prev) => !prev)
+    setFavoriteCount((prev) => (hasFavorited ? prev - 1 : prev + 1))
 
     startTransition(async () => {
       const result = await toggleFavoriteAction(buildId)
 
       if (!result.success) {
         // Revert on error
-        setHasFavorited(hasFavorited)
-        setFavoriteCount(favoriteCount)
+        setHasFavorited((prev) => !prev)
+        setFavoriteCount((prev) => (hasFavorited ? prev + 1 : prev - 1))
         toast.error(result.error ?? "Failed to update favorite")
       }
     })

@@ -37,13 +37,15 @@ export async function generateMetadata({
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params
-  const user = await getUserByUsername(username)
+  const [user, session] = await Promise.all([
+    getUserByUsername(username),
+    getServerSession(),
+  ])
 
   if (!user) {
     notFound()
   }
 
-  const session = await getServerSession()
   const viewerId = session?.user?.id
 
   const [stats, { builds, total }] = await Promise.all([

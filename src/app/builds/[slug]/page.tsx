@@ -223,7 +223,10 @@ export default async function BuildPage({ params }: BuildPageProps) {
               slug: pb.slug,
               name: pb.name,
               item: pb.item,
-              buildData: pb.buildData as { formaCount: number },
+              buildData: {
+                formaCount:
+                  (pb.buildData as { formaCount?: number })?.formaCount ?? 0,
+              },
             }))}
           />
         </Suspense>

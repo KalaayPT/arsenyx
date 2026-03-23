@@ -2,7 +2,15 @@
 
 import dynamic from "next/dynamic"
 
-import { GuideEditor } from "./guide-editor"
+const GuideEditor = dynamic(
+  () => import("./guide-editor").then((mod) => mod.GuideEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-muted/30 h-[200px] animate-pulse rounded-md border" />
+    ),
+  },
+)
 
 const GuideReader = dynamic(
   () =>

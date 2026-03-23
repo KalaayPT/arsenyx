@@ -5,6 +5,8 @@
  */
 
 import "server-only"
+import { cache } from "react"
+
 import { prisma } from "../db"
 
 // =============================================================================
@@ -42,7 +44,7 @@ export interface UserStats {
  * @param username - Username to look up
  * @returns User profile or null if not found
  */
-export async function getUserByUsername(
+export const getUserByUsername = cache(async function getUserByUsername(
   username: string,
 ): Promise<UserProfile | null> {
   const user = await prisma.user.findFirst({
@@ -62,7 +64,7 @@ export async function getUserByUsername(
   })
 
   return user
-}
+})
 
 /**
  * Get user profile by ID

@@ -35,6 +35,8 @@ import {
 
 const SUMMARY_MAX_LENGTH = 400
 const SUMMARY_WARNING_THRESHOLD = 300
+const EMPTY_PARTNER_BUILDS: PartnerBuild[] = []
+const EMPTY_AVAILABLE_BUILDS: PartnerBuildOption[] = []
 
 export interface GuideEditorData {
   summary: string
@@ -59,8 +61,8 @@ export function GuideEditor({
   buildId,
   initialSummary,
   initialDescription,
-  initialPartnerBuilds = [],
-  availableBuilds = [],
+  initialPartnerBuilds = EMPTY_PARTNER_BUILDS,
+  availableBuilds = EMPTY_AVAILABLE_BUILDS,
   onSave,
   onSummaryChange,
   onDescriptionChange,
