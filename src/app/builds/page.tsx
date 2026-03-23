@@ -1,15 +1,15 @@
-import { XIcon } from "lucide-react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import { BuildStats } from "@/components/build/build-card-link"
+import { SearchBar } from "@/components/browse/search-bar"
+import { BuildsFilterDropdown, BuildsSortDropdown } from "@/components/builds"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { Icons } from "@/components/icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getPublicBuilds, type BuildListItem } from "@/lib/db/index"
 import { BROWSE_CATEGORIES } from "@/lib/warframe/categories"
@@ -125,15 +125,9 @@ function BuildCard({ build }: { build: BuildListItem }) {
 
 const CATEGORY_OPTIONS = [
   { value: "", label: "All Categories" },
-  ...BROWSE_CATEGORIES.map((c) => ({ value: c.id, label: c.labelPlural })),
+  ...BROWSE_CATEGORIES.map((c) => ({ value: c.id, label: c.label })),
 ]
 
-const SORT_OPTIONS = [
-  { value: "newest", label: "Newest" },
-  { value: "votes", label: "Most Voted" },
-  { value: "views", label: "Most Viewed" },
-  { value: "updated", label: "Recently Updated" },
-]
 
 export default async function BuildsPage({ searchParams }: BuildsPageProps) {
   const params = await searchParams
@@ -168,141 +162,69 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
   })
 
   const totalPages = Math.ceil(total / limit)
-  const hasActiveFilters = !!(q || author || hasGuide || hasShards)
 
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
         <div className="container flex flex-col gap-6 py-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Community Builds</h1>
-              <p className="text-muted-foreground">
-                Discover builds created by the community
-              </p>
-            </div>
-            <Link href="/browse">
-              <Button variant="outline">Create Build</Button>
-            </Link>
+          {/* Page Header */}
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Community Builds
+            </h1>
+            <p className="text-muted-foreground">
+              Discover builds created by the community
+            </p>
           </div>
 
-          {/* Search Bar */}
-          <form action="/builds" method="GET" className="flex gap-2">
-            <div className="relative flex-1">
-              <Icons.search className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2" />
-              <Input
-                type="search"
-                name="q"
+          {/* Search and Filters Row */}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Suspense>
+              <SearchBar
                 defaultValue={q}
                 placeholder="Search builds..."
-                className="pl-10"
+                className="flex-1"
               />
-            </div>
-            {category && (
-              <input type="hidden" name="category" value={category} />
-            )}
-            {sortBy !== "newest" && (
-              <input type="hidden" name="sort" value={sortBy} />
-            )}
-            {author && <input type="hidden" name="author" value={author} />}
-            {hasGuide && <input type="hidden" name="hasGuide" value="true" />}
-            {hasShards && <input type="hidden" name="hasShards" value="true" />}
-            <Button type="submit">Search</Button>
-          </form>
-
-          {/* Filters */}
-          <div className="flex flex-col items-start justify-between gap-4 xl:flex-row xl:items-center">
-            {/* Category Filter */}
-            <Tabs value={category || ""} className="w-full xl:w-auto">
-              <TabsList className="bg-muted/50 h-auto w-full flex-wrap justify-start p-1 xl:w-auto">
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <TabsTrigger
-                    key={opt.value}
-                    value={opt.value}
-                    className="data-[state=active]:bg-background flex-1 gap-2 xl:flex-none"
-                    render={
-                      <Link
-                        href={buildFilterUrl(
-                          { category: opt.value || undefined },
-                          filterState,
-                        )}
-                      />
-                    }
-                    nativeButton={false}
-                  >
-                    {opt.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-
-            {/* Sort Options */}
-            <div className="flex w-full items-center justify-end xl:w-auto">
-              <Tabs value={sortBy} className="w-full xl:w-auto">
-                <TabsList className="bg-muted/50 w-full xl:w-auto">
-                  {SORT_OPTIONS.map((opt) => (
-                    <TabsTrigger
-                      key={opt.value}
-                      value={opt.value}
-                      className="flex-1 xl:flex-none"
-                      render={
-                        <Link
-                          href={buildFilterUrl(
-                            { sort: opt.value },
-                            filterState,
-                          )}
-                        />
-                      }
-                      nativeButton={false}
-                    >
-                      {opt.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
+            </Suspense>
+            <div className="flex gap-3">
+              <Suspense>
+                <BuildsSortDropdown />
+              </Suspense>
+              <Suspense>
+                <BuildsFilterDropdown />
+              </Suspense>
             </div>
           </div>
 
-          {/* Active Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            {author && (
-              <Link href={buildFilterUrl({ author: undefined }, filterState)}>
-                <Badge variant="secondary" className="cursor-pointer gap-1">
-                  Author: {author}
-                  <XIcon className="size-3" />
-                  <span className="sr-only">Remove author filter</span>
-                </Badge>
-              </Link>
-            )}
-            <Link
-              href={buildFilterUrl(
-                { hasGuide: hasGuide ? undefined : "true" },
-                filterState,
-              )}
-            >
-              <Button variant={hasGuide ? "default" : "outline"} size="sm">
-                Has Guide
-              </Button>
-            </Link>
-            <Link
-              href={buildFilterUrl(
-                { hasShards: hasShards ? undefined : "true" },
-                filterState,
-              )}
-            >
-              <Button variant={hasShards ? "default" : "outline"} size="sm">
-                Has Shards
-              </Button>
-            </Link>
-            {hasActiveFilters && (
-              <Link href="/builds">
-                <Button variant="ghost" size="sm">
-                  Clear All
-                </Button>
-              </Link>
-            )}
+          {/* Category Tabs */}
+          <Tabs value={category || ""}>
+            <TabsList className="bg-muted/50 h-auto flex-wrap justify-start p-1">
+              {CATEGORY_OPTIONS.map((opt) => (
+                <TabsTrigger
+                  key={opt.value}
+                  value={opt.value}
+                  className="data-[state=active]:bg-background gap-2"
+                  render={
+                    <Link
+                      href={buildFilterUrl(
+                        { category: opt.value || undefined },
+                        filterState,
+                      )}
+                    />
+                  }
+                  nativeButton={false}
+                >
+                  {opt.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          {/* Results info */}
+          <div className="text-muted-foreground text-sm">
+            {total} {total === 1 ? "build" : "builds"}
+            {q && ` matching "${q}"`}
           </div>
 
           {/* Results */}
