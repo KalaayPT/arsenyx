@@ -1,0 +1,47 @@
+name: Update Warframe Data
+
+on:
+  schedule:
+    - cron: "0 2 * * 0" # Sunday 02:00 UTC
+  workflow_dispatch: {} # Manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - run: bun update @wfcd/items
+
+      - run: bun run sync-data
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet src/data/warframe/ package.json bun.lock; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/update-warframe-data
+          title: "chore: update @wfcd/items game data"
+          body: |
+            Automated weekly update of Warframe game data from `@wfcd/items`.
+
+            Review the JSON diffs in `src/data/warframe/` before merging.
+          commit-message: "chore: update @wfcd/items game data"
