@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { searchItemsFromDb, prisma } from "@/lib/db/index"
+import { prisma } from "@/lib/db"
+import { getItemsByCategory } from "@/lib/warframe/items"
+import { BROWSE_CATEGORIES } from "@/lib/warframe/categories"
+import type { BrowseItem } from "@/lib/warframe/types"
 import { searchLimiter, RateLimitError } from "@/lib/rate-limit"
+
+function searchItems(query: string, limit: number): BrowseItem[] {
+  const lowerQ = query.toLowerCase()
+  const seen = new Set<string>()
+  const results: BrowseItem[] = []
+  for (const cat of BROWSE_CATEGORIES) {
+    if (results.length >= limit) break
+    for (const item of getItemsByCategory(cat.id)) {
+      if (results.length >= limit) break
+      if (seen.has(item.uniqueName)) continue
+      if (item.name.toLowerCase().includes(lowerQ)) {
+        seen.add(item.uniqueName)
+        results.push(item)
+      }
+    }
+  }
+  return results
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,34 +40,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ items: [], builds: [] })
   }
 
-  const [items, buildResults] = await Promise.all([
-    // Items: use existing ILIKE search
-    searchItemsFromDb(q, undefined, 5),
-    // Builds: use tsvector search
-    prisma.$queryRaw<
-      {
-        slug: string
-        name: string
-        itemName: string
-        author: string
-        voteCount: number
-      }[]
-    >`
-      SELECT
-        b.slug,
-        b.name,
-        i.name AS "itemName",
-        COALESCE(u.username, u.name, 'Anonymous') AS author,
-        b."voteCount"
-      FROM builds b
-      JOIN items i ON i.id = b."itemId"
-      JOIN users u ON u.id = b."userId"
-      WHERE b."searchVector" @@ plainto_tsquery('english', ${q})
-        AND b.visibility = 'PUBLIC'
-      ORDER BY ts_rank(b."searchVector", plainto_tsquery('english', ${q})) DESC
-      LIMIT 5
-    `,
-  ])
+  const items = searchItems(q, 5)
+
+  const buildResults = await prisma.$queryRaw<
+    {
+      slug: string
+      name: string
+      itemName: string
+      author: string
+      voteCount: number
+    }[]
+  >`
+    SELECT
+      b.slug,
+      b.name,
+      b."itemName",
+      COALESCE(u.username, u.name, 'Anonymous') AS author,
+      b."voteCount"
+    FROM builds b
+    JOIN users u ON u.id = b."userId"
+    WHERE b."searchVector" @@ plainto_tsquery('english', ${q})
+      AND b.visibility = 'PUBLIC'
+    ORDER BY ts_rank(b."searchVector", plainto_tsquery('english', ${q})) DESC
+    LIMIT 5
+  `
 
   return NextResponse.json({
     items: items.map((item) => ({
