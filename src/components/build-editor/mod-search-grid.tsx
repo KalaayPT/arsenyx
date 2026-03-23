@@ -127,6 +127,18 @@ export function ModSearchGrid({
     selectedIndex, setSelectedIndex, inputRef, gridRef,
   } = useSearchPanel({ defaultSort: "Drain" });
 
+  // Precompute searchable strings once per mod list change
+  const searchIndex = useMemo(() => {
+    const index = new Map<string, string>();
+    for (const m of availableMods) {
+      const name = m.name.toLowerCase();
+      const description = m.description?.toLowerCase() ?? "";
+      const stats = getModSearchableStats(m);
+      index.set(m.uniqueName, `${name} ${description} ${stats}`);
+    }
+    return index;
+  }, [availableMods]);
+
   // Filter and sort mods
   const filteredMods = useMemo(() => {
     let mods = [...availableMods];
@@ -141,10 +153,7 @@ export function ModSearchGrid({
       const query = deferredSearchQuery.toLowerCase();
       const searchTerms = expandSearchQuery(query);
       mods = mods.filter((m) => {
-        const name = m.name.toLowerCase();
-        const description = m.description?.toLowerCase() ?? "";
-        const stats = getModSearchableStats(m);
-        const searchable = `${name} ${description} ${stats}`;
+        const searchable = searchIndex.get(m.uniqueName) ?? "";
         return searchTerms.some((term) => searchable.includes(term));
       });
     }

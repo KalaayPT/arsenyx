@@ -211,11 +211,11 @@ export function createInitialBuildState(
       exilusSlot: mergedExilusSlot,
     };
 
+    const modMap = new Map(compatibleMods.map((m) => [m.uniqueName, m]));
+
     const hydrateSlot = (slot: ModSlot) => {
       if (slot.mod) {
-        const fullMod = compatibleMods.find(
-          (m) => m.uniqueName === slot.mod!.uniqueName
-        );
+        const fullMod = modMap.get(slot.mod.uniqueName);
         if (fullMod) {
           slot.mod = {
             ...slot.mod,
@@ -249,12 +249,11 @@ export function createInitialBuildState(
     // Hydrate arcane slots — the build codec only stores uniqueName + rank,
     // so we need to fill in name, imageName, rarity from the arcane list.
     if (compatibleArcanes && hydratedState.arcaneSlots) {
+      const arcaneMap = new Map(compatibleArcanes.map((a) => [a.uniqueName, a]));
       hydratedState.arcaneSlots = hydratedState.arcaneSlots.map((arcane) => {
         if (!arcane) return null;
         if (arcane.name && arcane.imageName) return arcane; // Already hydrated
-        const fullArcane = compatibleArcanes.find(
-          (a) => a.uniqueName === arcane.uniqueName
-        );
+        const fullArcane = arcaneMap.get(arcane.uniqueName);
         if (fullArcane) {
           return {
             ...arcane,

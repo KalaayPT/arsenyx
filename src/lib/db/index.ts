@@ -46,6 +46,7 @@ export type {
   CreateBuildInput,
   UpdateBuildInput,
   BuildWithUser,
+  BuildListItem,
   GetBuildsOptions,
 } from "./builds";
 

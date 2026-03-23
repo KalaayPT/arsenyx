@@ -268,7 +268,7 @@ export function getStaticItems(limit = 50): Array<{
   for (const config of BROWSE_CATEGORIES) {
     const items = getItemsByCategory(config.id);
     // Prioritize prime items and popular frames
-    const sorted = items.sort((a, b) => {
+    const sorted = [...items].sort((a, b) => {
       // Primes first
       if (a.isPrime && !b.isPrime) return -1;
       if (!a.isPrime && b.isPrime) return 1;

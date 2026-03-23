@@ -6,6 +6,7 @@ import "server-only";
  * CRUD operations for builds with visibility checks
  */
 
+import { cache } from "react";
 import { prisma } from "../db";
 import { nanoid } from "nanoid";
 import type { BuildVisibility, Prisma } from "@prisma/client";
@@ -93,6 +94,27 @@ export interface GetBuildsOptions {
   author?: string;
   hasGuide?: boolean;
   hasShards?: boolean;
+}
+
+/** Lightweight projection for build list pages (no buildData, guide, or partners) */
+export interface BuildListItem {
+  id: string;
+  slug: string;
+  name: string;
+  visibility: BuildVisibility;
+  voteCount: number;
+  viewCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    name: string | null;
+    username: string | null;
+  };
+  item: {
+    name: string;
+    imageName: string | null;
+    browseCategory: string;
+  };
 }
 
 function sanitizeBuildDataForDb(buildData: BuildState): Prisma.JsonObject {
@@ -196,6 +218,31 @@ const buildInclude = {
           browseCategory: true,
         },
       },
+    },
+  },
+} as const;
+
+/** Lightweight include for list endpoints — skips buildData parsing, guide, and partners */
+const buildListSelect = {
+  id: true,
+  slug: true,
+  name: true,
+  visibility: true,
+  voteCount: true,
+  viewCount: true,
+  createdAt: true,
+  updatedAt: true,
+  user: {
+    select: {
+      name: true,
+      username: true,
+    },
+  },
+  item: {
+    select: {
+      name: true,
+      imageName: true,
+      browseCategory: true,
     },
   },
 } as const;
@@ -310,7 +357,7 @@ export async function createBuild(
  * @param slug - The build's URL slug
  * @param viewerId - Optional ID of the user viewing (for visibility checks)
  */
-export async function getBuildBySlug(
+export const getBuildBySlug = cache(async function getBuildBySlug(
   slug: string,
   viewerId?: string
 ): Promise<BuildWithUser | null> {
@@ -329,7 +376,7 @@ export async function getBuildBySlug(
   }
 
   return mapBuildResult(build, viewerId);
-}
+});
 
 /**
  * Get a build by its ID with visibility checks
@@ -362,7 +409,7 @@ export async function getUserBuilds(
   userId: string,
   viewerId?: string,
   options: GetBuildsOptions = {}
-): Promise<{ builds: BuildWithUser[]; total: number }> {
+): Promise<{ builds: BuildListItem[]; total: number }> {
   const { page = 1, limit = 20, sortBy = "newest" } = options;
   const skip = (page - 1) * limit;
 
@@ -373,29 +420,23 @@ export async function getUserBuilds(
     ? {}
     : { visibility: { in: ["PUBLIC", "UNLISTED"] } };
 
+  const where = {
+    userId,
+    ...visibilityFilter,
+  };
+
   const [builds, total] = await Promise.all([
     prisma.build.findMany({
-      where: {
-        userId,
-        ...visibilityFilter,
-      },
-      include: buildInclude,
+      where,
+      select: buildListSelect,
       orderBy: getOrderBy(sortBy),
       skip,
       take: limit,
     }),
-    prisma.build.count({
-      where: {
-        userId,
-        ...visibilityFilter,
-      },
-    }),
+    prisma.build.count({ where }),
   ]);
 
-  return {
-    builds: builds.map((b) => mapBuildResult(b, viewerId)),
-    total,
-  };
+  return { builds, total };
 }
 
 /**
@@ -404,7 +445,7 @@ export async function getUserBuilds(
 export async function getPublicBuildsForItem(
   itemUniqueName: string,
   options: GetBuildsOptions = {}
-): Promise<{ builds: BuildWithUser[]; total: number }> {
+): Promise<{ builds: BuildListItem[]; total: number }> {
   try {
     const { page = 1, limit = 20, sortBy = "popular" } = options;
     const skip = (page - 1) * limit;
@@ -419,29 +460,23 @@ export async function getPublicBuildsForItem(
       return { builds: [], total: 0 };
     }
 
+    const where = {
+      itemId: item.id,
+      visibility: "PUBLIC" as const,
+    };
+
     const [builds, total] = await Promise.all([
       prisma.build.findMany({
-        where: {
-          itemId: item.id,
-          visibility: "PUBLIC",
-        },
-        include: buildInclude,
+        where,
+        select: buildListSelect,
         orderBy: getOrderBy(sortBy),
         skip,
         take: limit,
       }),
-      prisma.build.count({
-        where: {
-          itemId: item.id,
-          visibility: "PUBLIC",
-        },
-      }),
+      prisma.build.count({ where }),
     ]);
 
-    return {
-      builds: builds.map((b) => mapBuildResult(b)),
-      total,
-    };
+    return { builds, total };
   } catch {
     // Return empty during build time when DB is unavailable
     return { builds: [], total: 0 };
@@ -453,7 +488,7 @@ export async function getPublicBuildsForItem(
  */
 export async function getPublicBuilds(
   options: GetBuildsOptions = {}
-): Promise<{ builds: BuildWithUser[]; total: number }> {
+): Promise<{ builds: BuildListItem[]; total: number }> {
   const { page = 1, limit = 20, sortBy = "newest", category, query, author, hasGuide, hasShards } = options;
   const skip = (page - 1) * limit;
 
@@ -481,7 +516,7 @@ export async function getPublicBuilds(
   const [builds, total] = await Promise.all([
     prisma.build.findMany({
       where,
-      include: buildInclude,
+      select: buildListSelect,
       orderBy: getOrderBy(sortBy),
       skip,
       take: limit,
@@ -489,10 +524,7 @@ export async function getPublicBuilds(
     prisma.build.count({ where }),
   ]);
 
-  return {
-    builds: builds.map((b) => mapBuildResult(b)),
-    total,
-  };
+  return { builds, total };
 }
 
 // =============================================================================
@@ -709,7 +741,7 @@ async function searchBuildsWithFilters(
   sortBy: string,
   skip: number,
   limit: number
-): Promise<{ builds: BuildWithUser[]; total: number }> {
+): Promise<{ builds: BuildListItem[]; total: number }> {
   // First, get matching build IDs via raw SQL full-text search
   const searchResults = await prisma.$queryRaw<{ id: string }[]>`
     SELECT b.id
@@ -735,7 +767,7 @@ async function searchBuildsWithFilters(
   const [builds, total] = await Promise.all([
     prisma.build.findMany({
       where: fullWhere,
-      include: buildInclude,
+      select: buildListSelect,
       orderBy: getOrderBy(sortBy as "newest" | "votes" | "views" | "updated" | "popular"),
       skip,
       take: limit,
@@ -743,10 +775,7 @@ async function searchBuildsWithFilters(
     prisma.build.count({ where: fullWhere }),
   ]);
 
-  return {
-    builds: builds.map((b) => mapBuildResult(b)),
-    total,
-  };
+  return { builds, total };
 }
 
 // =============================================================================

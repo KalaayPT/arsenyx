@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
-import { getPublicBuilds, type BuildWithUser } from "@/lib/db/index";
+import { getPublicBuilds, type BuildListItem } from "@/lib/db/index";
 import { getImageUrl } from "@/lib/warframe/images";
 import { XIcon } from "lucide-react";
 import { BuildStats } from "@/components/build/build-card-link";
@@ -73,7 +73,7 @@ function buildFilterUrl(
     return `/builds${str ? `?${str}` : ""}`;
 }
 
-function BuildCard({ build }: { build: BuildWithUser }) {
+function BuildCard({ build }: { build: BuildListItem }) {
     const timeAgo = getRelativeTime(new Date(build.createdAt));
 
     return (
