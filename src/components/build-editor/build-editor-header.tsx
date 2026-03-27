@@ -1,6 +1,8 @@
 "use client"
 
+import { useRef, useState } from "react"
 import {
+  Check,
   Diamond,
   Gem,
   Loader2,
@@ -13,7 +15,6 @@ import Image from "next/image"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { getImageUrl } from "@/lib/warframe/images"
 
 import { PublishDialog, type Visibility } from "./publish-dialog"
@@ -63,12 +64,24 @@ export function BuildEditorHeader({
   handleCopyBuild,
   showCopied,
 }: BuildEditorHeaderProps) {
+  const [isEditingName, setIsEditingName] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  function startEditingName() {
+    setIsEditingName(true)
+    setTimeout(() => inputRef.current?.focus(), 0)
+  }
+
+  function confirmName() {
+    setIsEditingName(false)
+  }
+
   return (
     <>
       {/* Header Card */}
       <div className="bg-card mb-4 rounded-lg border p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
             <div className="bg-muted/10 relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md md:h-24 md:w-24">
               <Image
                 src={getImageUrl(item.imageName)}
@@ -79,12 +92,45 @@ export function BuildEditorHeader({
                 className="object-cover"
               />
             </div>
-            <div className="flex flex-col justify-center gap-2">
-              <h1 className="text-xl font-bold tracking-tight md:text-2xl">
-                {item.name}
-              </h1>
+            <div className="flex min-w-0 flex-col justify-center gap-2">
+              <div className="flex items-center gap-2">
+                {canEdit && isAuthenticated && isEditingName ? (
+                  <>
+                    <input
+                      ref={inputRef}
+                      value={buildName}
+                      onChange={(e) => setBuildName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") confirmName()
+                      }}
+                      placeholder="Build name…"
+                      className="text-foreground min-w-0 flex-1 border-b border-b-current bg-transparent p-0 text-xl leading-tight font-bold tracking-tight outline-none md:text-2xl"
+                    />
+                    <button
+                      onClick={confirmName}
+                      className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
+                    >
+                      <Check className="size-5" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="truncate border-b border-b-transparent text-xl leading-tight font-bold tracking-tight md:text-2xl">
+                      {buildName || item.name}
+                    </h1>
+                    {canEdit && isAuthenticated && (
+                      <button
+                        onClick={startEditingName}
+                        className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
+                      >
+                        <Pencil className="size-4" />
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
               <span className="text-muted-foreground text-sm">
-                {categoryLabel}
+                {item.name} · {categoryLabel}
               </span>
               <div className="flex items-center gap-3">
                 <Badge
@@ -122,66 +168,56 @@ export function BuildEditorHeader({
           )}
           {/* Editing controls */}
           {canEdit && (
-            <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center md:w-auto">
-              {isAuthenticated && (
-                <Input
-                  value={buildName}
-                  onChange={(e) => setBuildName(e.target.value)}
-                  placeholder="Build name…"
-                  className="h-8 w-full text-sm sm:w-48"
-                />
-              )}
-              <div className="flex gap-2">
-                {isAuthenticated ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="flex-1 gap-2 sm:flex-initial"
-                    onClick={() => setPublishDialogOpen(true)}
-                    disabled={saveStatus === "saving"}
-                  >
-                    {saveStatus === "saving" ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : buildId ? (
-                      <Save className="size-4" />
-                    ) : (
-                      <UploadCloud className="size-4" />
-                    )}
-                    <span className="hidden sm:inline">
-                      {saveStatus === "saving"
-                        ? "Saving..."
-                        : saveStatus === "saved"
-                          ? "Saved!"
-                          : saveStatus === "error"
-                            ? "Error"
-                            : buildId
-                              ? "Update"
-                              : "Publish"}
-                    </span>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 gap-2 sm:flex-initial"
-                    onClick={handleCopyBuild}
-                  >
+            <div className="flex gap-2">
+              {isAuthenticated ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setPublishDialogOpen(true)}
+                  disabled={saveStatus === "saving"}
+                >
+                  {saveStatus === "saving" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : buildId ? (
                     <Save className="size-4" />
-                    <span className="hidden sm:inline">
-                      {showCopied ? "Copied!" : "Copy Link"}
-                    </span>
-                  </Button>
-                )}
+                  ) : (
+                    <UploadCloud className="size-4" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {saveStatus === "saving"
+                      ? "Saving..."
+                      : saveStatus === "saved"
+                        ? "Saved!"
+                        : saveStatus === "error"
+                          ? "Error"
+                          : buildId
+                            ? "Update"
+                            : "Publish"}
+                  </span>
+                </Button>
+              ) : (
                 <Button
                   variant="outline"
                   size="sm"
                   className="gap-2"
-                  onClick={handleCancel}
+                  onClick={handleCopyBuild}
                 >
-                  <X className="size-4" />
-                  <span className="hidden sm:inline">Cancel</span>
+                  <Save className="size-4" />
+                  <span className="hidden sm:inline">
+                    {showCopied ? "Copied!" : "Copy Link"}
+                  </span>
                 </Button>
-              </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleCancel}
+              >
+                <X className="size-4" />
+                <span className="hidden sm:inline">Cancel</span>
+              </Button>
             </div>
           )}
         </div>
