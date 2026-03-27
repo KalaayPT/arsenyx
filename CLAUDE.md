@@ -36,8 +36,8 @@ bun run db:push          # Push schema to database
 bun run db:migrate       # Run migrations
 bun run db:studio        # Open Prisma Studio
 
-# After DB reset
-psql $DATABASE_URL -f scripts/setup-search.sql  # Setup search trigger + GIN index
+# After DB reset (psql is not installed locally — use Docker)
+bash -c 'docker exec -i arsenyx-db psql "postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx" < scripts/setup-search.sql'
 
 # Warframe Data
 bun run sync-data        # Copy WFCD JSON files to src/data/warframe/
@@ -51,7 +51,7 @@ bun run overframe:build-map  # Convert Overframe item mappings
 
 1. `docker compose up -d` — start PostgreSQL
 2. `bun run db:push` — push schema
-3. `psql $DATABASE_URL -f scripts/setup-search.sql` — setup search (after reset only)
+3. `bash -c 'docker exec -i arsenyx-db psql "postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx" < scripts/setup-search.sql'` — setup search (after reset only)
 4. `bun dev` — start dev server at http://localhost:3000
 
 ## Project Structure
@@ -102,8 +102,16 @@ src/
 │   │   ├── mods.ts         # Mod utilities
 │   │   ├── capacity.ts     # Mod capacity calculations
 │   │   ├── schemas.ts      # Zod schemas
-│   │   ├── stats/          # Stat engine (warframe, weapon stats)
+│   │   ├── stats/          # Stat engine
+│   │   │   ├── index.ts
+│   │   │   ├── stat-engine.ts
+│   │   │   ├── warframe-stats.ts
+│   │   │   └── weapon-stats.ts
+│   │   ├── arcane-images.ts # Arcane image mappings
+│   │   ├── mod-card-config.ts # Mod card display config
+│   │   ├── stat-caps.ts    # Stat cap definitions
 │   │   ├── stat-parser.ts  # Stat string parsing
+│   │   ├── stat-types.ts   # Stat type definitions
 │   │   ├── helminth.ts     # Helminth ability data
 │   │   ├── shards.ts       # Archon shard data
 │   │   └── ...             # formatting, slugs, aura-effects, etc.
@@ -180,7 +188,24 @@ bunx shadcn@latest add <component-name> -y
 
 Game data (items, mods, arcanes) is NOT in the database — it lives in static JSON files loaded into in-memory Maps.
 
-## Environment Variables
+## Environments
+
+Two environments: **dev** (local) and **prod** (Vercel + Neon).
+
+### Dev
+
+- PostgreSQL via Docker (`docker compose up -d`)
+- `DATABASE_URL=postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx`
+- `psql` is **not installed locally** — always run via Docker: `docker exec -i arsenyx-db psql ...`
+- PowerShell doesn't support `<` redirection — wrap in `bash -c '...'` when piping stdin
+
+### Prod
+
+- Hosted on Vercel (Next.js) + Neon (PostgreSQL, eu-central-1)
+- `main` branch auto-deploys to Vercel
+- Neon connection string set in Vercel env vars
+
+### Environment Variables
 
 Required in `.env`:
 
@@ -194,37 +219,19 @@ BETTER_AUTH_URL=...          # Production only (e.g. https://arsenyx.com)
 
 ## Testing
 
-Tests exist in `__tests__/` directories alongside source code:
-- `src/lib/__tests__/build-codec.test.ts`
-- `src/lib/__tests__/result.test.ts`
-- `src/lib/warframe/__tests__/aura-effects.test.ts`
-- `src/lib/warframe/__tests__/capacity.test.ts`
-- `src/lib/warframe/__tests__/formatting.test.ts`
-- `src/lib/warframe/__tests__/helminth.test.ts`
-- `src/lib/warframe/__tests__/mod-variants.test.ts`
-- `src/lib/warframe/__tests__/mods.test.ts`
-- `src/lib/warframe/__tests__/shards.test.ts`
-- `src/lib/warframe/__tests__/slugs.test.ts`
-- `src/lib/warframe/__tests__/stat-caps.test.ts`
-- `src/lib/warframe/__tests__/stat-parser.test.ts`
-- `src/lib/warframe/__tests__/stats-calculator.test.ts`
-
-Coverage is growing but still partial — be careful with refactoring untested code.
+Tests use Bun's built-in test runner. Test files live in `__tests__/` directories alongside source code (e.g. `src/lib/__tests__/`, `src/lib/warframe/__tests__/`). Coverage is growing but still partial — be careful with refactoring untested code.
 
 ## Database Workflow
 
 - **Development phase** — no migrations. Use `bun run db:push` to sync schema directly. Reset with `bun run db:push --force-reset` if needed.
-- **After a reset** — run `psql $DATABASE_URL -f scripts/setup-search.sql` to recreate the full-text search trigger and GIN index.
+- **After a reset** — run search setup via Docker: `bash -c 'docker exec -i arsenyx-db psql "postgresql://arsenyx:arsenyx_dev@localhost:5432/arsenyx" < scripts/setup-search.sql'`
 - **Game data** lives in static JSON files (`src/data/warframe/`), loaded into in-memory Maps at server start. NOT in the database.
 - **User data** (builds, guides, votes, favorites) lives in PostgreSQL.
 - **Schema changes that drop/rename columns or add required fields** require a database reset. Always tell the user when a reset is needed before proceeding.
 
 ## Deployment
 
-- **Hosting**: Vercel (Next.js) + Neon (PostgreSQL, eu-central-1)
-- **Branch**: `main` is the production branch
-- **Build**: Vercel auto-deploys on push to `main`
-- **After Neon DB reset**: push schema with `DATABASE_URL=<neon-url> bunx prisma db push`, then run `setup-search.sql` via Neon SQL Editor or `docker exec -i arsenyx-db psql "<neon-url>" < scripts/setup-search.sql`
+- **After Neon DB reset**: push schema with `DATABASE_URL=<neon-url> bunx prisma db push`, then run `setup-search.sql` via Neon SQL Editor
 
 ## Gotchas
 
@@ -237,6 +244,5 @@ Coverage is growing but still partial — be careful with refactoring untested c
 - **Keyboard-first UX** — preserve keyboard navigation in browse components
 - **Server Components first** — only add `"use client"` when actually needed
 - **Don't modify `src/components/ui/`** — shadcn/ui primitives, override via className instead
-- **Lexical editor is complex** — changes require understanding the plugin architecture
 - **Always use `@/` import alias** — never use relative paths
 - **Use `cn()` for conditional classes** — `import { cn } from "@/lib/utils"`
