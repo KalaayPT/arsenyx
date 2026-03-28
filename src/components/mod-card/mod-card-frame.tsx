@@ -115,7 +115,7 @@ export function RankDots({ rank, maxRank, variant, className }: RankDotsProps) {
           key={i}
           className={cn(
             "h-[5px] w-[5px] rounded-full",
-            i < rank ? "bg-[#a8d4ff]" : "bg-gray-800/60",
+            i < rank ? "bg-wf-rank-pip" : "bg-muted/60",
           )}
           style={
             i < rank
