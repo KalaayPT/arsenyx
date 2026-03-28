@@ -405,7 +405,7 @@ async function CommunityBuildsSection({
               }
               nativeButton={false}
             >
-              <Icons.plus className="h-4 w-4" />
+              <Icons.plus data-icon="inline-start" />
               Create Build
             </Button>
           </CardContent>
