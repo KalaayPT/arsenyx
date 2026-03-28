@@ -22,7 +22,6 @@ export default function GuideNotFound() {
           <div className="flex flex-col justify-center gap-3 sm:flex-row">
             <Button
               variant="outline"
-              className="gap-2"
               render={<Link href="/guides" />}
               nativeButton={false}
             >
@@ -30,7 +29,6 @@ export default function GuideNotFound() {
               Back to Guides
             </Button>
             <Button
-              className="gap-2"
               render={<Link href="/guides" />}
               nativeButton={false}
             >
