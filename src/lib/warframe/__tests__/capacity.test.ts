@@ -43,8 +43,8 @@ describe("calculateModDrain", () => {
       rank: 5,
       polarity: "madurai" as Polarity,
     })
-    // (4 + 5) / 2 = 4.5 -> 4
-    expect(calculateModDrain(mod, "any")).toBe(4)
+    // (4 + 5) / 2 = 4.5 -> ceil = 5
+    expect(calculateModDrain(mod, "any")).toBe(5)
   })
 
   it("treats any polarity slot as neutral for Umbra mods", () => {
@@ -56,14 +56,14 @@ describe("calculateModDrain", () => {
     expect(calculateModDrain(mod, "any")).toBe(9)
   })
 
-  it("halves drain for matching polarity (rounded down)", () => {
+  it("halves drain for matching polarity (rounded up)", () => {
     const mod = createTestMod({
       baseDrain: 4,
       rank: 5,
       polarity: "madurai" as Polarity,
     })
-    // (4 + 5) / 2 = 4.5, floored to 4
-    expect(calculateModDrain(mod, "madurai")).toBe(4)
+    // (4 + 5) / 2 = 4.5, ceil = 5
+    expect(calculateModDrain(mod, "madurai")).toBe(5)
   })
 
   it("halves drain for matching polarity with even result", () => {
@@ -174,8 +174,8 @@ describe("calculateSlotDrain", () => {
       innatePolarity: "madurai",
       mod,
     }
-    // Matching polarity: (4 + 5) / 2 = 4
-    expect(calculateSlotDrain(slot)).toBe(4)
+    // Matching polarity: ceil((4 + 5) / 2) = 5
+    expect(calculateSlotDrain(slot)).toBe(5)
   })
 
   it("uses forma polarity over innate", () => {
@@ -187,8 +187,8 @@ describe("calculateSlotDrain", () => {
       formaPolarity: "vazarin",
       mod,
     }
-    // Forma matches: (4 + 5) / 2 = 4
-    expect(calculateSlotDrain(slot)).toBe(4)
+    // Forma matches: ceil((4 + 5) / 2) = 5
+    expect(calculateSlotDrain(slot)).toBe(5)
   })
 })
 
@@ -511,7 +511,9 @@ describe("calculateFormaCount", () => {
   })
 
   it("handles complex forma scenarios", () => {
-    // 3 independent changes
+    // Innate: [none, none, vazarin] → Desired: [madurai, madurai, none]
+    // Optimal: forma vazarin→madurai (1), forma none→madurai (1) = 2
+    // The vazarin→madurai change covers both a removal and an addition.
     const slots = [
       { ...createModSlot("0", "normal"), formaPolarity: "madurai" as Polarity },
       { ...createModSlot("1", "normal"), formaPolarity: "madurai" as Polarity },
@@ -520,7 +522,7 @@ describe("calculateFormaCount", () => {
         formaPolarity: "universal" as Polarity,
       },
     ]
-    expect(calculateFormaCount(slots)).toBe(3)
+    expect(calculateFormaCount(slots)).toBe(2)
   })
 
   it("includes aura and exilus slots", () => {

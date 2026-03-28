@@ -9,7 +9,7 @@ import type { BuildState, ModSlot, PlacedMod, Polarity } from "./types"
 
 /**
  * Calculate the actual drain of a mod in a slot
- * - Matching polarity: floor(drain / 2)
+ * - Matching polarity: ceil(drain / 2)
  * - Mismatched polarity: ceil(drain * 1.25)
  * - No polarity (neutral): base drain
  */
@@ -28,12 +28,12 @@ export function calculateModDrain(
   // Universal/Omni Forma: matches any polarity except Umbra.
   // Umbra mods in an "any" slot behave like neutral (no discount, no penalty).
   if (slotPolarity === "any") {
-    return mod.polarity === "umbra" ? baseDrain : Math.floor(baseDrain / 2)
+    return mod.polarity === "umbra" ? baseDrain : Math.ceil(baseDrain / 2)
   }
 
   if (mod.polarity === slotPolarity) {
-    // Matching polarity - halved, rounded down
-    return Math.floor(baseDrain / 2)
+    // Matching polarity - halved, rounded up
+    return Math.ceil(baseDrain / 2)
   }
 
   // Mismatched polarity - 25% penalty, rounded up
@@ -266,7 +266,7 @@ export function getMatchState(
  * - Count how many of each real polarity type you need vs have innate
  * - Additions: polarities you need but don't have enough of
  * - Removals: polarities you have but don't need
- * - forma = additions + removals
+ * - forma = max(additions, removals) because each forma both removes and adds
  *
  * @param slots - Array of slots to calculate forma for (should all be same type)
  * @returns Number of forma needed
@@ -311,9 +311,10 @@ function calculateSlotGroupForma(slots: ModSlot[]): number {
     }
   }
 
-  // Total forma = additions + removals
-  // (each is a separate forma operation, can't be combined across slots)
-  return additions + removals
+  // Each forma changes one slot's polarity, simultaneously removing the old
+  // and adding the new. Paired changes (X→Y) satisfy one addition AND one
+  // removal, so the total forma needed is whichever count is larger.
+  return Math.max(additions, removals)
 }
 
 /**
