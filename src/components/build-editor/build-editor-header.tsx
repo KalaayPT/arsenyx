@@ -160,10 +160,9 @@ export function BuildEditorHeader({
               <Button
                 variant="default"
                 size="sm"
-                className="gap-2"
                 onClick={() => setIsEditMode(true)}
               >
-                <Pencil className="size-4" />
+                <Pencil data-icon="inline-start" />
                 Edit
               </Button>
             </div>
@@ -175,16 +174,15 @@ export function BuildEditorHeader({
                 <Button
                   variant="default"
                   size="sm"
-                  className="gap-2"
                   onClick={() => setPublishDialogOpen(true)}
                   disabled={saveStatus === "saving"}
                 >
                   {saveStatus === "saving" ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 data-icon="inline-start" className="animate-spin" />
                   ) : buildId ? (
-                    <Save className="size-4" />
+                    <Save data-icon="inline-start" />
                   ) : (
-                    <UploadCloud className="size-4" />
+                    <UploadCloud data-icon="inline-start" />
                   )}
                   <span className="hidden sm:inline">
                     {saveStatus === "saving"
@@ -202,10 +200,9 @@ export function BuildEditorHeader({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
                   onClick={handleCopyBuild}
                 >
-                  <Save className="size-4" />
+                  <Save data-icon="inline-start" />
                   <span className="hidden sm:inline">
                     {showCopied ? "Copied!" : "Copy Link"}
                   </span>
@@ -214,10 +211,9 @@ export function BuildEditorHeader({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2"
                 onClick={handleCancel}
               >
-                <X className="size-4" />
+                <X data-icon="inline-start" />
                 <span className="hidden sm:inline">Cancel</span>
               </Button>
             </div>

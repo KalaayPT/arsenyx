@@ -428,6 +428,7 @@ async function CommunityBuildsSection({
                     <OrgBadge
                       name={build.organization.name}
                       slug={build.organization.slug}
+                      linked={false}
                     />
                   </p>
                 ) : (

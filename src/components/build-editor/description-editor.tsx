@@ -137,7 +137,7 @@ export function DescriptionEditor({
             )}
             onClick={() => setMode("edit")}
           >
-            <Pencil className="mr-1 size-3" />
+            <Pencil data-icon="inline-start" />
             Edit
           </Button>
           <Button
@@ -152,7 +152,7 @@ export function DescriptionEditor({
             )}
             onClick={() => setMode("preview")}
           >
-            <Eye className="mr-1 size-3" />
+            <Eye data-icon="inline-start" />
             Preview
           </Button>
         </div>

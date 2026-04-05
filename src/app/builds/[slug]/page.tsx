@@ -194,7 +194,17 @@ export default async function BuildPage({ params }: BuildPageProps) {
                   </span>
                 ) : (
                   <span className="text-muted-foreground text-sm">
-                    by {build.user.username || build.user.name || "Anonymous"}
+                    by{" "}
+                    {build.user.username ? (
+                      <Link
+                        href={`/profile/${build.user.username}`}
+                        className="hover:text-foreground transition-colors hover:underline"
+                      >
+                        {build.user.username}
+                      </Link>
+                    ) : (
+                      build.user.name || "Anonymous"
+                    )}
                   </span>
                 )}
               </div>

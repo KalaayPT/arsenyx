@@ -1,7 +1,7 @@
 "use client"
 
 import { Eye, EyeOff, Lock, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 import { getUserOrganizationsAction } from "@/app/actions/organizations"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -58,7 +59,15 @@ export function PublishDialog({
     await onPublish(visibility)
   }
 
-  const publishAs = organizationId ?? ""
+  const publishAs = organizationId ?? "__personal"
+
+  const publishAsItems = useMemo(
+    () => [
+      { value: "__personal", label: "Yourself" },
+      ...orgs.map((org) => ({ value: org.id, label: org.name })),
+    ],
+    [orgs],
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,19 +86,24 @@ export function PublishDialog({
               <Select
                 value={publishAs}
                 onValueChange={(val: string | null) => {
-                  onOrganizationChange(val || undefined)
+                  onOrganizationChange(
+                    val === "__personal" || !val ? undefined : val,
+                  )
                 }}
+                items={publishAsItems}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Yourself" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Yourself</SelectItem>
-                  {orgs.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
+                <SelectContent alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    <SelectItem value="__personal">Yourself</SelectItem>
+                    {orgs.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>

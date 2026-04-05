@@ -1,5 +1,7 @@
 "use client"
 
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
@@ -32,6 +34,7 @@ import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -171,6 +174,15 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Back link */}
+      <Link
+        href={`/org/${org.slug}`}
+        className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm transition-colors"
+      >
+        <ArrowLeft className="size-4" />
+        Back to {org.name}
+      </Link>
+
       {/* General Settings */}
       <form onSubmit={handleGeneralSubmit}>
         <Card>
@@ -309,13 +321,19 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
                         onValueChange={(val) => {
                           if (val) handleRoleChange(member.userId, val)
                         }}
+                        items={[
+                          { value: "ADMIN", label: "Admin" },
+                          { value: "MEMBER", label: "Member" },
+                        ]}
                       >
                         <SelectTrigger size="sm" className="w-28">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ADMIN">Admin</SelectItem>
-                          <SelectItem value="MEMBER">Member</SelectItem>
+                        <SelectContent alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            <SelectItem value="ADMIN">Admin</SelectItem>
+                            <SelectItem value="MEMBER">Member</SelectItem>
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     )}

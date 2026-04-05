@@ -7,7 +7,7 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { getDefaultCategory, isValidCategory } from "@/lib/warframe"
 // Server-only imports (uses Node.js fs via @wfcd/items)
-import { getItemsByCategory, getCategoryCounts } from "@/lib/warframe/items"
+import { getItemsByCategory } from "@/lib/warframe/items"
 import type { BrowseCategory } from "@/lib/warframe/types"
 
 export const metadata: Metadata = {
@@ -38,7 +38,6 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
 
   // Fetch ALL items for the category (filtering happens client-side for speed)
   const allItems = getItemsByCategory(category)
-  const counts = getCategoryCounts()
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -63,7 +62,6 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
             <BrowseContainer
               initialItems={allItems}
               initialCategory={category}
-              counts={counts}
               initialQuery={query}
             />
           </Suspense>

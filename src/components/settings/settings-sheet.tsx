@@ -114,8 +114,8 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
     }
   }
 
-  async function handleCreateOrg(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleCreateOrg() {
+    if (!newOrgName.trim()) return
     setIsCreatingOrg(true)
     const result = await createOrganizationAction({
       name: newOrgName.trim(),
@@ -273,10 +273,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                 )}
 
                 {showCreateOrg && (
-                  <form
-                    onSubmit={handleCreateOrg}
-                    className="flex flex-col gap-3 rounded-md border p-3"
-                  >
+                  <div className="flex flex-col gap-3 rounded-md border p-3">
                     <FieldGroup>
                       <Field>
                         <FieldLabel htmlFor="new-org-name">Name</FieldLabel>
@@ -285,9 +282,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                           value={newOrgName}
                           onChange={(e) => setNewOrgName(e.target.value)}
                           placeholder="My Organization"
-                          minLength={2}
                           maxLength={50}
-                          required
                         />
                       </Field>
                       <Field>
@@ -297,21 +292,23 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                           value={newOrgSlug}
                           onChange={(e) => setNewOrgSlug(e.target.value)}
                           placeholder="my-organization"
-                          minLength={2}
                           maxLength={30}
-                          pattern="[a-z0-9-]+"
-                          required
                         />
                         <FieldDescription>
                           Lowercase letters, numbers, hyphens only.
                         </FieldDescription>
                       </Field>
                     </FieldGroup>
-                    <Button type="submit" size="sm" disabled={isCreatingOrg}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isCreatingOrg || !newOrgName.trim()}
+                      onClick={handleCreateOrg}
+                    >
                       {isCreatingOrg && <Spinner />}
                       Create
                     </Button>
-                  </form>
+                  </div>
                 )}
               </div>
             </form>

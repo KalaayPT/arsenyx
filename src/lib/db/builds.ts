@@ -461,6 +461,7 @@ export async function getUserBuilds(
 
   const where: Prisma.BuildWhereInput = {
     userId,
+    organizationId: null, // Exclude org builds from personal profile
     ...visibilityFilter,
     ...(options.category && {
       itemCategory: options.category,
