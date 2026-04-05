@@ -71,7 +71,7 @@ export function CategoryTabs({
       onValueChange={linkNavigation ? undefined : handleCategoryChange}
       className={className}
     >
-      <TabsList className="bg-muted/50 h-auto flex-wrap justify-start p-1">
+      <TabsList className="bg-muted/50 !h-auto w-full flex-wrap justify-start p-1">
         {tabs.map((category, index) => {
           const value = category.id
           return (

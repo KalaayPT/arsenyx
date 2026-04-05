@@ -167,6 +167,14 @@ export function getModsByCompatibility(compatibility: ModCompatibility): Mod[] {
         )
       case "Necramech":
         return modType.includes("necramech")
+      case "Archgun":
+        return compatName === "archgun" || modType.includes("arch-gun")
+      case "Archmelee":
+        return compatName === "archmelee" || modType.includes("arch-melee")
+      case "Archwing":
+        return (
+          compatName === "archwing" || modType.includes("archwing")
+        )
       default:
         return false
     }
@@ -188,6 +196,7 @@ export function getModsForCategory(category: string): Mod[] {
     "exalted-weapons": ["Rifle", "Pistol", "Melee"],
     necramechs: ["Necramech"],
     companions: ["Companion"],
+    archwing: ["Archwing", "Archgun", "Archmelee"],
   }
 
   const compatibilities = categoryMap[category]
@@ -257,6 +266,7 @@ export function getModsForItem(item: {
     if (category === "warframes") return getModsForCategory("warframes")
     if (category === "necramechs") return getModsForCategory("necramechs")
     if (category === "companions") return getModsForCategory("companions")
+    if (category === "archwing") return getModsForCategory("archwing")
     return []
   }
 
@@ -281,6 +291,21 @@ export function getModsForItem(item: {
     // Melee weapons
     if (itemTypeLower === "melee") {
       return isMeleeMod(compatName, modType)
+    }
+
+    // Arch-Gun
+    if (itemTypeLower === "arch-gun") {
+      return compatName === "archgun" || modType.includes("arch-gun")
+    }
+
+    // Arch-Melee
+    if (itemTypeLower === "arch-melee") {
+      return compatName === "archmelee" || modType.includes("arch-melee")
+    }
+
+    // Archwing
+    if (itemTypeLower === "archwing") {
+      return compatName === "archwing" || modType.includes("archwing")
     }
 
     // Exalted weapons — WFCD data uses type "Exalted Weapon" for all.

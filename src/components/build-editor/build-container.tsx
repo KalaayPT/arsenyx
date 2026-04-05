@@ -202,6 +202,29 @@ export function BuildContainer({
     [activeSlotId, placeArcaneInSlot, setActiveSlotId],
   )
 
+  // --- Per-slot arcane filtering for Archguns ---
+  // Archguns have 2 arcane slots: slot 0 = primary arcanes, slot 1 = secondary arcanes
+  const filteredArcanes = useMemo(() => {
+    if (category !== "archwing") return compatibleArcanes
+    if (!activeSlotId?.startsWith("arcane-")) return compatibleArcanes
+
+    const slotIndex = parseInt(activeSlotId.replace("arcane-", ""))
+    if (slotIndex === 0) {
+      // Primary arcanes only
+      return compatibleArcanes.filter((a) =>
+        a.type?.toLowerCase().includes("primary"),
+      )
+    }
+    if (slotIndex === 1) {
+      // Secondary arcanes only
+      return compatibleArcanes.filter((a) => {
+        const t = a.type?.toLowerCase() ?? ""
+        return t.includes("secondary") || t.includes("pax")
+      })
+    }
+    return compatibleArcanes
+  }, [category, compatibleArcanes, activeSlotId])
+
   // --- Keyboard navigation ---
 
   const isWarframeOrNecramech = isWarframeCategory(category)
@@ -320,7 +343,7 @@ export function BuildContainer({
             <BuildEditorSearchPanel
               activeSlotId={activeSlotId}
               activeDragItem={activeDragItem}
-              compatibleArcanes={compatibleArcanes}
+              compatibleArcanes={filteredArcanes}
               compatibleMods={compatibleMods}
               usedArcaneNames={usedArcaneNames}
               usedModNames={usedModNames}

@@ -84,6 +84,11 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         let compatibleArcanes: Arcane[] = []
         if (["warframes", "necramechs"].includes(category)) {
           compatibleArcanes = getArcanesForSlot("warframe")
+        } else if (category === "archwing") {
+          compatibleArcanes = [
+            ...getArcanesForSlot("primary"),
+            ...getArcanesForSlot("secondary"),
+          ]
         } else if (["primary", "secondary", "melee"].includes(category)) {
           compatibleArcanes = getArcanesForSlot(
             category as "primary" | "secondary" | "melee",
@@ -135,6 +140,11 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     let compatibleArcanes: Arcane[] = []
     if (["warframes", "necramechs"].includes(category)) {
       compatibleArcanes = getArcanesForSlot("warframe")
+    } else if (category === "archwing") {
+      compatibleArcanes = [
+        ...getArcanesForSlot("primary"),
+        ...getArcanesForSlot("secondary"),
+      ]
     } else if (["primary", "secondary", "melee"].includes(category)) {
       compatibleArcanes = getArcanesForSlot(
         category as "primary" | "secondary" | "melee",
@@ -201,6 +211,11 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     let compatibleArcanes: Arcane[] = []
     if (["warframes", "necramechs"].includes(category)) {
       compatibleArcanes = getArcanesForSlot("warframe")
+    } else if (category === "archwing") {
+      compatibleArcanes = [
+        ...getArcanesForSlot("primary"),
+        ...getArcanesForSlot("secondary"),
+      ]
     } else if (["primary", "secondary", "melee"].includes(category)) {
       compatibleArcanes = getArcanesForSlot(
         category as "primary" | "secondary" | "melee",
