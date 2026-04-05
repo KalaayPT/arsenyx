@@ -1,13 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { toast } from "sonner"
 
+import {
+  getUserOrganizationsAction,
+  createOrganizationAction,
+} from "@/app/actions/organizations"
 import {
   getSettingsDataAction,
   updateProfileAction,
 } from "@/app/actions/profile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -30,6 +36,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
+import type { OrganizationListItem } from "@/lib/db/organizations"
 
 interface SettingsSheetProps {
   open: boolean
@@ -51,6 +58,12 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
   const [bio, setBio] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
+  const [orgs, setOrgs] = useState<OrganizationListItem[]>([])
+  const [showCreateOrg, setShowCreateOrg] = useState(false)
+  const [newOrgName, setNewOrgName] = useState("")
+  const [newOrgSlug, setNewOrgSlug] = useState("")
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false)
+  const [canCreateOrg, setCanCreateOrg] = useState(false)
 
   // Fetch user data when sheet opens
   useEffect(() => {
@@ -69,8 +82,12 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
         })
         setUsername(user.displayUsername ?? user.username ?? "")
         setBio(user.bio ?? "")
+        setCanCreateOrg(user.isCommunityLeader === true || user.isAdmin === true)
       }
       setIsLoading(false)
+    })
+    getUserOrganizationsAction().then((result) => {
+      if (result.success) setOrgs(result.data)
     })
   }, [open])
 
@@ -91,6 +108,28 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       onOpenChange(false)
     } else {
       setError(result.error)
+      toast.error(result.error)
+    }
+  }
+
+  async function handleCreateOrg(e: React.FormEvent) {
+    e.preventDefault()
+    setIsCreatingOrg(true)
+    const result = await createOrganizationAction({
+      name: newOrgName.trim(),
+      slug: newOrgSlug.trim(),
+    })
+    setIsCreatingOrg(false)
+    if (result.success) {
+      toast.success("Organization created")
+      setOrgs((prev) => [
+        ...prev,
+        { id: result.data.id, name: result.data.name, slug: result.data.slug, image: result.data.image, role: "ADMIN" },
+      ])
+      setShowCreateOrg(false)
+      setNewOrgName("")
+      setNewOrgSlug("")
+    } else {
       toast.error(result.error)
     }
   }
@@ -178,6 +217,96 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                   </FieldDescription>
                 </Field>
               </FieldGroup>
+
+              {/* Organizations section */}
+              <div className="mt-6 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Organizations</span>
+                  {canCreateOrg && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCreateOrg((v) => !v)}
+                    >
+                      {showCreateOrg ? "Cancel" : "Create Organization"}
+                    </Button>
+                  )}
+                </div>
+
+                {orgs.length === 0 && !showCreateOrg && (
+                  <p className="text-muted-foreground text-sm">
+                    You are not a member of any organization.
+                  </p>
+                )}
+
+                {orgs.length > 0 && (
+                  <ul className="flex flex-col gap-2">
+                    {orgs.map((org) => (
+                      <li
+                        key={org.id}
+                        className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
+                      >
+                        <Link
+                          href={`/org/${org.slug}`}
+                          className="hover:underline font-medium"
+                        >
+                          {org.name}
+                        </Link>
+                        <Badge variant="secondary" className="capitalize text-xs">
+                          {org.role.toLowerCase()}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {showCreateOrg && (
+                  <form
+                    onSubmit={handleCreateOrg}
+                    className="flex flex-col gap-3 rounded-md border p-3"
+                  >
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel htmlFor="new-org-name">Name</FieldLabel>
+                        <Input
+                          id="new-org-name"
+                          value={newOrgName}
+                          onChange={(e) => setNewOrgName(e.target.value)}
+                          placeholder="My Organization"
+                          minLength={2}
+                          maxLength={50}
+                          required
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel htmlFor="new-org-slug">Slug</FieldLabel>
+                        <Input
+                          id="new-org-slug"
+                          value={newOrgSlug}
+                          onChange={(e) => setNewOrgSlug(e.target.value)}
+                          placeholder="my-organization"
+                          minLength={2}
+                          maxLength={30}
+                          pattern="[a-z0-9-]+"
+                          required
+                        />
+                        <FieldDescription>
+                          Lowercase letters, numbers, hyphens only.
+                        </FieldDescription>
+                      </Field>
+                    </FieldGroup>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={isCreatingOrg}
+                    >
+                      {isCreatingOrg && <Spinner />}
+                      Create
+                    </Button>
+                  </form>
+                )}
+              </div>
             </form>
           )}
         </ScrollArea>
