@@ -31,6 +31,7 @@ export interface CreateBuildInput {
   guideSummary?: string
   guideDescription?: string
   partnerBuildIds?: string[]
+  organizationId?: string
 }
 
 export interface UpdateBuildInput {
@@ -63,6 +64,12 @@ export interface BuildWithUser {
     username: string | null
     image: string | null
   }
+  organization: {
+    id: string
+    name: string
+    slug: string
+    image: string | null
+  } | null
   item: {
     uniqueName: string
     name: string
@@ -114,6 +121,11 @@ export interface BuildListItem {
     name: string | null
     username: string | null
   }
+  organization: {
+    id: string
+    name: string
+    slug: string
+  } | null
   item: {
     name: string
     imageName: string | null
@@ -191,6 +203,9 @@ const buildInclude = {
       image: true,
     },
   },
+  organization: {
+    select: { id: true, name: true, slug: true, image: true },
+  },
   buildGuide: {
     select: {
       summary: true,
@@ -234,6 +249,10 @@ const buildListSelect = {
   itemName: true,
   itemImageName: true,
   itemCategory: true,
+  organizationId: true,
+  organization: {
+    select: { id: true, name: true, slug: true },
+  },
 } as const
 
 function mapBuildResult(
@@ -358,6 +377,7 @@ export async function createBuild(
       description: input.description,
       visibility: input.visibility ?? "PUBLIC",
       buildData: sanitizeBuildDataForDb(input.buildData),
+      organizationId: input.organizationId ?? null,
       hasShards: detectHasShards(input.buildData),
       hasGuide: !!(input.guideSummary || input.guideDescription),
       buildGuide: guideCreate,
@@ -574,14 +594,17 @@ export async function updateBuild(
   // First verify ownership
   const existing = await prisma.build.findUnique({
     where: { id: buildId },
-    select: { userId: true },
+    select: { userId: true, organizationId: true },
   })
+  if (!existing) throw new Error("Build not found")
 
-  if (!existing) {
-    throw new Error("Build not found")
+  const isOwner = existing.userId === userId
+  let isOrgMemberAllowed = false
+  if (!isOwner && existing.organizationId) {
+    const { isOrgMember } = await import("./organizations")
+    isOrgMemberAllowed = await isOrgMember(existing.organizationId, userId)
   }
-
-  if (existing.userId !== userId) {
+  if (!isOwner && !isOrgMemberAllowed) {
     throw new Error("Not authorized to update this build")
   }
 
@@ -741,14 +764,17 @@ export async function deleteBuild(
   // First verify ownership
   const existing = await prisma.build.findUnique({
     where: { id: buildId },
-    select: { userId: true },
+    select: { userId: true, organizationId: true },
   })
+  if (!existing) throw new Error("Build not found")
 
-  if (!existing) {
-    throw new Error("Build not found")
+  const isOwner = existing.userId === userId
+  let isOrgMemberAllowed = false
+  if (!isOwner && existing.organizationId) {
+    const { isOrgMember } = await import("./organizations")
+    isOrgMemberAllowed = await isOrgMember(existing.organizationId, userId)
   }
-
-  if (existing.userId !== userId) {
+  if (!isOwner && !isOrgMemberAllowed) {
     throw new Error("Not authorized to delete this build")
   }
 
