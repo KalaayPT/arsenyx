@@ -28,9 +28,7 @@ const GuideReader = dynamic(
     import("@/components/guides/guide-reader").then((mod) => mod.GuideReader),
   {
     ssr: false,
-    loading: () => (
-      <Skeleton className="h-[200px] rounded-md" />
-    ),
+    loading: () => <Skeleton className="h-[200px] rounded-md" />,
   },
 )
 

@@ -23,9 +23,7 @@ const DescriptionEditor = dynamic(
   () => import("./description-editor").then((mod) => mod.DescriptionEditor),
   {
     ssr: false,
-    loading: () => (
-      <Skeleton className="h-[200px] rounded-md" />
-    ),
+    loading: () => <Skeleton className="h-[200px] rounded-md" />,
   },
 )
 import type { PartnerBuild } from "./partner-build-card"

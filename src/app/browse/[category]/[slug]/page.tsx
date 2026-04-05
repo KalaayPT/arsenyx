@@ -425,7 +425,10 @@ async function CommunityBuildsSection({
               subtitle={
                 build.organization ? (
                   <p className="line-clamp-1 text-xs">
-                    <OrgBadge name={build.organization.name} slug={build.organization.slug} />
+                    <OrgBadge
+                      name={build.organization.name}
+                      slug={build.organization.slug}
+                    />
                   </p>
                 ) : (
                   <p className="text-muted-foreground line-clamp-1 text-xs">

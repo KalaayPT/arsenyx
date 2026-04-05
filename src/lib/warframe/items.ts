@@ -300,9 +300,7 @@ export function getCategoryCounts(): Record<BrowseCategory, number> {
  * Get an item by its WFCD unique name (category-agnostic)
  * Used for build creation validation and denormalization
  */
-export function getItemByUniqueName(
-  uniqueName: string,
-): BrowseableItem | null {
+export function getItemByUniqueName(uniqueName: string): BrowseableItem | null {
   return uniqueNameLookup.get(uniqueName) ?? null
 }
 

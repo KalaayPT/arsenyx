@@ -1,5 +1,4 @@
 import "server-only"
-
 import type { OrgRole } from "@prisma/client"
 import { cache } from "react"
 
@@ -56,30 +55,48 @@ export interface UpdateOrganizationInput {
 // READ
 // =============================================================================
 
-export const getOrganizationBySlug = cache(
-  async function getOrganizationBySlug(slug: string): Promise<OrganizationProfile | null> {
-    const org = await prisma.organization.findUnique({
-      where: { slug },
-      include: {
-        members: {
-          include: {
-            user: { select: { id: true, name: true, username: true, displayUsername: true, image: true } },
+export const getOrganizationBySlug = cache(async function getOrganizationBySlug(
+  slug: string,
+): Promise<OrganizationProfile | null> {
+  const org = await prisma.organization.findUnique({
+    where: { slug },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              displayUsername: true,
+              image: true,
+            },
           },
-          orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
         },
+        orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
       },
-    })
-    return org
-  },
-)
+    },
+  })
+  return org
+})
 
-export async function getOrganizationById(id: string): Promise<OrganizationProfile | null> {
+export async function getOrganizationById(
+  id: string,
+): Promise<OrganizationProfile | null> {
   const org = await prisma.organization.findUnique({
     where: { id },
     include: {
       members: {
         include: {
-          user: { select: { id: true, name: true, username: true, displayUsername: true, image: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              displayUsername: true,
+              image: true,
+            },
+          },
         },
         orderBy: [{ role: "asc" }, { joinedAt: "asc" }],
       },
@@ -88,7 +105,10 @@ export async function getOrganizationById(id: string): Promise<OrganizationProfi
   return org
 }
 
-export async function isOrgMember(organizationId: string, userId: string): Promise<boolean> {
+export async function isOrgMember(
+  organizationId: string,
+  userId: string,
+): Promise<boolean> {
   const member = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId, userId } },
     select: { userId: true },
@@ -96,7 +116,10 @@ export async function isOrgMember(organizationId: string, userId: string): Promi
   return !!member
 }
 
-export async function isOrgAdmin(organizationId: string, userId: string): Promise<boolean> {
+export async function isOrgAdmin(
+  organizationId: string,
+  userId: string,
+): Promise<boolean> {
   const member = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId, userId } },
     select: { role: true },
@@ -104,18 +127,25 @@ export async function isOrgAdmin(organizationId: string, userId: string): Promis
   return member?.role === "ADMIN"
 }
 
-export async function getUserOrganizations(userId: string): Promise<OrganizationListItem[]> {
+export async function getUserOrganizations(
+  userId: string,
+): Promise<OrganizationListItem[]> {
   const memberships = await prisma.organizationMember.findMany({
     where: { userId },
     include: {
-      organization: { select: { id: true, name: true, slug: true, image: true } },
+      organization: {
+        select: { id: true, name: true, slug: true, image: true },
+      },
     },
     orderBy: { joinedAt: "asc" },
   })
   return memberships.map((m) => ({ ...m.organization, role: m.role }))
 }
 
-export async function isOrgSlugTaken(slug: string, excludeOrgId?: string): Promise<boolean> {
+export async function isOrgSlugTaken(
+  slug: string,
+  excludeOrgId?: string,
+): Promise<boolean> {
   const existing = await prisma.organization.findFirst({
     where: {
       slug: { equals: slug, mode: "insensitive" },
@@ -130,7 +160,10 @@ export async function isOrgSlugTaken(slug: string, excludeOrgId?: string): Promi
 // CREATE
 // =============================================================================
 
-export async function createOrganization(userId: string, input: CreateOrganizationInput): Promise<OrganizationProfile> {
+export async function createOrganization(
+  userId: string,
+  input: CreateOrganizationInput,
+): Promise<OrganizationProfile> {
   const org = await prisma.organization.create({
     data: {
       name: input.name,
@@ -142,7 +175,15 @@ export async function createOrganization(userId: string, input: CreateOrganizati
     include: {
       members: {
         include: {
-          user: { select: { id: true, name: true, username: true, displayUsername: true, image: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              displayUsername: true,
+              image: true,
+            },
+          },
         },
       },
     },
@@ -154,19 +195,32 @@ export async function createOrganization(userId: string, input: CreateOrganizati
 // UPDATE
 // =============================================================================
 
-export async function updateOrganization(orgId: string, input: UpdateOrganizationInput): Promise<OrganizationProfile> {
+export async function updateOrganization(
+  orgId: string,
+  input: UpdateOrganizationInput,
+): Promise<OrganizationProfile> {
   const org = await prisma.organization.update({
     where: { id: orgId },
     data: {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.slug !== undefined && { slug: input.slug.toLowerCase() }),
       ...(input.image !== undefined && { image: input.image }),
-      ...(input.description !== undefined && { description: input.description }),
+      ...(input.description !== undefined && {
+        description: input.description,
+      }),
     },
     include: {
       members: {
         include: {
-          user: { select: { id: true, name: true, username: true, displayUsername: true, image: true } },
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              displayUsername: true,
+              image: true,
+            },
+          },
         },
       },
     },
@@ -178,7 +232,11 @@ export async function updateOrganization(orgId: string, input: UpdateOrganizatio
 // MEMBERS
 // =============================================================================
 
-export async function addOrgMember(orgId: string, username: string, role: OrgRole = "MEMBER"): Promise<void> {
+export async function addOrgMember(
+  orgId: string,
+  username: string,
+  role: OrgRole = "MEMBER",
+): Promise<void> {
   const user = await prisma.user.findFirst({
     where: { username: { equals: username, mode: "insensitive" } },
     select: { id: true },
@@ -186,7 +244,9 @@ export async function addOrgMember(orgId: string, username: string, role: OrgRol
   if (!user) throw new Error(`User "${username}" not found`)
 
   const existing = await prisma.organizationMember.findUnique({
-    where: { organizationId_userId: { organizationId: orgId, userId: user.id } },
+    where: {
+      organizationId_userId: { organizationId: orgId, userId: user.id },
+    },
   })
   if (existing) throw new Error(`User "${username}" is already a member`)
 
@@ -195,7 +255,10 @@ export async function addOrgMember(orgId: string, username: string, role: OrgRol
   })
 }
 
-export async function removeOrgMember(orgId: string, userId: string): Promise<void> {
+export async function removeOrgMember(
+  orgId: string,
+  userId: string,
+): Promise<void> {
   const adminCount = await prisma.organizationMember.count({
     where: { organizationId: orgId, role: "ADMIN" },
   })
@@ -211,7 +274,11 @@ export async function removeOrgMember(orgId: string, userId: string): Promise<vo
   })
 }
 
-export async function updateMemberRole(orgId: string, userId: string, role: OrgRole): Promise<void> {
+export async function updateMemberRole(
+  orgId: string,
+  userId: string,
+  role: OrgRole,
+): Promise<void> {
   if (role === "MEMBER") {
     const member = await prisma.organizationMember.findUnique({
       where: { organizationId_userId: { organizationId: orgId, userId } },

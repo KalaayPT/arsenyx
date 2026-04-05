@@ -12,7 +12,6 @@ import {
   deleteOrganizationAction,
 } from "@/app/actions/organizations"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -183,7 +182,13 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
           </CardHeader>
           <CardContent>
             <FieldGroup>
-              <Field data-invalid={generalError && generalError.toLowerCase().includes("name") ? true : undefined}>
+              <Field
+                data-invalid={
+                  generalError && generalError.toLowerCase().includes("name")
+                    ? true
+                    : undefined
+                }
+              >
                 <FieldLabel htmlFor="org-name">Name</FieldLabel>
                 <Input
                   id="org-name"
@@ -195,13 +200,21 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
                 />
               </Field>
 
-              <Field data-invalid={generalError && generalError.toLowerCase().includes("slug") ? true : undefined}>
+              <Field
+                data-invalid={
+                  generalError && generalError.toLowerCase().includes("slug")
+                    ? true
+                    : undefined
+                }
+              >
                 <FieldLabel htmlFor="org-slug">Slug</FieldLabel>
                 <Input
                   id="org-slug"
                   value={slug}
                   onChange={(e) =>
-                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
+                    setSlug(
+                      e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                    )
                   }
                   placeholder="org-slug"
                   maxLength={30}
@@ -310,7 +323,9 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleRemoveMember(member.userId, displayName)}
+                      onClick={() =>
+                        handleRemoveMember(member.userId, displayName)
+                      }
                       disabled={isRemoving}
                       className="text-destructive hover:text-destructive"
                     >
@@ -343,9 +358,7 @@ export function OrgSettingsForm({ org }: OrgSettingsFormProps) {
                 Add Member
               </Button>
             </div>
-            {addMemberError && (
-              <FieldError>{addMemberError}</FieldError>
-            )}
+            {addMemberError && <FieldError>{addMemberError}</FieldError>}
           </form>
         </CardContent>
       </Card>

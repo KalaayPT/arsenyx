@@ -1,12 +1,11 @@
 import { Calendar, Settings, Users } from "lucide-react"
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+import { BuildCardLink } from "@/components/build/build-card-link"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { BuildCardLink } from "@/components/build/build-card-link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { getServerSession } from "@/lib/auth"
@@ -86,10 +85,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
             {/* Avatar */}
             <div className="shrink-0">
               <Avatar className="size-32">
-                <AvatarImage
-                  src={org.image ?? undefined}
-                  alt={org.name}
-                />
+                <AvatarImage src={org.image ?? undefined} alt={org.name} />
                 <AvatarFallback className="text-4xl font-bold">
                   {org.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -100,7 +96,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
             <div className="flex flex-1 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <h1 className="text-3xl font-bold">{org.name}</h1>
-                <span className="bg-[#7c3aed] text-white text-[9px] font-semibold px-[5px] py-[1px] rounded">
+                <span className="rounded bg-[#7c3aed] px-[5px] py-[1px] text-[9px] font-semibold text-white">
                   ORG
                 </span>
                 {isOrgMember && (
@@ -134,9 +130,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
                   <div className="text-muted-foreground text-xs">Builds</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    {org.members.length}
-                  </div>
+                  <div className="text-2xl font-bold">{org.members.length}</div>
                   <div className="text-muted-foreground text-xs">Members</div>
                 </div>
               </div>
@@ -175,10 +169,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-sm font-medium">{displayName}</span>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs"
-                    >
+                    <Badge variant="secondary" className="text-xs">
                       {member.role === "ADMIN" ? "Admin" : "Member"}
                     </Badge>
                   </Link>

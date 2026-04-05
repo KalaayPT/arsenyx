@@ -141,11 +141,11 @@ export default async function BuildPage({ params }: BuildPageProps) {
 
   // Check if the current user is the owner or an org member who can edit
   const isOwner = viewerId === build.userId
-  const canEdit = isOwner || (
-    build.organization && viewerId
+  const canEdit =
+    isOwner ||
+    (build.organization && viewerId
       ? await isOrgMember(build.organization.id, viewerId)
-      : false
-  )
+      : false)
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -187,7 +187,10 @@ export default async function BuildPage({ params }: BuildPageProps) {
                 <h1 className="text-xl font-bold">{build.name}</h1>
                 {build.organization ? (
                   <span className="text-sm">
-                    <OrgBadge name={build.organization.name} slug={build.organization.slug} />
+                    <OrgBadge
+                      name={build.organization.name}
+                      slug={build.organization.slug}
+                    />
                   </span>
                 ) : (
                   <span className="text-muted-foreground text-sm">

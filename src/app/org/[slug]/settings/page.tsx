@@ -11,10 +11,7 @@ interface OrgSettingsPageProps {
   params: Promise<{ slug: string }>
 }
 
-export async function generateMetadata({
-  params,
-}: OrgSettingsPageProps): Promise<Metadata> {
-  const { slug } = await params
+export async function generateMetadata(): Promise<Metadata> {
   return { title: `Organization Settings | ARSENYX` }
 }
 
@@ -42,10 +39,10 @@ export default async function OrgSettingsPage({
     <div className="relative flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <div className="container max-w-2xl flex flex-col gap-8 py-8">
+        <div className="container flex max-w-2xl flex-col gap-8 py-8">
           <div>
             <h1 className="text-2xl font-bold">{org.name} Settings</h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground mt-1 text-sm">
               Manage your organization
             </p>
           </div>

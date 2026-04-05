@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { getServerSession } from "@/lib/auth"
+import { prisma } from "@/lib/db"
 import {
   createOrganization,
   updateOrganization,
@@ -19,7 +20,6 @@ import {
   type OrganizationProfile,
   type OrganizationListItem,
 } from "@/lib/db/organizations"
-import { prisma } from "@/lib/db"
 import { err, getErrorMessage, ok, type Result } from "@/lib/result"
 
 // =============================================================================
@@ -27,15 +27,31 @@ import { err, getErrorMessage, ok, type Result } from "@/lib/result"
 // =============================================================================
 
 const createOrgSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name must be at most 50 characters"),
-  slug: z.string().min(2, "Slug must be at least 2 characters").max(30, "Slug must be at most 30 characters").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be at most 50 characters"),
+  slug: z
+    .string()
+    .min(2, "Slug must be at least 2 characters")
+    .max(30, "Slug must be at most 30 characters")
+    .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens"),
   image: z.string().url().optional().or(z.literal("")),
-  description: z.string().max(200, "Description must be at most 200 characters").optional().or(z.literal("")),
+  description: z
+    .string()
+    .max(200, "Description must be at most 200 characters")
+    .optional()
+    .or(z.literal("")),
 })
 
 const updateOrgSchema = z.object({
   name: z.string().min(2).max(50).optional(),
-  slug: z.string().min(2).max(30).regex(/^[a-z0-9-]+$/).optional(),
+  slug: z
+    .string()
+    .min(2)
+    .max(30)
+    .regex(/^[a-z0-9-]+$/)
+    .optional(),
   image: z.string().url().nullable().optional(),
   description: z.string().max(200).nullable().optional(),
 })
@@ -60,7 +76,8 @@ export async function createOrganizationAction(
     }
 
     const parsed = createOrgSchema.safeParse(input)
-    if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid input")
+    if (!parsed.success)
+      return err(parsed.error.issues[0]?.message ?? "Invalid input")
 
     const slugTaken = await isOrgSlugTaken(parsed.data.slug)
     if (slugTaken) return err("This slug is already taken")
@@ -95,7 +112,8 @@ export async function updateOrganizationAction(
     if (!admin) return err("Only admins can update organization settings")
 
     const parsed = updateOrgSchema.safeParse(input)
-    if (!parsed.success) return err(parsed.error.issues[0]?.message ?? "Invalid input")
+    if (!parsed.success)
+      return err(parsed.error.issues[0]?.message ?? "Invalid input")
 
     if (parsed.data.slug) {
       const slugTaken = await isOrgSlugTaken(parsed.data.slug, orgId)
@@ -134,7 +152,10 @@ export async function deleteOrganizationAction(orgId: string): Promise<Result> {
 // MEMBERS
 // =============================================================================
 
-export async function addOrgMemberAction(orgId: string, username: string): Promise<Result> {
+export async function addOrgMemberAction(
+  orgId: string,
+  username: string,
+): Promise<Result> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) return err("You must be signed in")
@@ -150,7 +171,10 @@ export async function addOrgMemberAction(orgId: string, username: string): Promi
   }
 }
 
-export async function removeOrgMemberAction(orgId: string, userId: string): Promise<Result> {
+export async function removeOrgMemberAction(
+  orgId: string,
+  userId: string,
+): Promise<Result> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) return err("You must be signed in")
@@ -166,7 +190,11 @@ export async function removeOrgMemberAction(orgId: string, userId: string): Prom
   }
 }
 
-export async function updateMemberRoleAction(orgId: string, userId: string, role: OrgRole): Promise<Result> {
+export async function updateMemberRoleAction(
+  orgId: string,
+  userId: string,
+  role: OrgRole,
+): Promise<Result> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) return err("You must be signed in")
@@ -186,7 +214,9 @@ export async function updateMemberRoleAction(orgId: string, userId: string, role
 // READ (for client use)
 // =============================================================================
 
-export async function getUserOrganizationsAction(): Promise<Result<OrganizationListItem[]>> {
+export async function getUserOrganizationsAction(): Promise<
+  Result<OrganizationListItem[]>
+> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) return err("You must be signed in")
@@ -198,7 +228,9 @@ export async function getUserOrganizationsAction(): Promise<Result<OrganizationL
   }
 }
 
-export async function getOrganizationSettingsAction(slug: string): Promise<Result<OrganizationProfile>> {
+export async function getOrganizationSettingsAction(
+  slug: string,
+): Promise<Result<OrganizationProfile>> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) return err("You must be signed in")

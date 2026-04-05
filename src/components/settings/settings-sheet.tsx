@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -82,7 +82,9 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
         })
         setUsername(user.displayUsername ?? user.username ?? "")
         setBio(user.bio ?? "")
-        setCanCreateOrg(user.isCommunityLeader === true || user.isAdmin === true)
+        setCanCreateOrg(
+          user.isCommunityLeader === true || user.isAdmin === true,
+        )
       }
       setIsLoading(false)
     })
@@ -124,7 +126,13 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
       toast.success("Organization created")
       setOrgs((prev) => [
         ...prev,
-        { id: result.data.id, name: result.data.name, slug: result.data.slug, image: result.data.image, role: "ADMIN" },
+        {
+          id: result.data.id,
+          name: result.data.name,
+          slug: result.data.slug,
+          image: result.data.image,
+          role: "ADMIN",
+        },
       ])
       setShowCreateOrg(false)
       setNewOrgName("")
@@ -249,11 +257,14 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                       >
                         <Link
                           href={`/org/${org.slug}`}
-                          className="hover:underline font-medium"
+                          className="font-medium hover:underline"
                         >
                           {org.name}
                         </Link>
-                        <Badge variant="secondary" className="capitalize text-xs">
+                        <Badge
+                          variant="secondary"
+                          className="text-xs capitalize"
+                        >
                           {org.role.toLowerCase()}
                         </Badge>
                       </li>
@@ -296,11 +307,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
                         </FieldDescription>
                       </Field>
                     </FieldGroup>
-                    <Button
-                      type="submit"
-                      size="sm"
-                      disabled={isCreatingOrg}
-                    >
+                    <Button type="submit" size="sm" disabled={isCreatingOrg}>
                       {isCreatingOrg && <Spinner />}
                       Create
                     </Button>
@@ -319,9 +326,7 @@ export function SettingsSheet({ open, onOpenChange }: SettingsSheetProps) {
             {isPending && <Spinner />}
             Save Changes
           </Button>
-          <SheetClose render={<Button variant="outline" />}>
-            Cancel
-          </SheetClose>
+          <SheetClose render={<Button variant="outline" />}>Cancel</SheetClose>
         </SheetFooter>
       </SheetContent>
     </Sheet>

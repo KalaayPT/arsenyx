@@ -64,7 +64,9 @@ export function useBuildPersistence({
   )
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
-  const [organizationId, setOrganizationId] = useState<string | undefined>(undefined)
+  const [organizationId, setOrganizationId] = useState<string | undefined>(
+    undefined,
+  )
 
   // Auto-save buildState to localStorage (debounced 300ms)
   useEffect(() => {

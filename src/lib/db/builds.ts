@@ -8,13 +8,13 @@ import type { BuildVisibility, Prisma } from "@prisma/client"
 import { nanoid } from "nanoid"
 import { cache } from "react"
 
+import { getItemMetadata } from "@/lib/warframe/items"
 import {
   BuildStateSchema,
   safeParseOrCast,
   safeParse,
 } from "@/lib/warframe/schemas"
 import type { BuildState } from "@/lib/warframe/types"
-import { getItemMetadata } from "@/lib/warframe/items"
 
 import { prisma } from "../db"
 
@@ -317,9 +317,7 @@ function mapBuildResult(
   } as unknown as BuildWithUser
 }
 
-function mapBuildListItem(
-  build: Record<string, unknown>,
-): BuildListItem {
+function mapBuildListItem(build: Record<string, unknown>): BuildListItem {
   return {
     ...build,
     item: {
