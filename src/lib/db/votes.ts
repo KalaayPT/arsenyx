@@ -6,6 +6,10 @@
 
 import { prisma } from "../db"
 import { voteLimiter, RateLimitError } from "../rate-limit"
+import {
+  toggleBuildSocialAction,
+  getUserSocialStatusesForBuilds,
+} from "./social-toggle"
 
 // =============================================================================
 // TYPES
@@ -36,35 +40,13 @@ export async function toggleBuildVote(
   // Rate limit: 10 votes per minute per user
   await voteLimiter.check(10, `vote_${userId}`)
 
-  const existingVote = await prisma.buildVote.findUnique({
-    where: {
-      userId_buildId: { userId, buildId },
-    },
-  })
-
-  if (existingVote) {
-    // Remove vote
-    const [, build] = await prisma.$transaction([
-      prisma.buildVote.delete({ where: { id: existingVote.id } }),
-      prisma.build.update({
-        where: { id: buildId },
-        data: { voteCount: { decrement: 1 } },
-        select: { voteCount: true },
-      }),
-    ])
-    return { voted: false, voteCount: build.voteCount }
-  } else {
-    // Add vote
-    const [, build] = await prisma.$transaction([
-      prisma.buildVote.create({ data: { userId, buildId } }),
-      prisma.build.update({
-        where: { id: buildId },
-        data: { voteCount: { increment: 1 } },
-        select: { voteCount: true },
-      }),
-    ])
-    return { voted: true, voteCount: build.voteCount }
-  }
+  const result = await toggleBuildSocialAction(
+    userId,
+    buildId,
+    "buildVote",
+    "voteCount",
+  )
+  return { voted: result.active, voteCount: result.count }
 }
 
 /**
@@ -93,17 +75,7 @@ export async function getUserVotesForBuilds(
   userId: string,
   buildIds: string[],
 ): Promise<Set<string>> {
-  if (buildIds.length === 0) return new Set()
-
-  const votes = await prisma.buildVote.findMany({
-    where: {
-      userId,
-      buildId: { in: buildIds },
-    },
-    select: { buildId: true },
-  })
-
-  return new Set(votes.map((v) => v.buildId))
+  return getUserSocialStatusesForBuilds(userId, buildIds, "buildVote")
 }
 
 // Re-export for convenience

@@ -9,6 +9,10 @@ import type { BuildState } from "@/lib/warframe/types"
 
 import { prisma } from "../db"
 import { favoriteLimiter, RateLimitError } from "../rate-limit"
+import {
+  toggleBuildSocialAction,
+  getUserSocialStatusesForBuilds,
+} from "./social-toggle"
 
 // =============================================================================
 // TYPES
@@ -63,35 +67,13 @@ export async function toggleBuildFavorite(
   // Rate limit: 20 favorites per minute per user
   await favoriteLimiter.check(20, `fav_${userId}`)
 
-  const existingFavorite = await prisma.buildFavorite.findUnique({
-    where: {
-      userId_buildId: { userId, buildId },
-    },
-  })
-
-  if (existingFavorite) {
-    // Remove favorite
-    const [, build] = await prisma.$transaction([
-      prisma.buildFavorite.delete({ where: { id: existingFavorite.id } }),
-      prisma.build.update({
-        where: { id: buildId },
-        data: { favoriteCount: { decrement: 1 } },
-        select: { favoriteCount: true },
-      }),
-    ])
-    return { favorited: false, favoriteCount: build.favoriteCount }
-  } else {
-    // Add favorite
-    const [, build] = await prisma.$transaction([
-      prisma.buildFavorite.create({ data: { userId, buildId } }),
-      prisma.build.update({
-        where: { id: buildId },
-        data: { favoriteCount: { increment: 1 } },
-        select: { favoriteCount: true },
-      }),
-    ])
-    return { favorited: true, favoriteCount: build.favoriteCount }
-  }
+  const result = await toggleBuildSocialAction(
+    userId,
+    buildId,
+    "buildFavorite",
+    "favoriteCount",
+  )
+  return { favorited: result.active, favoriteCount: result.count }
 }
 
 /**
@@ -198,17 +180,7 @@ export async function getUserFavoritesForBuilds(
   userId: string,
   buildIds: string[],
 ): Promise<Set<string>> {
-  if (buildIds.length === 0) return new Set()
-
-  const favorites = await prisma.buildFavorite.findMany({
-    where: {
-      userId,
-      buildId: { in: buildIds },
-    },
-    select: { buildId: true },
-  })
-
-  return new Set(favorites.map((f) => f.buildId))
+  return getUserSocialStatusesForBuilds(userId, buildIds, "buildFavorite")
 }
 
 // Re-export for convenience
