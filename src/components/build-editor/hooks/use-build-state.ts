@@ -179,6 +179,12 @@ export function createInitialBuildState(
     }
     baseState.shardSlots = [null, null, null, null, null]
     baseState.arcaneSlots = [null, null]
+  } else if (
+    category === "archwing" &&
+    (item as { type?: string }).type === "Arch-Gun"
+  ) {
+    // Archguns get 2 arcane slots: 1 primary + 1 secondary arcane
+    baseState.arcaneSlots = [null, null]
   } else if (isWeaponCategory(category)) {
     baseState.arcaneSlots = [null]
   }

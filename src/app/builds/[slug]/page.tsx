@@ -124,6 +124,11 @@ export default async function BuildPage({ params }: BuildPageProps) {
   let compatibleArcanes: Arcane[] = []
   if (isWarframeCategory) {
     compatibleArcanes = getArcanesForSlot("warframe")
+  } else if (category === "archwing") {
+    compatibleArcanes = [
+      ...getArcanesForSlot("primary"),
+      ...getArcanesForSlot("secondary"),
+    ]
   } else if (category === "primary") {
     compatibleArcanes = getArcanesForSlot("primary")
   } else if (category === "secondary") {
