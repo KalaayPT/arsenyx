@@ -464,8 +464,9 @@ function ModCardComponent({
     if (!isHovered) return
 
     const handleScroll = () => setIsHovered(false)
-    window.addEventListener("scroll", handleScroll, true)
-    return () => window.removeEventListener("scroll", handleScroll, true)
+    const scrollOpts: AddEventListenerOptions = { capture: true, passive: true }
+    window.addEventListener("scroll", handleScroll, scrollOpts)
+    return () => window.removeEventListener("scroll", handleScroll, scrollOpts)
   }, [isHovered])
 
   // Close when disableHover becomes true (during drag)
