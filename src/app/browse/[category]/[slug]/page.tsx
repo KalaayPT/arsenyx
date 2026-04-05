@@ -8,6 +8,7 @@ import { BuildCardLink } from "@/components/build/build-card-link"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Icons } from "@/components/icons"
+import { OrgBadge } from "@/components/org"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -422,9 +423,15 @@ async function CommunityBuildsSection({
               voteCount={build.voteCount}
               viewCount={build.viewCount}
               subtitle={
-                <p className="text-muted-foreground line-clamp-1 text-xs">
-                  by {build.user.username || build.user.name || "Anonymous"}
-                </p>
+                build.organization ? (
+                  <p className="line-clamp-1 text-xs">
+                    <OrgBadge name={build.organization.name} slug={build.organization.slug} />
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground line-clamp-1 text-xs">
+                    by {build.user.username || build.user.name || "Anonymous"}
+                  </p>
+                )
               }
             />
           ))}
