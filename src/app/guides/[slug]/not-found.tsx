@@ -28,10 +28,7 @@ export default function GuideNotFound() {
               <ArrowLeft data-icon="inline-start" />
               Back to Guides
             </Button>
-            <Button
-              render={<Link href="/guides" />}
-              nativeButton={false}
-            >
+            <Button render={<Link href="/guides" />} nativeButton={false}>
               <BookOpen data-icon="inline-start" />
               Browse All Guides
             </Button>

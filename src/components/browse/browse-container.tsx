@@ -19,14 +19,12 @@ import { SortDropdown } from "./sort-dropdown"
 interface BrowseContainerProps {
   initialItems: BrowseItem[]
   initialCategory: BrowseCategory
-  counts: Record<string, number>
   initialQuery?: string
 }
 
 export function BrowseContainer({
   initialItems,
   initialCategory,
-  counts,
   initialQuery = "",
 }: BrowseContainerProps) {
   const router = useRouter()
@@ -211,7 +209,7 @@ export function BrowseContainer({
       </div>
 
       {/* Category Tabs */}
-      <CategoryTabs activeCategory={initialCategory} counts={counts} />
+      <CategoryTabs activeCategory={initialCategory} />
 
       {/* Results info */}
       <div className="text-muted-foreground text-sm">

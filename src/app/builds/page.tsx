@@ -9,6 +9,7 @@ import { BuildStats } from "@/components/build/build-card-link"
 import { BuildsFilterDropdown, BuildsSortDropdown } from "@/components/builds"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+import { OrgBadge } from "@/components/org"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getPublicBuilds, type BuildListItem } from "@/lib/db/index"
@@ -112,7 +113,15 @@ function BuildCard({ build }: { build: BuildListItem }) {
         {/* Author and Stats */}
         <div className="text-muted-foreground flex items-center justify-between text-xs">
           <span className="line-clamp-1">
-            by {build.user.username || build.user.name || "Anonymous"}
+            {build.organization ? (
+              <OrgBadge
+                name={build.organization.name}
+                slug={build.organization.slug}
+                linked={false}
+              />
+            ) : (
+              <>by {build.user.username || build.user.name || "Anonymous"}</>
+            )}
           </span>
           <BuildStats voteCount={build.voteCount} viewCount={build.viewCount} />
         </div>
@@ -196,7 +205,6 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
             <CategoryTabs
               activeCategory={(category as BrowseCategory) || ""}
               showAll
-              linkNavigation
             />
           </Suspense>
 

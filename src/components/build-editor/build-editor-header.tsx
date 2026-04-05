@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import {
   Check,
   Diamond,
@@ -12,6 +11,7 @@ import {
   X,
 } from "lucide-react"
 import Image from "next/image"
+import { useEffect, useRef, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -40,6 +40,8 @@ export interface BuildEditorHeaderProps {
   handleCancel: () => void
   handleCopyBuild: () => Promise<void>
   showCopied: boolean
+  organizationId?: string
+  onOrganizationChange?: (id: string | undefined) => void
 }
 
 export function BuildEditorHeader({
@@ -63,6 +65,8 @@ export function BuildEditorHeader({
   handleCancel,
   handleCopyBuild,
   showCopied,
+  organizationId,
+  onOrganizationChange,
 }: BuildEditorHeaderProps) {
   const [isEditingName, setIsEditingName] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -156,10 +160,9 @@ export function BuildEditorHeader({
               <Button
                 variant="default"
                 size="sm"
-                className="gap-2"
                 onClick={() => setIsEditMode(true)}
               >
-                <Pencil className="size-4" />
+                <Pencil data-icon="inline-start" />
                 Edit
               </Button>
             </div>
@@ -171,16 +174,15 @@ export function BuildEditorHeader({
                 <Button
                   variant="default"
                   size="sm"
-                  className="gap-2"
                   onClick={() => setPublishDialogOpen(true)}
                   disabled={saveStatus === "saving"}
                 >
                   {saveStatus === "saving" ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 data-icon="inline-start" className="animate-spin" />
                   ) : buildId ? (
-                    <Save className="size-4" />
+                    <Save data-icon="inline-start" />
                   ) : (
-                    <UploadCloud className="size-4" />
+                    <UploadCloud data-icon="inline-start" />
                   )}
                   <span className="hidden sm:inline">
                     {saveStatus === "saving"
@@ -198,10 +200,9 @@ export function BuildEditorHeader({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="gap-2"
                   onClick={handleCopyBuild}
                 >
-                  <Save className="size-4" />
+                  <Save data-icon="inline-start" />
                   <span className="hidden sm:inline">
                     {showCopied ? "Copied!" : "Copy Link"}
                   </span>
@@ -210,10 +211,9 @@ export function BuildEditorHeader({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2"
                 onClick={handleCancel}
               >
-                <X className="size-4" />
+                <X data-icon="inline-start" />
                 <span className="hidden sm:inline">Cancel</span>
               </Button>
             </div>
@@ -227,6 +227,8 @@ export function BuildEditorHeader({
         onPublish={handlePublish}
         isPublishing={saveStatus === "saving"}
         isUpdate={!!buildId}
+        organizationId={organizationId}
+        onOrganizationChange={onOrganizationChange}
       />
     </>
   )

@@ -4,6 +4,7 @@ import Image from "next/image"
 import { memo, useState, useEffect, useCallback, useRef } from "react"
 import { createPortal } from "react-dom"
 
+import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import { getImageUrl, getPlaceholderUrl } from "@/lib/warframe/images"
 import {
@@ -13,8 +14,6 @@ import {
   getModAssetUrl,
 } from "@/lib/warframe/mod-card-config"
 import type { Mod } from "@/lib/warframe/types"
-
-import { Separator } from "@/components/ui/separator"
 
 import {
   ModCardFrame,

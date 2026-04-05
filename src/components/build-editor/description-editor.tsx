@@ -28,9 +28,7 @@ const GuideReader = dynamic(
     import("@/components/guides/guide-reader").then((mod) => mod.GuideReader),
   {
     ssr: false,
-    loading: () => (
-      <Skeleton className="h-[200px] rounded-md" />
-    ),
+    loading: () => <Skeleton className="h-[200px] rounded-md" />,
   },
 )
 
@@ -139,7 +137,7 @@ export function DescriptionEditor({
             )}
             onClick={() => setMode("edit")}
           >
-            <Pencil className="mr-1 size-3" />
+            <Pencil data-icon="inline-start" />
             Edit
           </Button>
           <Button
@@ -154,7 +152,7 @@ export function DescriptionEditor({
             )}
             onClick={() => setMode("preview")}
           >
-            <Eye className="mr-1 size-3" />
+            <Eye data-icon="inline-start" />
             Preview
           </Button>
         </div>

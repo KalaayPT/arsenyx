@@ -28,9 +28,21 @@ export const auth = betterAuth({
   ],
   user: {
     additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "USER",
+      isVerified: {
+        type: "boolean",
+        defaultValue: false,
+      },
+      isCommunityLeader: {
+        type: "boolean",
+        defaultValue: false,
+      },
+      isModerator: {
+        type: "boolean",
+        defaultValue: false,
+      },
+      isAdmin: {
+        type: "boolean",
+        defaultValue: false,
       },
     },
   },

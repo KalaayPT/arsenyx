@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
-import { getItemsByCategory } from "@/lib/warframe/items"
-import { BROWSE_CATEGORIES } from "@/lib/warframe/categories"
-import type { BrowseItem } from "@/lib/warframe/types"
 import { searchLimiter, RateLimitError } from "@/lib/rate-limit"
+import { BROWSE_CATEGORIES } from "@/lib/warframe/categories"
+import { getItemsByCategory } from "@/lib/warframe/items"
+import type { BrowseItem } from "@/lib/warframe/types"
 
 function searchItems(query: string, limit: number): BrowseItem[] {
   const lowerQ = query.toLowerCase()

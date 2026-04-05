@@ -149,7 +149,7 @@ export function ShardSlot({
       <ContextMenuContent>
         <ContextMenuItem onClick={onSelect}>Change Shard</ContextMenuItem>
         <ContextMenuItem onClick={onRemove} className="text-destructive">
-          <X className="mr-2 size-4" />
+          <X />
           Remove Shard
         </ContextMenuItem>
       </ContextMenuContent>

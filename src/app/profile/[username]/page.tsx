@@ -93,8 +93,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     user.name ||
                     "Anonymous"}
                 </h1>
-                {user.role !== "USER" && (
-                  <Badge variant="secondary">{user.role}</Badge>
+                {user.isAdmin && <Badge variant="secondary">ADMIN</Badge>}
+                {user.isModerator && (
+                  <Badge variant="secondary">MODERATOR</Badge>
+                )}
+                {user.isVerified && <Badge variant="secondary">VERIFIED</Badge>}
+                {user.isCommunityLeader && (
+                  <Badge variant="secondary">COMMUNITY LEADER</Badge>
                 )}
               </div>
 

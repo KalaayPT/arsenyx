@@ -138,7 +138,9 @@ export async function getProfileBuildsAction(
 // SETTINGS DATA
 // =============================================================================
 
-export async function getSettingsDataAction(): Promise<Result<UserProfileFull>> {
+export async function getSettingsDataAction(): Promise<
+  Result<UserProfileFull>
+> {
   try {
     const session = await getServerSession()
     if (!session?.user?.id) {

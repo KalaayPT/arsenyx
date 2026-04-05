@@ -37,7 +37,7 @@ function SignInContent() {
           onClick={handleSignIn}
           disabled={isLoading}
         >
-          <GitHubIcon className="mr-2 size-5" />
+          <GitHubIcon data-icon="inline-start" />
           {isLoading ? "Redirecting..." : "Continue with GitHub"}
         </Button>
 
@@ -75,7 +75,7 @@ function SignInFallback() {
           </p>
         </div>
         <Button type="button" className="w-full" size="lg" disabled>
-          <GitHubIcon className="mr-2 size-5" />
+          <GitHubIcon data-icon="inline-start" />
           Continue with GitHub
         </Button>
       </div>

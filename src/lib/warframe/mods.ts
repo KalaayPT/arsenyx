@@ -172,9 +172,7 @@ export function getModsByCompatibility(compatibility: ModCompatibility): Mod[] {
       case "Archmelee":
         return compatName === "archmelee" || modType.includes("arch-melee")
       case "Archwing":
-        return (
-          compatName === "archwing" || modType.includes("archwing")
-        )
+        return compatName === "archwing" || modType.includes("archwing")
       default:
         return false
     }
@@ -350,9 +348,7 @@ export function getModsForItem(item: {
     }
 
     // Companion
-    if (
-      ["companion", "sentinel", "beast", "pets"].includes(itemTypeLower)
-    ) {
+    if (["companion", "sentinel", "beast", "pets"].includes(itemTypeLower)) {
       return (
         modType.includes("companion") ||
         modType.includes("sentinel") ||

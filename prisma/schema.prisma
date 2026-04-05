@@ -25,6 +25,12 @@ model User {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  // Role flags (independent, a user can have multiple)
+  isVerified        Boolean @default(false)
+  isCommunityLeader Boolean @default(false)
+  isModerator       Boolean @default(false)
+  isAdmin           Boolean @default(false)
+
   // Relations
   accounts       Account[]
   sessions       Session[]
@@ -35,18 +41,9 @@ model User {
   guideFavorites GuideFavorite[]
   guides         Guide[]
   apiKeys        ApiKey[]
-
-  role Role @default(USER)
+  organizationMemberships OrganizationMember[]
 
   @@map("users")
-}
-
-enum Role {
-  USER
-  VERIFIED
-  DEVELOPER
-  MODERATOR
-  ADMIN
 }
 
 model Account {
@@ -99,6 +96,46 @@ model Verification {
 }
 
 // =============================================================================
+// ORGANIZATIONS
+// =============================================================================
+
+enum OrgRole {
+  ADMIN
+  MEMBER
+}
+
+model Organization {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  image       String?
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members OrganizationMember[]
+  builds  Build[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role     OrgRole  @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  @@id([organizationId, userId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+// =============================================================================
 // BUILDS
 // =============================================================================
 
@@ -115,6 +152,10 @@ model Build {
   // Ownership
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Organization (optional — when set, org owns the build)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   // Item reference (denormalized from in-memory WFCD data)
   itemUniqueName String  // WFCD unique name, e.g. "/Lotus/Powersuits/Wraith/Wraith"
@@ -179,6 +220,7 @@ model Build {
   @@index([itemUniqueName, visibility, voteCount]) // Popular builds for an item
   @@index([hasGuide])
   @@index([forkedFromId])
+  @@index([organizationId])
   @@map("builds")
 }
 

@@ -38,6 +38,8 @@ interface UseBuildPersistenceReturn {
   setPublishDialogOpen: (open: boolean) => void
   handlePublish: (visibility: Visibility) => Promise<void>
   handleCancel: () => void
+  organizationId: string | undefined
+  setOrganizationId: (id: string | undefined) => void
 }
 
 export function useBuildPersistence({
@@ -62,6 +64,9 @@ export function useBuildPersistence({
   )
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+  const [organizationId, setOrganizationId] = useState<string | undefined>(
+    undefined,
+  )
 
   // Auto-save buildState to localStorage (debounced 300ms)
   useEffect(() => {
@@ -118,6 +123,7 @@ export function useBuildPersistence({
         try {
           const result = await saveBuildAction({
             buildId: buildId,
+            organizationId: organizationId,
             itemUniqueName: item.uniqueName,
             name: buildName,
             visibility: visibility,
@@ -166,6 +172,7 @@ export function useBuildPersistence({
     [
       isAuthenticated,
       buildId,
+      organizationId,
       item.uniqueName,
       buildName,
       buildState,
@@ -203,5 +210,7 @@ export function useBuildPersistence({
     setPublishDialogOpen,
     handlePublish,
     handleCancel,
+    organizationId,
+    setOrganizationId,
   }
 }

@@ -11,9 +11,11 @@ import { TemplateButton } from "@/components/build/template-button"
 import { ViewTracker } from "@/components/build/view-tracker"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
+import { OrgBadge } from "@/components/org"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getServerSession } from "@/lib/auth"
 import { getBuildBySlug } from "@/lib/db/index"
+import { isOrgMember } from "@/lib/db/organizations"
 import { getCategoryConfig } from "@/lib/warframe"
 import { getFullItem } from "@/lib/warframe/items"
 import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods"
@@ -137,8 +139,13 @@ export default async function BuildPage({ params }: BuildPageProps) {
     compatibleArcanes = getArcanesForSlot("melee")
   }
 
-  // Check if the current user is the owner
+  // Check if the current user is the owner or an org member who can edit
   const isOwner = viewerId === build.userId
+  const canEdit =
+    isOwner ||
+    (build.organization && viewerId
+      ? await isOrgMember(build.organization.id, viewerId)
+      : false)
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -178,9 +185,28 @@ export default async function BuildPage({ params }: BuildPageProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h1 className="text-xl font-bold">{build.name}</h1>
-                <span className="text-muted-foreground text-sm">
-                  by {build.user.username || build.user.name || "Anonymous"}
-                </span>
+                {build.organization ? (
+                  <span className="text-sm">
+                    <OrgBadge
+                      name={build.organization.name}
+                      slug={build.organization.slug}
+                    />
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground text-sm">
+                    by{" "}
+                    {build.user.username ? (
+                      <Link
+                        href={`/profile/${build.user.username}`}
+                        className="hover:text-foreground transition-colors hover:underline"
+                      >
+                        {build.user.username}
+                      </Link>
+                    ) : (
+                      build.user.name || "Anonymous"
+                    )}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <BuildSocialActions
@@ -216,8 +242,8 @@ export default async function BuildPage({ params }: BuildPageProps) {
             compatibleArcanes={compatibleArcanes}
             importedBuild={build.buildData}
             savedBuildId={build.id}
-            readOnly={!isOwner}
-            isOwner={isOwner}
+            readOnly={!canEdit}
+            isOwner={canEdit}
             initialGuide={{
               summary: build.buildGuide?.summary,
               description: build.buildGuide?.description,

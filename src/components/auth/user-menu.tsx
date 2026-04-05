@@ -6,7 +6,6 @@ import { useState } from "react"
 
 import { SettingsSheet } from "@/components/settings"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useSession, signOut } from "@/lib/auth-client"
 
 export function UserMenu() {

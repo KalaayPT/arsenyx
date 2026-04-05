@@ -166,20 +166,20 @@ export function ModGrid({
               {normalSlots
                 .slice(rowIdx * slotsPerRow, rowIdx * slotsPerRow + slotsPerRow)
                 .map((slot) => (
-                <ModSlotCard
-                  key={slot.id}
-                  slot={slot}
-                  isActive={activeSlotId === slot.id}
-                  onSelect={() => onSelectSlot(slot.id)}
-                  onRemove={() => onRemoveMod(slot.id)}
-                  onChangeRank={(rank) => onChangeRank(slot.id, rank)}
-                  onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
-                  className="h-[80px] w-full sm:h-[90px] sm:w-[150px] md:h-[100px] md:w-[184px]"
-                  setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
-                  draggedMod={draggedMod}
-                  readOnly={readOnly}
-                />
-              ))}
+                  <ModSlotCard
+                    key={slot.id}
+                    slot={slot}
+                    isActive={activeSlotId === slot.id}
+                    onSelect={() => onSelectSlot(slot.id)}
+                    onRemove={() => onRemoveMod(slot.id)}
+                    onChangeRank={(rank) => onChangeRank(slot.id, rank)}
+                    onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
+                    className="h-[80px] w-full sm:h-[90px] sm:w-[150px] md:h-[100px] md:w-[184px]"
+                    setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
+                    draggedMod={draggedMod}
+                    readOnly={readOnly}
+                  />
+                ))}
             </div>
           ),
         )}
