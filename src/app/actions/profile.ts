@@ -62,16 +62,21 @@ export async function updateProfileAction(
         return err("Username is already taken")
       }
 
-      await auth.api.updateUser({
-        body: {
-          username: username,
-        },
-        headers: await headers(),
-      })
-    }
+      // Run username update and bio update in parallel
+      const updates: Promise<unknown>[] = [
+        auth.api.updateUser({
+          body: { username: username },
+          headers: await headers(),
+        }),
+      ]
 
-    // Update bio directly (not managed by Better Auth)
-    if (bio !== undefined) {
+      if (bio !== undefined) {
+        updates.push(updateUserBio(session.user.id, bio || null))
+      }
+
+      await Promise.all(updates)
+    } else if (bio !== undefined) {
+      // Only bio changed
       await updateUserBio(session.user.id, bio || null)
     }
 
