@@ -78,7 +78,9 @@ export const getUserByUsername = cache(async function getUserByUsername(
  * @param userId - User ID to look up
  * @returns User profile or null if not found
  */
-export async function getUserById(userId: string): Promise<UserProfile | null> {
+export const getUserById = cache(async function getUserById(
+  userId: string,
+): Promise<UserProfile | null> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -97,7 +99,7 @@ export async function getUserById(userId: string): Promise<UserProfile | null> {
   })
 
   return user
-}
+})
 
 /**
  * Get user statistics
