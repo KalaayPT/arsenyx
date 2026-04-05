@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 import { z } from "zod"
 
 import { auth, getServerSession } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth-helpers"
 import {
   getUserBuilds,
   getUserForSettings,
@@ -147,12 +148,10 @@ export async function getSettingsDataAction(): Promise<
   Result<UserProfileFull>
 > {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
-      return err("You must be signed in")
-    }
+    const auth = await requireAuth("view settings")
+    if (!auth.success) return auth
 
-    const user = await getUserForSettings(session.user.id)
+    const user = await getUserForSettings(auth.data)
     if (!user) {
       return err("User not found")
     }

@@ -9,6 +9,7 @@
 import { revalidatePath } from "next/cache"
 
 import { getServerSession } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth-helpers"
 import {
   toggleBuildVote,
   hasUserVotedForBuild,
@@ -42,13 +43,10 @@ export interface SocialStatusResult {
  */
 export async function toggleVoteAction(buildId: string): Promise<VoteResult> {
   try {
-    const session = await getServerSession()
+    const auth = await requireAuth("vote")
+    if (!auth.success) return auth
 
-    if (!session?.user?.id) {
-      return err("You must be signed in to vote")
-    }
-
-    const result = await toggleBuildVote(session.user.id, buildId)
+    const result = await toggleBuildVote(auth.data, buildId)
 
     // Revalidate build page to show updated count
     revalidatePath(`/builds/[slug]`, "page")
@@ -74,13 +72,10 @@ export async function toggleFavoriteAction(
   buildId: string,
 ): Promise<FavoriteResult> {
   try {
-    const session = await getServerSession()
+    const auth = await requireAuth("save favorites")
+    if (!auth.success) return auth
 
-    if (!session?.user?.id) {
-      return err("You must be signed in to save favorites")
-    }
-
-    const result = await toggleBuildFavorite(session.user.id, buildId)
+    const result = await toggleBuildFavorite(auth.data, buildId)
 
     // Revalidate relevant pages
     revalidatePath(`/builds/[slug]`, "page")
