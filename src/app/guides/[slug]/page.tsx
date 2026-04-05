@@ -7,7 +7,7 @@ import { Suspense } from "react"
 import { Footer } from "@/components/footer"
 import { GuideBreadcrumbs } from "@/components/guides/guide-breadcrumbs"
 import { GuideHeader } from "@/components/guides/guide-header"
-import { GuideReader } from "@/components/guides/guide-reader"
+import { GuideReaderDynamic } from "@/components/guides/guide-reader-dynamic"
 import { RelatedGuides } from "@/components/guides/related-guides"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
@@ -123,7 +123,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
             {/* Guide Content */}
             <article>
-              <GuideReader content={guide.content} />
+              <GuideReaderDynamic content={guide.content} />
             </article>
 
             {/* Related Guides */}
