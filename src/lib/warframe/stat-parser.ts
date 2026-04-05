@@ -78,10 +78,15 @@ const CONDITIONAL_PATTERNS = [
 // Patterns for extracting stack count
 const STACK_PATTERN = /stacks? up to (\d+)/i
 
+const parseModStatsCache = new WeakMap<PlacedMod, ParsedStat[]>()
+
 /**
  * Parse stat effects from a placed mod at its current rank
  */
 export function parseModStats(mod: PlacedMod): ParsedStat[] {
+  const cached = parseModStatsCache.get(mod)
+  if (cached) return cached
+
   try {
     // Try structured data first (levelStats array)
     if (mod.levelStats && mod.levelStats.length > 0) {
@@ -94,6 +99,7 @@ export function parseModStats(mod: PlacedMod): ParsedStat[] {
           const parsed = parseStatString(statString)
           results.push(...parsed)
         }
+        parseModStatsCache.set(mod, results)
         return results
       }
     }
