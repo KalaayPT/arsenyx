@@ -125,6 +125,7 @@ export function PolarityIcon({
         src={svgPath}
         alt={`${polarity} polarity`}
         fill
+        unoptimized
         className={cn(
           "object-contain",
           colored ? polarityColorMap[polarity] : "brightness-0 invert",

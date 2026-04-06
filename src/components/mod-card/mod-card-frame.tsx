@@ -171,6 +171,7 @@ export function DrainBadge({
         height={18}
         className="pointer-events-none"
         priority={false}
+        unoptimized
       />
 
       {/* Content Container */}
@@ -265,6 +266,7 @@ export function ModCardFrame({
             sizes="148px"
             className="object-cover object-bottom"
             priority={false}
+            unoptimized
           />
         </div>
       )}
@@ -282,6 +284,7 @@ export function ModCardFrame({
             : "top-0 w-full",
         )}
         priority={false}
+        unoptimized
       />
 
       {/* Content area - mod image, stats, etc */}
@@ -301,6 +304,7 @@ export function ModCardFrame({
             : "w-full",
         )}
         priority={false}
+        unoptimized
       />
     </div>
   )
@@ -328,6 +332,7 @@ export function LowerTab({ label, rarity, className }: LowerTabProps) {
         sizes="148px"
         className="object-contain"
         priority={false}
+        unoptimized
       />
       <span className="absolute inset-0 flex items-center justify-center text-[9px] tracking-wider text-white uppercase">
         {label}

@@ -117,6 +117,7 @@ function ModImage({ mod, alt, className, style }: ModImageProps) {
       sizes="148px"
       className={className}
       style={style}
+      unoptimized
       onError={() => {
         // Try wiki thumbnail first, then placeholder
         if (mod.wikiaThumbnail && src !== mod.wikiaThumbnail) {
@@ -284,6 +285,7 @@ function ExpandedModCard({
             sizes="148px"
             className="object-cover object-bottom"
             priority={false}
+            unoptimized
           />
         </div>
 
