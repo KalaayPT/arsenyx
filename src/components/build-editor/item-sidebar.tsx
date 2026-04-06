@@ -24,6 +24,7 @@ import { getImageUrl } from "@/lib/warframe/images"
 import type {
   BuildState,
   HelminthAbility,
+  ItemStats,
   PlacedShard,
   BrowseableItem,
 } from "@/lib/warframe/types"
@@ -33,28 +34,6 @@ import { DamageBreakdownSection } from "./damage-breakdown"
 import { HelminthAbilityDialog } from "./helminth-ability-dialog"
 import { ShardsPanel } from "./shards-panel"
 import { CalculatedStatRow, SimpleStatRow } from "./stat-row"
-
-interface ItemStats {
-  // Warframe stats
-  health?: number
-  shield?: number
-  armor?: number
-  energy?: number
-  sprintSpeed?: number
-  abilities?: Array<{ name: string; imageName?: string; description: string }>
-  // Weapon stats (all)
-  fireRate?: number
-  criticalChance?: number
-  criticalMultiplier?: number
-  procChance?: number // status chance
-  totalDamage?: number
-  // Gun stats (primary/secondary)
-  magazineSize?: number
-  reloadTime?: number
-  // Melee stats
-  range?: number
-  comboDuration?: number
-}
 
 interface ItemSidebarProps {
   buildState: BuildState

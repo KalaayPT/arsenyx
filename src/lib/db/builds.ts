@@ -590,22 +590,7 @@ export async function updateBuild(
   userId: string,
   input: UpdateBuildInput,
 ): Promise<BuildWithUser> {
-  // First verify ownership
-  const existing = await prisma.build.findUnique({
-    where: { id: buildId },
-    select: { userId: true, organizationId: true },
-  })
-  if (!existing) throw new Error("Build not found")
-
-  const isOwner = existing.userId === userId
-  let isOrgMemberAllowed = false
-  if (!isOwner && existing.organizationId) {
-    const { isOrgMember } = await import("./organizations")
-    isOrgMemberAllowed = await isOrgMember(existing.organizationId, userId)
-  }
-  if (!isOwner && !isOrgMemberAllowed) {
-    throw new Error("Not authorized to update this build")
-  }
+  await assertBuildAccess(buildId, userId)
 
   const updateData: Prisma.BuildUpdateInput = {}
 
@@ -760,22 +745,7 @@ export async function deleteBuild(
   buildId: string,
   userId: string,
 ): Promise<void> {
-  // First verify ownership
-  const existing = await prisma.build.findUnique({
-    where: { id: buildId },
-    select: { userId: true, organizationId: true },
-  })
-  if (!existing) throw new Error("Build not found")
-
-  const isOwner = existing.userId === userId
-  let isOrgMemberAllowed = false
-  if (!isOwner && existing.organizationId) {
-    const { isOrgMember } = await import("./organizations")
-    isOrgMemberAllowed = await isOrgMember(existing.organizationId, userId)
-  }
-  if (!isOwner && !isOrgMemberAllowed) {
-    throw new Error("Not authorized to delete this build")
-  }
+  await assertBuildAccess(buildId, userId)
 
   await prisma.build.delete({
     where: { id: buildId },
@@ -838,6 +808,31 @@ async function searchBuildsWithFilters(
 // =============================================================================
 // HELPERS
 // =============================================================================
+
+/**
+ * Assert that a user has write access to a build (owner or org member).
+ * Throws if the build doesn't exist or the user isn't authorized.
+ */
+async function assertBuildAccess(
+  buildId: string,
+  userId: string,
+): Promise<void> {
+  const existing = await prisma.build.findUnique({
+    where: { id: buildId },
+    select: { userId: true, organizationId: true },
+  })
+  if (!existing) throw new Error("Build not found")
+
+  const isOwner = existing.userId === userId
+  if (isOwner) return
+
+  if (existing.organizationId) {
+    const { isOrgMember } = await import("./organizations")
+    if (await isOrgMember(existing.organizationId, userId)) return
+  }
+
+  throw new Error("Not authorized")
+}
 
 /**
  * Check if a user can view a build based on visibility

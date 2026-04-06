@@ -385,3 +385,25 @@ export interface PlacedShard {
   stat: string // Stat name key
   tauforged: boolean
 }
+
+// ---------------------------------------------------------------------------
+// Item Stats (extracted from browseable item data for display)
+// ---------------------------------------------------------------------------
+
+export interface ItemStats {
+  health?: number
+  shield?: number
+  armor?: number
+  energy?: number
+  sprintSpeed?: number
+  abilities?: Array<{ name: string; imageName?: string; description: string }>
+  fireRate?: number
+  criticalChance?: number
+  criticalMultiplier?: number
+  procChance?: number
+  totalDamage?: number
+  magazineSize?: number
+  reloadTime?: number
+  range?: number
+  comboDuration?: number
+}
