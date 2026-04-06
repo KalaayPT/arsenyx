@@ -1,9 +1,3 @@
-/**
- * Admin Database Operations
- *
- * Queries and mutations for the admin panel
- */
-
 import "server-only"
 
 import { prisma } from "../db"
@@ -82,6 +76,7 @@ export async function getAdminUsers(search?: string): Promise<AdminUser[]> {
       : undefined,
     select: ADMIN_USER_SELECT,
     orderBy: { createdAt: "desc" },
+    take: 200,
   })
 }
 
@@ -121,18 +116,12 @@ export async function adminUnbanUser(userId: string): Promise<void> {
 
 export async function adminDeleteUser(userId: string): Promise<void> {
   await prisma.$transaction([
-    // Delete all user's builds (cascades to votes, favorites, guides, links)
     prisma.build.deleteMany({ where: { userId } }),
-    // Delete user's votes and favorites on other builds
     prisma.buildVote.deleteMany({ where: { userId } }),
     prisma.buildFavorite.deleteMany({ where: { userId } }),
-    // Delete sessions
     prisma.session.deleteMany({ where: { userId } }),
-    // Delete accounts
     prisma.account.deleteMany({ where: { userId } }),
-    // Delete org memberships
     prisma.organizationMember.deleteMany({ where: { userId } }),
-    // Anonymize the user (keep the record for referential integrity)
     prisma.user.update({
       where: { id: userId },
       data: {
@@ -181,6 +170,7 @@ export async function getAdminBuilds(search?: string): Promise<AdminBuild[]> {
       user: { select: { id: true, name: true, username: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 200,
   })
 }
 

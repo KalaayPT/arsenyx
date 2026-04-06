@@ -11,15 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { getServerSession } from "@/lib/auth"
 import { getAdminUsers } from "@/lib/db/admin"
 
 interface AdminUsersTabProps {
   search?: string
+  currentUserId: string
 }
 
-export async function AdminUsersTab({ search }: AdminUsersTabProps) {
-  const session = await getServerSession()
+export async function AdminUsersTab({ search, currentUserId }: AdminUsersTabProps) {
   const users = await getAdminUsers(search)
 
   return (
@@ -90,7 +89,7 @@ export async function AdminUsersTab({ search }: AdminUsersTabProps) {
               <TableCell>
                 <AdminUserActions
                   user={user}
-                  currentUserId={session!.user.id}
+                  currentUserId={currentUserId}
                 />
               </TableCell>
             </TableRow>

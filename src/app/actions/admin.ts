@@ -1,11 +1,5 @@
 "use server"
 
-/**
- * Admin Server Actions
- *
- * All mutations gated on isAdmin role
- */
-
 import { revalidatePath } from "next/cache"
 
 import { requireAdmin } from "@/lib/auth-helpers"

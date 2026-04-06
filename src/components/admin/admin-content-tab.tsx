@@ -1,77 +1,80 @@
-"use client"
+import { AdminBuildActions } from "@/components/admin/admin-build-actions"
+import { Input } from "@/components/ui/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { getAdminBuilds } from "@/lib/db/admin"
 
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-
-import { adminDeleteBuildAction } from "@/app/actions/admin"
-import { AdminDeleteDialog } from "@/components/admin/admin-delete-dialog"
-import type { AdminBuild } from "@/lib/db/admin"
-
-interface AdminContentTableProps {
-  builds: AdminBuild[]
+interface AdminContentTabProps {
+  search?: string
 }
 
-export function AdminContentTable({ builds }: AdminContentTableProps) {
-  const router = useRouter()
-
-  if (builds.length === 0) {
-    return (
-      <tr>
-        <td
-          colSpan={8}
-          className="text-muted-foreground h-24 p-2 text-center"
-        >
-          No builds found.
-        </td>
-      </tr>
-    )
-  }
+export async function AdminContentTab({ search }: AdminContentTabProps) {
+  const builds = await getAdminBuilds(search)
 
   return (
-    <>
-      {builds.map((build) => (
-        <tr
-          key={build.id}
-          className="hover:bg-muted/50 border-b transition-colors"
-        >
-          <td className="p-2 align-middle whitespace-nowrap font-medium">
-            {build.name}
-          </td>
-          <td className="text-muted-foreground p-2 align-middle whitespace-nowrap">
-            {build.user.username || build.user.name || "—"}
-          </td>
-          <td className="text-muted-foreground p-2 align-middle whitespace-nowrap capitalize">
-            {build.itemCategory}
-          </td>
-          <td className="p-2 align-middle whitespace-nowrap">
-            {build.itemName}
-          </td>
-          <td className="p-2 align-middle whitespace-nowrap">
-            {build.voteCount}
-          </td>
-          <td className="p-2 align-middle whitespace-nowrap">
-            {build.favoriteCount}
-          </td>
-          <td className="text-muted-foreground p-2 align-middle whitespace-nowrap">
-            {new Date(build.createdAt).toLocaleDateString()}
-          </td>
-          <td className="p-2 align-middle whitespace-nowrap">
-            <AdminDeleteDialog
-              title={`Delete "${build.name}"?`}
-              description="This will permanently delete this build and all its votes, favorites, and guide content. This cannot be undone."
-              onConfirm={async () => {
-                const result = await adminDeleteBuildAction(build.id)
-                if (result.success) {
-                  toast.success("Build deleted")
-                  router.refresh()
-                } else {
-                  toast.error(result.error)
-                }
-              }}
-            />
-          </td>
-        </tr>
-      ))}
-    </>
+    <div className="space-y-4 pt-4">
+      <form action="/admin" className="flex gap-2">
+        <input type="hidden" name="tab" value="content" />
+        <Input
+          name="q"
+          placeholder="Search builds..."
+          defaultValue={search}
+          className="max-w-sm"
+        />
+      </form>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Build</TableHead>
+            <TableHead>Author</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Item</TableHead>
+            <TableHead>Votes</TableHead>
+            <TableHead>Favs</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {builds.map((build) => (
+            <TableRow key={build.id}>
+              <TableCell className="font-medium">{build.name}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {build.user.username || build.user.name || "—"}
+              </TableCell>
+              <TableCell className="text-muted-foreground capitalize">
+                {build.itemCategory}
+              </TableCell>
+              <TableCell>{build.itemName}</TableCell>
+              <TableCell>{build.voteCount}</TableCell>
+              <TableCell>{build.favoriteCount}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {build.createdAt.toLocaleDateString()}
+              </TableCell>
+              <TableCell>
+                <AdminBuildActions buildId={build.id} buildName={build.name} />
+              </TableCell>
+            </TableRow>
+          ))}
+          {builds.length === 0 && (
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                className="text-muted-foreground h-24 text-center"
+              >
+                No builds found.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
