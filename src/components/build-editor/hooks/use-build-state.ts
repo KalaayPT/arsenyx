@@ -20,6 +20,7 @@ import type {
   Mod,
   Arcane,
   HelminthAbility,
+  ItemStats,
 } from "@/lib/warframe/types"
 
 // ---------------------------------------------------------------------------
@@ -58,24 +59,6 @@ export interface BuildContainerProps {
     }
     buildData: { formaCount: number }
   }[]
-}
-
-export interface ItemStats {
-  health?: number
-  shield?: number
-  armor?: number
-  energy?: number
-  sprintSpeed?: number
-  abilities?: Array<{ name: string; imageName?: string; description: string }>
-  fireRate?: number
-  criticalChance?: number
-  criticalMultiplier?: number
-  procChance?: number
-  totalDamage?: number
-  magazineSize?: number
-  reloadTime?: number
-  range?: number
-  comboDuration?: number
 }
 
 // ---------------------------------------------------------------------------
