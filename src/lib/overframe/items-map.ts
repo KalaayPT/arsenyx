@@ -4,6 +4,10 @@ import { join } from "node:path"
 let cachedMap: Map<string, string> | null = null
 let cachedLoadedFrom: string | null = null
 
+const HEADER_RE = /^id\s*,/i
+const QUOTE_WRAP_RE = /^"|"$/g
+const ESCAPED_QUOTE_RE = /""/g
+
 function parseItemsCsv(csv: string): Map<string, string> {
   // Expected format (examples):
   // 5924,"Archon Vitality"
@@ -17,18 +21,18 @@ function parseItemsCsv(csv: string): Map<string, string> {
     if (!line) continue
 
     // Skip headers if present
-    if (/^id\s*,/i.test(line)) continue
+    if (HEADER_RE.test(line)) continue
 
     const firstComma = line.indexOf(",")
     if (firstComma === -1) continue
 
-    const id = line.slice(0, firstComma).trim().replace(/^"|"$/g, "")
+    const id = line.slice(0, firstComma).trim().replace(QUOTE_WRAP_RE, "")
     if (!id) continue
 
     let name = line.slice(firstComma + 1).trim()
-    name = name.replace(/^"|"$/g, "")
+    name = name.replace(QUOTE_WRAP_RE, "")
     // Unescape common CSV quote escapes
-    name = name.replace(/""/g, '"')
+    name = name.replace(ESCAPED_QUOTE_RE, '"')
 
     if (!name) continue
     map.set(id, name)

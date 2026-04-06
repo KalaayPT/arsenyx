@@ -11,8 +11,9 @@ import { decodeBuild } from "@/lib/build-codec"
 import { isValidCategory, getCategoryConfig } from "@/lib/warframe"
 // Server-only imports
 import { getItemBySlug, getFullItem } from "@/lib/warframe/items"
-import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods"
-import type { BrowseCategory, Arcane } from "@/lib/warframe/types"
+import { getArcanesForCategory } from "@/lib/warframe/arcanes"
+import { getModsForItem } from "@/lib/warframe/mods"
+import type { BrowseCategory } from "@/lib/warframe/types"
 
 export const metadata: Metadata = {
   title: "Build Editor | ARSENYX",
@@ -80,20 +81,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
       if (fullItem) {
         const categoryConfig = getCategoryConfig(category)
         const compatibleMods = getModsForItem(fullItem)
-        // Fetch arcanes based on category
-        let compatibleArcanes: Arcane[] = []
-        if (["warframes", "necramechs"].includes(category)) {
-          compatibleArcanes = getArcanesForSlot("warframe")
-        } else if (category === "archwing") {
-          compatibleArcanes = [
-            ...getArcanesForSlot("primary"),
-            ...getArcanesForSlot("secondary"),
-          ]
-        } else if (["primary", "secondary", "melee"].includes(category)) {
-          compatibleArcanes = getArcanesForSlot(
-            category as "primary" | "secondary" | "melee",
-          )
-        }
+        const compatibleArcanes = getArcanesForCategory(category)
 
         return (
           <div className="relative flex min-h-screen flex-col">
@@ -137,19 +125,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     const fullItem = getFullItem(category, item.uniqueName)
     const categoryConfig = getCategoryConfig(category)
     const compatibleMods = fullItem ? getModsForItem(fullItem) : []
-    let compatibleArcanes: Arcane[] = []
-    if (["warframes", "necramechs"].includes(category)) {
-      compatibleArcanes = getArcanesForSlot("warframe")
-    } else if (category === "archwing") {
-      compatibleArcanes = [
-        ...getArcanesForSlot("primary"),
-        ...getArcanesForSlot("secondary"),
-      ]
-    } else if (["primary", "secondary", "melee"].includes(category)) {
-      compatibleArcanes = getArcanesForSlot(
-        category as "primary" | "secondary" | "melee",
-      )
-    }
+    const compatibleArcanes = getArcanesForCategory(category)
 
     // Extract only mod configuration from source build
     const importedBuild = sourceBuild
@@ -207,20 +183,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     const fullItem = getFullItem(category, item.uniqueName)
     const categoryConfig = getCategoryConfig(category)
     const compatibleMods = fullItem ? getModsForItem(fullItem) : []
-    // Fetch arcanes based on category
-    let compatibleArcanes: Arcane[] = []
-    if (["warframes", "necramechs"].includes(category)) {
-      compatibleArcanes = getArcanesForSlot("warframe")
-    } else if (category === "archwing") {
-      compatibleArcanes = [
-        ...getArcanesForSlot("primary"),
-        ...getArcanesForSlot("secondary"),
-      ]
-    } else if (["primary", "secondary", "melee"].includes(category)) {
-      compatibleArcanes = getArcanesForSlot(
-        category as "primary" | "secondary" | "melee",
-      )
-    }
+    const compatibleArcanes = getArcanesForCategory(category)
 
     return (
       <div className="relative flex min-h-screen flex-col">

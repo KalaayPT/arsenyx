@@ -80,7 +80,7 @@ export const getOrganizationBySlug = cache(async function getOrganizationBySlug(
   return org
 })
 
-export async function getOrganizationById(
+export const getOrganizationById = cache(async function getOrganizationById(
   id: string,
 ): Promise<OrganizationProfile | null> {
   const org = await prisma.organization.findUnique({
@@ -103,9 +103,9 @@ export async function getOrganizationById(
     },
   })
   return org
-}
+})
 
-export async function isOrgMember(
+export const isOrgMember = cache(async function isOrgMember(
   organizationId: string,
   userId: string,
 ): Promise<boolean> {
@@ -114,9 +114,9 @@ export async function isOrgMember(
     select: { userId: true },
   })
   return !!member
-}
+})
 
-export async function isOrgAdmin(
+export const isOrgAdmin = cache(async function isOrgAdmin(
   organizationId: string,
   userId: string,
 ): Promise<boolean> {
@@ -125,7 +125,7 @@ export async function isOrgAdmin(
     select: { role: true },
   })
   return member?.role === "ADMIN"
-}
+})
 
 export async function getUserOrganizations(
   userId: string,

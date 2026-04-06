@@ -4,7 +4,7 @@ import type { OrgRole } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-import { getServerSession } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth-helpers"
 import { prisma } from "@/lib/db"
 import {
   createOrganization,
@@ -64,11 +64,12 @@ export async function createOrganizationAction(
   input: z.infer<typeof createOrgSchema>,
 ): Promise<Result<OrganizationProfile>> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("create an organization")
+    if (!auth.success) return auth
+    const userId = auth.data
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { isCommunityLeader: true, isAdmin: true },
     })
     if (!user?.isCommunityLeader && !user?.isAdmin) {
@@ -82,7 +83,7 @@ export async function createOrganizationAction(
     const slugTaken = await isOrgSlugTaken(parsed.data.slug)
     if (slugTaken) return err("This slug is already taken")
 
-    const org = await createOrganization(session.user.id, {
+    const org = await createOrganization(userId, {
       name: parsed.data.name,
       slug: parsed.data.slug,
       image: parsed.data.image || undefined,
@@ -105,10 +106,10 @@ export async function updateOrganizationAction(
   input: z.infer<typeof updateOrgSchema>,
 ): Promise<Result<OrganizationProfile>> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("update an organization")
+    if (!auth.success) return auth
 
-    const admin = await isOrgAdmin(orgId, session.user.id)
+    const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can update organization settings")
 
     const parsed = updateOrgSchema.safeParse(input)
@@ -134,10 +135,10 @@ export async function updateOrganizationAction(
 
 export async function deleteOrganizationAction(orgId: string): Promise<Result> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("delete an organization")
+    if (!auth.success) return auth
 
-    const admin = await isOrgAdmin(orgId, session.user.id)
+    const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can delete an organization")
 
     await deleteOrganization(orgId)
@@ -157,10 +158,10 @@ export async function addOrgMemberAction(
   username: string,
 ): Promise<Result> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("add members")
+    if (!auth.success) return auth
 
-    const admin = await isOrgAdmin(orgId, session.user.id)
+    const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can add members")
 
     await addOrgMember(orgId, username.trim())
@@ -176,10 +177,10 @@ export async function removeOrgMemberAction(
   userId: string,
 ): Promise<Result> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("remove members")
+    if (!auth.success) return auth
 
-    const admin = await isOrgAdmin(orgId, session.user.id)
+    const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can remove members")
 
     await removeOrgMember(orgId, userId)
@@ -196,10 +197,10 @@ export async function updateMemberRoleAction(
   role: OrgRole,
 ): Promise<Result> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("change member roles")
+    if (!auth.success) return auth
 
-    const admin = await isOrgAdmin(orgId, session.user.id)
+    const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can change member roles")
 
     await updateMemberRole(orgId, userId, role)
@@ -218,10 +219,10 @@ export async function getUserOrganizationsAction(): Promise<
   Result<OrganizationListItem[]>
 > {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("view organizations")
+    if (!auth.success) return auth
 
-    const orgs = await getUserOrganizations(session.user.id)
+    const orgs = await getUserOrganizations(auth.data)
     return ok(orgs)
   } catch (error) {
     return err(getErrorMessage(error, "Failed to load organizations"))
@@ -232,13 +233,13 @@ export async function getOrganizationSettingsAction(
   slug: string,
 ): Promise<Result<OrganizationProfile>> {
   try {
-    const session = await getServerSession()
-    if (!session?.user?.id) return err("You must be signed in")
+    const auth = await requireAuth("access organization settings")
+    if (!auth.success) return auth
 
     const org = await getOrganizationBySlug(slug)
     if (!org) return err("Organization not found")
 
-    const admin = await isOrgAdmin(org.id, session.user.id)
+    const admin = await isOrgAdmin(org.id, auth.data)
     if (!admin) return err("Only admins can access organization settings")
 
     return ok(org)

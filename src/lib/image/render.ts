@@ -4,6 +4,7 @@ import { join } from "node:path"
 import satori from "satori"
 import sharp from "sharp"
 
+import { LRUCache } from "@/lib/lru-cache"
 import { getImageUrl } from "@/lib/warframe/images"
 import type { BuildState } from "@/lib/warframe/types"
 
@@ -17,7 +18,7 @@ export const IMAGE_DIMENSIONS = { width: 1200, height: 630 } as const
  * Returns undefined if fetch fails.
  */
 // Cache fetched image data URIs to avoid re-fetching on repeated renders
-const imageDataUriCache = new Map<string, string>()
+const imageDataUriCache = new LRUCache<string, string>(200)
 
 async function fetchImageAsDataUri(url: string): Promise<string | undefined> {
   const cached = imageDataUriCache.get(url)
@@ -80,7 +81,7 @@ async function loadRawPolaritySvgs(): Promise<Map<string, string>> {
  * Tint a polarity SVG to a specific color and return as base64 data URI.
  * Replaces fill and stroke colors in the SVG.
  */
-const tintCache = new Map<string, string>()
+const tintCache = new LRUCache<string, string>(100)
 
 function tintSvg(svgString: string, polarity: string, color: string): string {
   const key = `${polarity}:${color}`

@@ -9,7 +9,7 @@
 import type { BuildVisibility } from "@prisma/client"
 import { after } from "next/server"
 
-import { getServerSession } from "@/lib/auth"
+import { requireAuth } from "@/lib/auth-helpers"
 import {
   createBuild,
   updateBuild,
@@ -54,13 +54,9 @@ export async function saveBuildAction(
   input: SaveBuildInput,
 ): Promise<SaveBuildResult> {
   try {
-    const session = await getServerSession()
-
-    if (!session?.user?.id) {
-      return err("You must be signed in to save a build")
-    }
-
-    const userId = session.user.id
+    const auth = await requireAuth("save a build")
+    if (!auth.success) return auth
+    const userId = auth.data
 
     // Validate org membership if publishing under an org
     if (input.organizationId) {
@@ -116,13 +112,10 @@ export async function deleteBuildAction(
   buildId: string,
 ): Promise<DeleteBuildResult> {
   try {
-    const session = await getServerSession()
+    const auth = await requireAuth("delete a build")
+    if (!auth.success) return auth
 
-    if (!session?.user?.id) {
-      return err("You must be signed in to delete a build")
-    }
-
-    await deleteBuild(buildId, session.user.id)
+    await deleteBuild(buildId, auth.data)
     return ok()
   } catch (error) {
     console.error("Failed to delete build:", error)
@@ -181,13 +174,9 @@ export async function updateBuildGuideAction(
   input: UpdateBuildGuideInput,
 ): Promise<SaveBuildResult> {
   try {
-    const session = await getServerSession()
-
-    if (!session?.user?.id) {
-      return err("You must be signed in to update a guide")
-    }
-
-    const userId = session.user.id
+    const auth = await requireAuth("update a guide")
+    if (!auth.success) return auth
+    const userId = auth.data
 
     // Validate summary length
     if (input.summary && input.summary.length > MAX_SUMMARY_LENGTH) {
@@ -230,13 +219,10 @@ export async function getUserBuildsForPartnerSelectorAction(): Promise<
   Result<PartnerSelectorBuilds>
 > {
   try {
-    const session = await getServerSession()
+    const auth = await requireAuth("view your builds")
+    if (!auth.success) return auth
 
-    if (!session?.user?.id) {
-      return err("You must be signed in")
-    }
-
-    const builds = await getUserBuildsForPartnerSelector(session.user.id)
+    const builds = await getUserBuildsForPartnerSelector(auth.data)
     return ok(builds)
   } catch (error) {
     console.error("Failed to get builds for partner selector:", error)

@@ -18,9 +18,10 @@ import { getBuildBySlug } from "@/lib/db/index"
 import { isOrgMember } from "@/lib/db/organizations"
 import { getCategoryConfig } from "@/lib/warframe"
 import { getFullItem } from "@/lib/warframe/items"
-import { getModsForItem, getArcanesForSlot } from "@/lib/warframe/mods"
+import { getArcanesForCategory } from "@/lib/warframe/arcanes"
+import { getModsForItem } from "@/lib/warframe/mods"
 import { slugify } from "@/lib/warframe/slugs"
-import type { BrowseCategory, Arcane } from "@/lib/warframe/types"
+import type { BrowseCategory } from "@/lib/warframe/types"
 
 interface BuildPageProps {
   params: Promise<{
@@ -120,24 +121,7 @@ export default async function BuildPage({ params }: BuildPageProps) {
   // Get compatible mods and arcanes
   const categoryConfig = getCategoryConfig(category)
   const compatibleMods = getModsForItem(fullItem)
-  const isWarframeCategory =
-    category === "warframes" || category === "necramechs"
-
-  let compatibleArcanes: Arcane[] = []
-  if (isWarframeCategory) {
-    compatibleArcanes = getArcanesForSlot("warframe")
-  } else if (category === "archwing") {
-    compatibleArcanes = [
-      ...getArcanesForSlot("primary"),
-      ...getArcanesForSlot("secondary"),
-    ]
-  } else if (category === "primary") {
-    compatibleArcanes = getArcanesForSlot("primary")
-  } else if (category === "secondary") {
-    compatibleArcanes = getArcanesForSlot("secondary")
-  } else if (category === "melee") {
-    compatibleArcanes = getArcanesForSlot("melee")
-  }
+  const compatibleArcanes = getArcanesForCategory(category)
 
   // Check if the current user is the owner or an org member who can edit
   const isOwner = viewerId === build.userId
