@@ -260,6 +260,29 @@ export async function touchApiKeyLastUsedAt(apiKeyId: string): Promise<void> {
   })
 }
 
+export async function listAllApiKeys() {
+  return prisma.apiKey.findMany({
+    include: {
+      user: { select: { id: true, name: true, username: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  })
+}
+
+export async function setApiKeyActive(
+  id: string,
+  isActive: boolean,
+): Promise<void> {
+  await prisma.apiKey.update({
+    where: { id },
+    data: { isActive },
+  })
+}
+
+export async function deleteApiKey(id: string): Promise<void> {
+  await prisma.apiKey.delete({ where: { id } })
+}
+
 export async function consumeApiKeyRateLimit(
   apiKeyId: string,
   rateLimit: number,

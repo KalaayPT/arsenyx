@@ -96,3 +96,13 @@ export const profileLimiter = rateLimit({
   interval: 60 * 1000,
   uniqueTokenPerInterval: 500,
 })
+
+/**
+ * Screenshot referer rate limiter: per-origin, hourly window
+ * Used only for referer-based (allowlisted) screenshot access.
+ * API key access uses DB-backed rate limiting instead.
+ */
+export const screenshotLimiter = rateLimit({
+  interval: 60 * 60 * 1000, // 1 hour
+  uniqueTokenPerInterval: 100,
+})

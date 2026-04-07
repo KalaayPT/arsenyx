@@ -98,3 +98,14 @@ export {
 } from "./admin"
 
 export type { AdminUser, AdminBuild, AdminStats } from "./admin"
+
+// API Key operations
+export {
+  createApiKey,
+  listApiKeysForUser,
+  listAllApiKeys,
+  revokeApiKey,
+  findApiKeyByRawToken,
+  setApiKeyActive,
+  deleteApiKey,
+} from "./api-keys"
