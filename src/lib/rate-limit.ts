@@ -96,3 +96,12 @@ export const profileLimiter = rateLimit({
   interval: 60 * 1000,
   uniqueTokenPerInterval: 500,
 })
+
+/**
+ * Screenshot API rate limiter: per API key, hourly window
+ * Uses key ID as token, limit is per-key (from ApiKey.rateLimit field)
+ */
+export const screenshotLimiter = rateLimit({
+  interval: 60 * 60 * 1000, // 1 hour
+  uniqueTokenPerInterval: 100,
+})
