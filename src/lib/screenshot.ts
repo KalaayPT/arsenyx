@@ -12,12 +12,15 @@ export async function screenshotBuild(
 ): Promise<Buffer> {
   const { chromium: playwright } = await import("playwright-core")
 
+  const CHROMIUM_PACK_URL =
+    "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.x64.tar"
+
   let browser
   if (process.env.NODE_ENV === "production") {
-    const chromium = await import("@sparticuz/chromium")
+    const chromium = await import("@sparticuz/chromium-min")
     browser = await playwright.launch({
       args: chromium.default.args,
-      executablePath: await chromium.default.executablePath(),
+      executablePath: await chromium.default.executablePath(CHROMIUM_PACK_URL),
       headless: true,
     })
   } else {

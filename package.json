@@ -28,7 +28,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@prisma/adapter-pg": "^7.5.0",
     "@prisma/client": "^7.5.0",
-    "@sparticuz/chromium": "^143.0.4",
+    "@sparticuz/chromium-min": "^143.0.4",
     "@wfcd/items": "^1.1273.6",
     "better-auth": "^1.5.5",
     "class-variance-authority": "^0.7.1",
