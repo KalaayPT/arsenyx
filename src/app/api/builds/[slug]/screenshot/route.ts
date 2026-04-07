@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { validateApiKey } from "@/lib/api-keys"
 import { getBuildBySlug } from "@/lib/db/index"
+import { screenshotLimiter, RateLimitError } from "@/lib/rate-limit"
 import { screenshotBuild } from "@/lib/screenshot"
 
 export const runtime = "nodejs"
@@ -13,26 +14,66 @@ const HEX_COLOR_RE = /^[0-9a-fA-F]{6}$/
 
 const DEFAULT_BG = "0a0a0a"
 
+/**
+ * Allowed referer origins that can access screenshots without an API key.
+ * Set ALLOWED_SCREENSHOT_ORIGINS env var as comma-separated origins.
+ */
+function getAllowedOrigins(): string[] {
+  const origins = process.env.ALLOWED_SCREENSHOT_ORIGINS
+  if (!origins) return []
+  return origins.split(",").map((o) => o.trim().toLowerCase())
+}
+
+function isAllowedReferer(request: NextRequest): boolean {
+  const referer = request.headers.get("referer")
+  if (!referer) return false
+  try {
+    const origin = new URL(referer).origin.toLowerCase()
+    return getAllowedOrigins().some((allowed) => origin === allowed)
+  } catch {
+    return false
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  // 1. Validate API key
-  const authHeader = request.headers.get("authorization")
-  const authResult = await validateApiKey(authHeader, "image:generate")
+  // 1. Auth: allowed referer OR API key
+  const refererAllowed = isAllowedReferer(request)
 
-  if (!authResult.success) {
-    const { status, error, ...rest } = authResult.error
-    return NextResponse.json(
-      { error, ...("retryAfter" in rest ? { retryAfter: rest.retryAfter } : {}) },
-      {
-        status,
-        headers:
-          status === 429
-            ? { "Retry-After": String((rest as { retryAfter: number }).retryAfter) }
-            : {},
-      },
-    )
+  if (!refererAllowed) {
+    const authHeader = request.headers.get("authorization")
+    const authResult = await validateApiKey(authHeader, "image:generate")
+
+    if (!authResult.success) {
+      const { status, error, ...rest } = authResult.error
+      return NextResponse.json(
+        { error, ...("retryAfter" in rest ? { retryAfter: rest.retryAfter } : {}) },
+        {
+          status,
+          headers:
+            status === 429
+              ? { "Retry-After": String((rest as { retryAfter: number }).retryAfter) }
+              : {},
+        },
+      )
+    }
+  } else {
+    // Rate limit referer-based access by origin
+    const referer = request.headers.get("referer")!
+    const origin = new URL(referer).origin
+    try {
+      await screenshotLimiter.check(100, `referer:${origin}`)
+    } catch (e) {
+      if (e instanceof RateLimitError) {
+        return NextResponse.json(
+          { error: "Rate limit exceeded" },
+          { status: 429, headers: { "Retry-After": "3600" } },
+        )
+      }
+      throw e
+    }
   }
 
   // 2. Validate query params
