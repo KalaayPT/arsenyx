@@ -60,13 +60,27 @@ function CommunityBuildCard({
             className="object-cover"
           />
         </div>
-        <div className="flex flex-col gap-1 p-3">
+        <div className="flex flex-col gap-1 p-2">
           <h3 className="line-clamp-1 text-sm font-semibold">{build.name}</h3>
-          <p className="text-muted-foreground text-xs">{build.item.name}</p>
-          <BuildStats
-            voteCount={build.voteCount}
-            viewCount={build.viewCount}
-          />
+          <p className="text-muted-foreground line-clamp-1 text-xs">
+            {build.item.name}
+          </p>
+          <p className="text-muted-foreground line-clamp-1 text-xs">
+            {build.organization ? (
+              <span className="text-[#a78bfa]">
+                {build.organization.name}
+              </span>
+            ) : (
+              <>by {authorName}</>
+            )}
+          </p>
+          <div className="text-muted-foreground flex items-center justify-between text-xs">
+            <BuildStats
+              voteCount={build.voteCount}
+              viewCount={build.viewCount}
+            />
+            <span>{timeAgo}</span>
+          </div>
         </div>
       </Link>
     )

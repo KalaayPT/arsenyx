@@ -52,7 +52,7 @@ export function BuildCardLink({
           />
           {imageOverlay}
         </div>
-        <div className="flex flex-col gap-1 p-3">
+        <div className="flex flex-col gap-1 p-2">
           <h3 className="line-clamp-1 text-sm font-semibold">{name}</h3>
           {subtitle ?? (
             <p className="text-muted-foreground text-xs">{itemName}</p>
