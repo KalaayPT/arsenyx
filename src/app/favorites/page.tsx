@@ -64,7 +64,7 @@ export default async function FavoritesPage({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              <div className="flex flex-col gap-2.5">
                 {builds.map((build) => (
                   <BuildCardLink
                     key={build.id}
@@ -77,7 +77,7 @@ export default async function FavoritesPage({
                     subtitle={
                       <p className="text-muted-foreground line-clamp-1 text-xs">
                         {build.item.name} by{" "}
-                        {build.user.username || build.user.name || "Anonymous"}
+                        {build.user.displayUsername || build.user.username || build.user.name || "Anonymous"}
                       </p>
                     }
                   />
