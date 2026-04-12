@@ -173,7 +173,7 @@ function CompactModCard({
           alt={mod.name}
           className="object-cover object-top"
           style={{
-            filter: "grayscale(0.7) brightness(0.5)",
+            filter: "grayscale(0.7) brightness(0.35)",
           }}
         />
         <div
@@ -192,7 +192,7 @@ function CompactModCard({
           fontFamily: "Roboto, sans-serif",
           color: getRarityColor(rarity),
           textShadow:
-            "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000",
+            "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000, 0 0 12px #000",
         }}
       >
         {mod.name}
