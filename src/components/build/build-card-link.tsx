@@ -15,12 +15,28 @@ interface BuildCardLinkProps {
   voteCount: number
   viewCount: number
   layout?: ViewMode
+  createdAt?: Date
   /** Optional content rendered over the image (e.g. visibility badge) */
   imageOverlay?: ReactNode
   /** Optional subtitle line (e.g. "by username") */
   subtitle?: ReactNode
   /** Optional extra content after stats */
   footer?: ReactNode
+}
+
+function getRelativeTime(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return "just now"
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 30) return `${diffDays}d ago`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+  return `${Math.floor(diffDays / 365)}y ago`
 }
 
 export function BuildCardLink({
@@ -31,6 +47,7 @@ export function BuildCardLink({
   voteCount,
   viewCount,
   layout = "list",
+  createdAt,
   imageOverlay,
   subtitle,
   footer,
@@ -57,7 +74,10 @@ export function BuildCardLink({
           {subtitle ?? (
             <p className="text-muted-foreground text-xs">{itemName}</p>
           )}
-          <BuildStats voteCount={voteCount} viewCount={viewCount} />
+          <div className="text-muted-foreground flex items-center justify-between text-xs">
+            <BuildStats voteCount={voteCount} viewCount={viewCount} />
+            {createdAt && <span>{getRelativeTime(new Date(createdAt))}</span>}
+          </div>
           {footer}
         </div>
       </Link>

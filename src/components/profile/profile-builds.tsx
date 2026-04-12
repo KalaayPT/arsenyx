@@ -135,6 +135,7 @@ export function ProfileBuilds({
                 itemImageName={build.item.imageName}
                 voteCount={build.voteCount}
                 viewCount={build.viewCount}
+                createdAt={build.createdAt}
                 layout={layout}
               />
             ))}

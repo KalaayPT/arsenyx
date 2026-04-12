@@ -11,6 +11,7 @@ interface BrowseItemBuild {
   item: { name: string; imageName: string | null }
   voteCount: number
   viewCount: number
+  createdAt: Date
   user: {
     name: string | null
     username: string | null
@@ -37,6 +38,7 @@ export function BrowseItemBuilds({ builds }: { builds: BrowseItemBuild[] }) {
           itemImageName={build.item.imageName}
           voteCount={build.voteCount}
           viewCount={build.viewCount}
+          createdAt={build.createdAt}
           layout={layout}
           subtitle={
             layout === "list"
