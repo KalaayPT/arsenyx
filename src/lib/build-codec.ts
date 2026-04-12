@@ -26,6 +26,14 @@ interface EncodedBuild {
   ar?: EncodedArcane[] // Arcane slots (2)
   sh?: number[] // Shard slots (5) - encoded as numbers
   n?: string // Build name
+  h?: EncodedHelminth // Helminth ability
+}
+
+interface EncodedHelminth {
+  si: number // Slot index (which ability was replaced)
+  u: string // Ability unique name
+  n: string // Ability name
+  s: string // Source warframe name
 }
 
 interface EncodedSlot {
@@ -80,6 +88,15 @@ export function encodeBuild(state: BuildState): string {
     state.shardSlots.some((s) => s !== null)
   ) {
     encoded.sh = encodeShards(state.shardSlots)
+  }
+
+  if (state.helminthAbility) {
+    encoded.h = {
+      si: state.helminthAbility.slotIndex,
+      u: state.helminthAbility.ability.uniqueName,
+      n: state.helminthAbility.ability.name,
+      s: state.helminthAbility.ability.source,
+    }
   }
 
   if (state.buildName) {
@@ -216,6 +233,18 @@ export function decodeBuild(base64String: string): Partial<BuildState> | null {
     // Decode shards
     if (encoded.sh) {
       state.shardSlots = decodeShards(encoded.sh)
+    }
+
+    // Decode helminth ability
+    if (encoded.h) {
+      state.helminthAbility = {
+        slotIndex: encoded.h.si,
+        ability: {
+          uniqueName: encoded.h.u,
+          name: encoded.h.n,
+          source: encoded.h.s,
+        },
+      }
     }
 
     return state
