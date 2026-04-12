@@ -1,19 +1,15 @@
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 
 import { CategoryTabs } from "@/components/browse/category-tabs"
 import { SearchBar } from "@/components/browse/search-bar"
-import { BuildStats } from "@/components/build/build-card-link"
 import { BuildsFilterDropdown, BuildsSortDropdown } from "@/components/builds"
+import { CommunityBuildsList } from "@/components/builds/community-builds-list"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getPublicBuilds, type BuildListItem } from "@/lib/db/index"
-import { getImageUrl } from "@/lib/warframe/images"
-import { getCategoryConfig } from "@/lib/warframe/categories"
+import { getPublicBuilds } from "@/lib/db/index"
 import type { BrowseCategory } from "@/lib/warframe/types"
 
 export const metadata: Metadata = {
@@ -31,22 +27,6 @@ interface BuildsPageProps {
     hasGuide?: string
     hasShards?: string
   }>
-}
-
-// Simple relative time formatting without date-fns
-function getRelativeTime(date: Date): string {
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMins < 1) return "just now"
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 30) return `${diffDays}d ago`
-  if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
-  return `${Math.floor(diffDays / 365)}y ago`
 }
 
 /** Build a URLSearchParams string preserving all active filters */
@@ -73,74 +53,6 @@ function buildFilterUrl(
   if (overrides.page) params.set("page", overrides.page)
   const str = params.toString()
   return `/builds${str ? `?${str}` : ""}`
-}
-
-function BuildCard({ build }: { build: BuildListItem }) {
-  const timeAgo = getRelativeTime(new Date(build.createdAt))
-  const categoryLabel =
-    getCategoryConfig(build.item.browseCategory as BrowseCategory)?.label ??
-    build.item.browseCategory
-  const authorName =
-    build.user.displayUsername || build.user.username || build.user.name || "Anonymous"
-
-  return (
-    <div className="bg-card hover:bg-card/80 relative flex items-center gap-4 rounded-lg border p-4 transition-colors">
-      {/* Full-card link */}
-      <Link
-        href={`/builds/${build.slug}`}
-        className="absolute inset-0 rounded-lg"
-        aria-label={build.name}
-      />
-
-      {/* Item Image */}
-      <div className="bg-muted/20 relative size-20 shrink-0 overflow-hidden rounded-lg">
-        <Image
-          src={getImageUrl(build.item.imageName ?? undefined)}
-          alt={build.item.name}
-          fill
-          unoptimized
-          sizes="80px"
-          className="object-cover"
-        />
-      </div>
-
-      {/* Build Info */}
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h3 className="truncate text-base font-semibold">{build.name}</h3>
-        <p className="text-muted-foreground text-sm">
-          {build.item.name} build by{" "}
-          {build.organization ? (
-            <Link
-              href={`/org/${build.organization.slug}`}
-              className="relative z-10 text-[#a78bfa] underline decoration-[#a78bfa]/40 hover:decoration-[#a78bfa]"
-            >
-              {build.organization.name}
-            </Link>
-          ) : (
-            <Link
-              href={`/profile/${build.user.username || ""}`}
-              className="relative z-10 underline decoration-current/40 hover:decoration-current"
-            >
-              {authorName}
-            </Link>
-          )}
-        </p>
-        <div className="flex gap-2 pt-1">
-          <Badge variant="secondary" className="text-xs">
-            {timeAgo}
-          </Badge>
-          <Badge variant="secondary" className="text-xs">
-            {categoryLabel}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="shrink-0 pl-4">
-        <BuildStats voteCount={build.voteCount} viewCount={build.viewCount} />
-      </div>
-    </div>
-  )
 }
 
 export default async function BuildsPage({ searchParams }: BuildsPageProps) {
@@ -219,12 +131,6 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
             />
           </Suspense>
 
-          {/* Results info */}
-          <div className="text-muted-foreground text-sm">
-            {total} {total === 1 ? "build" : "builds"}
-            {q && ` matching "${q}"`}
-          </div>
-
           {/* Results */}
           {builds.length === 0 ? (
             <div className="py-16 text-center">
@@ -239,11 +145,7 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
             </div>
           ) : (
             <>
-              <div className="flex flex-col gap-2.5">
-                {builds.map((build) => (
-                  <BuildCard key={build.id} build={build} />
-                ))}
-              </div>
+              <CommunityBuildsList builds={builds} count={total} />
 
               {/* Pagination */}
               {totalPages > 1 && (
