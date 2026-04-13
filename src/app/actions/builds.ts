@@ -54,19 +54,20 @@ export async function saveBuildAction(
     if (!auth.success) return auth
     const userId = auth.data
     const session = await getServerSession()
+    const { buildId, ...draftPayload } = input
     const normalized = await normalizeBuildDraftForPersistence(
       {
         userId,
         isBanned: session?.user?.isBanned ?? false,
       },
-      input,
+      draftPayload,
       {
-        existingBuildId: input.buildId,
+        existingBuildId: buildId,
       },
     )
 
     // If buildId is provided, update existing build
-    if (input.buildId) {
+    if (buildId) {
       const updateData: UpdateBuildInput = {
         name: normalized.name,
         description: normalized.description,
@@ -78,7 +79,7 @@ export async function saveBuildAction(
         partnerBuildIds: normalized.partnerBuildIds,
       }
 
-      const build = await updateBuild(input.buildId, userId, updateData)
+      const build = await updateBuild(buildId, userId, updateData)
       return ok(build)
     }
 

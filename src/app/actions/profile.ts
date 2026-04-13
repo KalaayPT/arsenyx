@@ -111,16 +111,17 @@ interface ProfileBuildsResult {
 
 async function fetchPaginatedBuilds(
   fetcher: (opts: GetBuildsOptions) => Promise<{ builds: BuildListItem[]; total: number }>,
-  options: { query?: string; category?: string; page?: number },
+  options: { query?: string; category?: string; page?: number; sortBy?: string },
   extraOptions?: Partial<GetBuildsOptions>,
 ): Promise<Result<ProfileBuildsResult>> {
   try {
     const limit = 12
     const page = options.page ?? 1
+    const sortBy = (options.sortBy ?? "votes") as GetBuildsOptions["sortBy"]
     const buildOptions: GetBuildsOptions = {
       page,
       limit,
-      sortBy: "votes",
+      sortBy,
       ...extraOptions,
       ...(options.query && { query: options.query }),
       ...(options.category &&
@@ -138,7 +139,7 @@ async function fetchPaginatedBuilds(
 
 export async function getProfileBuildsAction(
   userId: string,
-  options: { query?: string; category?: string; page?: number },
+  options: { query?: string; category?: string; page?: number; sortBy?: string },
 ): Promise<Result<ProfileBuildsResult>> {
   const session = await getServerSession()
   const viewerId = session?.user?.id
@@ -151,7 +152,7 @@ export async function getProfileBuildsAction(
 
 export async function getOrgBuildsAction(
   orgId: string,
-  options: { query?: string; category?: string; page?: number },
+  options: { query?: string; category?: string; page?: number; sortBy?: string },
 ): Promise<Result<ProfileBuildsResult>> {
   return fetchPaginatedBuilds(
     (opts) => getPublicBuilds(opts),
