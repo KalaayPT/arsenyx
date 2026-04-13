@@ -9,6 +9,7 @@ import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { getServerSession } from "@/lib/auth"
+import { BUILD_SORT_OPTIONS, type BuildSortBy } from "@/lib/builds/sort"
 import { getUserBuilds } from "@/lib/db/index"
 
 export const metadata: Metadata = {
@@ -36,8 +37,7 @@ export default async function MyBuildsPage({
   }
 
   const page = parseInt(params.page || "1", 10)
-  const sortBy =
-    (params.sort as "newest" | "votes" | "updated" | "views") || "newest"
+  const sortBy = (params.sort as BuildSortBy) || "newest"
 
   const { builds, total } = await getUserBuilds(
     session.user.id,
@@ -68,14 +68,7 @@ export default async function MyBuildsPage({
           {/* Sort options + view toggle */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { value: "newest", label: "Newest" },
-                  { value: "updated", label: "Updated" },
-                  { value: "votes", label: "Most Voted" },
-                  { value: "views", label: "Most Viewed" },
-                ] as const
-              ).map((option) => (
+              {BUILD_SORT_OPTIONS.map((option) => (
                 <Link
                   key={option.value}
                   href={`/builds/mine?sort=${option.value}&page=1`}

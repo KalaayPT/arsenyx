@@ -19,7 +19,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import type { BuildListItem } from "@/lib/db/index"
 
-import { ProfileBuildsFilters, type SortBy } from "./profile-builds-filters"
+import type { BuildSortBy } from "@/lib/builds/sort"
+
+import { ProfileBuildsFilters } from "./profile-builds-filters"
 
 interface ProfileBuildsProps {
   userId?: string
@@ -42,7 +44,7 @@ export function ProfileBuilds({
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("all")
-  const [sortBy, setSortBy] = useState<SortBy>("votes")
+  const [sortBy, setSortBy] = useState<BuildSortBy>("votes")
   const [isPending, startTransition] = useTransition()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const hasInteracted = useRef(false)
@@ -84,17 +86,25 @@ export function ProfileBuilds({
     [userId, orgId],
   )
 
-  // Debounced search — skip initial mount
+  // Debounced search
+  useEffect(() => {
+    if (!hasInteracted.current) return
+    const timer = setTimeout(() => {
+      fetchBuilds(search, category, sortBy, 1, false)
+    }, 300)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only debounce search input
+  }, [search])
+
+  // Instant filter changes (category, sort)
   useEffect(() => {
     if (!hasInteracted.current) {
       hasInteracted.current = true
       return
     }
-    const timer = setTimeout(() => {
-      fetchBuilds(search, category, sortBy, 1, false)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [search, category, sortBy, fetchBuilds])
+    fetchBuilds(search, category, sortBy, 1, false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire on category/sort change only
+  }, [category, sortBy])
 
   function handleLoadMore() {
     fetchBuilds(search, category, sortBy, page + 1, true)

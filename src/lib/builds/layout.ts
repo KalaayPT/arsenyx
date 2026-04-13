@@ -21,7 +21,7 @@ export interface BuildLayout {
 function getAuraSlotCount(item: BrowseableItem): number {
   const rawAura = (item as { aura?: string | string[] }).aura
   if (Array.isArray(rawAura)) return rawAura.length
-  return rawAura ? 1 : 1 // Warframes always have at least 1 aura slot
+  return 1 // Warframes always have at least 1 aura slot
 }
 
 export function getBuildLayout(

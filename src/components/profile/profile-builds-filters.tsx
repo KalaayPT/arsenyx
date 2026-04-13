@@ -13,18 +13,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { BUILD_SORT_OPTIONS, type BuildSortBy } from "@/lib/builds/sort"
 import { cn } from "@/lib/utils"
 import { BROWSE_CATEGORIES } from "@/lib/warframe/categories"
-
-export type SortBy = "newest" | "updated" | "votes" | "views"
 
 interface ProfileBuildsFiltersProps {
   search: string
   onSearchChange: (value: string) => void
   category: string
   onCategoryChange: (value: string) => void
-  sortBy: SortBy
-  onSortChange: (value: SortBy) => void
+  sortBy: BuildSortBy
+  onSortChange: (value: BuildSortBy) => void
 }
 
 const CATEGORY_ITEMS = [
@@ -33,13 +32,6 @@ const CATEGORY_ITEMS = [
     value: cat.id,
     label: cat.labelPlural,
   })),
-]
-
-const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: "votes", label: "Most Voted" },
-  { value: "newest", label: "Newest" },
-  { value: "updated", label: "Updated" },
-  { value: "views", label: "Most Viewed" },
 ]
 
 export function ProfileBuildsFilters({
@@ -85,7 +77,7 @@ export function ProfileBuildsFilters({
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
-          {SORT_OPTIONS.map((option) => (
+          {BUILD_SORT_OPTIONS.map((option) => (
             <Button
               key={option.value}
               variant={sortBy === option.value ? "secondary" : "ghost"}

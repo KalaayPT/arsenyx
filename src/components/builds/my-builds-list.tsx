@@ -1,5 +1,6 @@
 "use client"
 
+import type { BuildVisibility } from "@/generated/prisma/client"
 import { Globe, Link as LinkIcon, Lock } from "lucide-react"
 
 import { BuildCardLink } from "@/components/build/build-card-link"
@@ -13,7 +14,7 @@ interface MyBuild {
   item: { name: string; imageName: string | null }
   voteCount: number
   viewCount: number
-  visibility: string
+  visibility: BuildVisibility
 }
 
 function VisibilityBadge({ visibility }: { visibility: string }) {
