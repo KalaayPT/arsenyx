@@ -170,33 +170,35 @@ export default async function BuildPage({ params }: BuildPageProps) {
               </span>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl font-bold">{build.name}</h1>
-                {build.organization ? (
-                  <span className="text-sm">
-                    <OrgBadge
-                      name={build.organization.name}
-                      slug={build.organization.slug}
-                    />
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground text-sm">
-                    by{" "}
-                    {build.user.username ? (
-                      <Link
-                        href={`/profile/${build.user.username}`}
-                        className="hover:text-foreground transition-colors hover:underline"
-                      >
-                        {build.user.displayUsername || build.user.username}
-                      </Link>
-                    ) : (
-                      build.user.displayUsername || build.user.name || "Anonymous"
-                    )}
-                  </span>
-                )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="truncate text-xl font-bold">{build.name}</h1>
+                <div className="mt-1">
+                  {build.organization ? (
+                    <span className="text-sm">
+                      <OrgBadge
+                        name={build.organization.name}
+                        slug={build.organization.slug}
+                      />
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      by{" "}
+                      {build.user.username ? (
+                        <Link
+                          href={`/profile/${build.user.username}`}
+                          className="hover:text-foreground transition-colors hover:underline"
+                        >
+                          {build.user.displayUsername || build.user.username}
+                        </Link>
+                      ) : (
+                        build.user.displayUsername || build.user.name || "Anonymous"
+                      )}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <BuildSocialActions
                   buildId={build.id}
                   voteCount={build.voteCount}

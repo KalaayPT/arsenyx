@@ -11,23 +11,27 @@ interface BuildListProps {
   /** Count label shown next to the toggle, e.g. "5 builds" */
   count?: number
   className?: string
+  /** Hide the toolbar row (when the parent provides its own toggle) */
+  showToolbar?: boolean
 }
 
-export function BuildList({ children, count, className }: BuildListProps) {
+export function BuildList({ children, count, className, showToolbar = true }: BuildListProps) {
   const { viewMode } = useViewPreference()
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <div className="flex items-center justify-between">
-        {count !== undefined ? (
-          <p className="text-muted-foreground text-sm">
-            {count} {count === 1 ? "build" : "builds"}
-          </p>
-        ) : (
-          <div />
-        )}
-        <ViewToggle />
-      </div>
+      {showToolbar && (
+        <div className="flex items-center justify-between">
+          {count !== undefined ? (
+            <p className="text-muted-foreground text-sm">
+              {count} {count === 1 ? "build" : "builds"}
+            </p>
+          ) : (
+            <div />
+          )}
+          <ViewToggle />
+        </div>
+      )}
       <div
         className={
           viewMode === "grid"

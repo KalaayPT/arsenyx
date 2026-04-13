@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import type { BuildListItem } from "@/lib/db/index"
 
-import { ProfileBuildsFilters } from "./profile-builds-filters"
+import { ProfileBuildsFilters, type SortBy } from "./profile-builds-filters"
 
 interface ProfileBuildsProps {
   userId?: string
@@ -42,6 +42,7 @@ export function ProfileBuilds({
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("all")
+  const [sortBy, setSortBy] = useState<SortBy>("votes")
   const [isPending, startTransition] = useTransition()
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const hasInteracted = useRef(false)
@@ -50,6 +51,7 @@ export function ProfileBuilds({
     (
       newSearch: string,
       newCategory: string,
+      newSortBy: string,
       newPage: number,
       append: boolean,
     ) => {
@@ -60,6 +62,7 @@ export function ProfileBuilds({
         const fetchOptions = {
           query: newSearch || undefined,
           category: newCategory !== "all" ? newCategory : undefined,
+          sortBy: newSortBy,
           page: newPage,
         }
         const result = orgId
@@ -88,13 +91,13 @@ export function ProfileBuilds({
       return
     }
     const timer = setTimeout(() => {
-      fetchBuilds(search, category, 1, false)
+      fetchBuilds(search, category, sortBy, 1, false)
     }, 300)
     return () => clearTimeout(timer)
-  }, [search, category, fetchBuilds])
+  }, [search, category, sortBy, fetchBuilds])
 
   function handleLoadMore() {
-    fetchBuilds(search, category, page + 1, true)
+    fetchBuilds(search, category, sortBy, page + 1, true)
   }
 
   return (
@@ -104,6 +107,8 @@ export function ProfileBuilds({
         onSearchChange={setSearch}
         category={category}
         onCategoryChange={setCategory}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
       />
 
       {isPending && !isLoadingMore ? (
@@ -125,7 +130,7 @@ export function ProfileBuilds({
         </Empty>
       ) : (
         <>
-          <BuildList>
+          <BuildList showToolbar={false}>
             {builds.map((build) => (
               <BuildCardLink
                 key={build.id}

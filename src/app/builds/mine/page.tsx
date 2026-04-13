@@ -1,13 +1,12 @@
-import { Lock, Globe, Link as LinkIcon, Plus, Hammer } from "lucide-react"
+import { Plus, Hammer } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 
-import { BuildCardLink } from "@/components/build/build-card-link"
-import { BuildsResults } from "@/components/builds/builds-results"
+import { ViewToggle } from "@/components/build/view-preference"
+import { MyBuildsList } from "@/components/builds/my-builds-list"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getServerSession } from "@/lib/auth"
 import { getUserBuilds } from "@/lib/db/index"
@@ -48,28 +47,6 @@ export default async function MyBuildsPage({
 
   const totalPages = Math.ceil(total / 24)
 
-  const getVisibilityIcon = (visibility: string) => {
-    switch (visibility) {
-      case "PRIVATE":
-        return <Lock className="h-3 w-3" />
-      case "UNLISTED":
-        return <LinkIcon className="h-3 w-3" />
-      default:
-        return <Globe className="h-3 w-3" />
-    }
-  }
-
-  const getVisibilityLabel = (visibility: string) => {
-    switch (visibility) {
-      case "PRIVATE":
-        return "Private"
-      case "UNLISTED":
-        return "Unlisted"
-      default:
-        return "Public"
-    }
-  }
-
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
@@ -88,28 +65,31 @@ export default async function MyBuildsPage({
             </Button>
           </div>
 
-          {/* Sort options */}
-          <div className="flex gap-2">
-            {(
-              [
-                { value: "newest", label: "Newest" },
-                { value: "updated", label: "Updated" },
-                { value: "votes", label: "Most Voted" },
-                { value: "views", label: "Most Viewed" },
-              ] as const
-            ).map((option) => (
-              <Link
-                key={option.value}
-                href={`/builds/mine?sort=${option.value}&page=1`}
-              >
-                <Button
-                  variant={sortBy === option.value ? "secondary" : "ghost"}
-                  size="sm"
+          {/* Sort options + view toggle */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  { value: "newest", label: "Newest" },
+                  { value: "updated", label: "Updated" },
+                  { value: "votes", label: "Most Voted" },
+                  { value: "views", label: "Most Viewed" },
+                ] as const
+              ).map((option) => (
+                <Link
+                  key={option.value}
+                  href={`/builds/mine?sort=${option.value}&page=1`}
                 >
-                  {option.label}
-                </Button>
-              </Link>
-            ))}
+                  <Button
+                    variant={sortBy === option.value ? "secondary" : "ghost"}
+                    size="sm"
+                  >
+                    {option.label}
+                  </Button>
+                </Link>
+              ))}
+            </div>
+            <ViewToggle />
           </div>
 
           {builds.length === 0 ? (
@@ -124,35 +104,7 @@ export default async function MyBuildsPage({
             </div>
           ) : (
             <>
-              <BuildsResults
-                renderCard={(layout) =>
-                  builds.map((build) => (
-                    <BuildCardLink
-                      key={build.id}
-                      slug={build.slug}
-                      name={build.name}
-                      itemName={build.item.name}
-                      itemImageName={build.item.imageName}
-                      voteCount={build.voteCount}
-                      viewCount={build.viewCount}
-                      layout={layout}
-                      imageOverlay={
-                        <div className="absolute top-2 right-2">
-                          <Badge
-                            variant="secondary"
-                            className="gap-1 px-1.5 py-0.5 text-xs"
-                          >
-                            {getVisibilityIcon(build.visibility)}
-                            <span className="hidden sm:inline">
-                              {getVisibilityLabel(build.visibility)}
-                            </span>
-                          </Badge>
-                        </div>
-                      }
-                    />
-                  ))
-                }
-              />
+              <MyBuildsList builds={builds} />
 
               {/* Pagination */}
               {totalPages > 1 && (
