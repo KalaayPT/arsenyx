@@ -21,6 +21,7 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 
 ### Always
 
+- Update the changelog (`src/app/changelog/page.tsx`) when completing user-facing changes — add entries to the `CHANGELOG` array
 - Run `bun build` before claiming work is done — `bun dev` hides type errors
 - Invoke the `shadcn` skill before any frontend work (new components, UI changes, styling)
 - Use Server Components by default; only add `"use client"` when actually needed
@@ -38,6 +39,10 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 
 - Modify `src/components/ui/` — override via className instead
 - Use npm/npx — always use bun/bunx
+
+## Data Quirks
+
+- WFCD item fields can vary types across items (e.g. `aura` is `string` for most warframes but `string[]` for Jade) — always handle both forms
 
 ## Reference Docs
 

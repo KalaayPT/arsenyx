@@ -4,7 +4,8 @@ import {
   type DragOverEvent,
   useSensor,
   useSensors,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
 } from "@dnd-kit/core"
 import { useId, useRef, useState } from "react"
 
@@ -48,9 +49,15 @@ export function useBuildDragDrop({
   } | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: canEdit ? 3 : 999999,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: canEdit ? 150 : 999999,
+        tolerance: 5,
       },
     }),
   )
@@ -83,6 +90,8 @@ export function useBuildDragDrop({
           slotIndex: overCurrent.slotIndex,
         },
       }
+    } else {
+      lastOverRef.current = null
     }
   }
 
