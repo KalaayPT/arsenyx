@@ -22,10 +22,15 @@ import {
   updateBuildGuideAction,
   getUserBuildsForPartnerSelectorAction,
 } from "@/app/actions/builds"
-import {
-  GuideEditor,
-  type GuideEditorData,
-} from "@/components/build-editor/guide-editor"
+import type { GuideEditorData } from "@/components/build-editor/guide-editor"
+
+const GuideEditor = dynamic(
+  () =>
+    import("@/components/build-editor/guide-editor").then(
+      (mod) => mod.GuideEditor,
+    ),
+  { ssr: false },
+)
 import type { PartnerBuild } from "@/components/build-editor/partner-build-card"
 import type { PartnerBuildOption } from "@/components/build-editor/partner-build-selector"
 import { PartnerBuildsSection } from "@/components/build/partner-builds-section"

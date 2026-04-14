@@ -210,13 +210,15 @@ export async function removeOrgMember(
   orgId: string,
   userId: string,
 ): Promise<void> {
-  const adminCount = await prisma.organizationMember.count({
-    where: { organizationId: orgId, role: "ADMIN" },
-  })
-  const member = await prisma.organizationMember.findUnique({
-    where: { organizationId_userId: { organizationId: orgId, userId } },
-    select: { role: true },
-  })
+  const [adminCount, member] = await Promise.all([
+    prisma.organizationMember.count({
+      where: { organizationId: orgId, role: "ADMIN" },
+    }),
+    prisma.organizationMember.findUnique({
+      where: { organizationId_userId: { organizationId: orgId, userId } },
+      select: { role: true },
+    }),
+  ])
   if (member?.role === "ADMIN" && adminCount <= 1) {
     throw new Error("Cannot remove the last admin")
   }

@@ -27,10 +27,13 @@ const DescriptionEditor = dynamic(
   },
 )
 import type { PartnerBuild } from "./partner-build-card"
-import {
-  PartnerBuildSelector,
-  type PartnerBuildOption,
-} from "./partner-build-selector"
+import type { PartnerBuildOption } from "./partner-build-selector"
+
+const PartnerBuildSelector = dynamic(
+  () =>
+    import("./partner-build-selector").then((mod) => mod.PartnerBuildSelector),
+  { ssr: false },
+)
 
 const SUMMARY_MAX_LENGTH = 400
 const SUMMARY_WARNING_THRESHOLD = 300

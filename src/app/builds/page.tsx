@@ -9,6 +9,7 @@ import { CommunityBuildsList } from "@/components/builds/community-builds-list"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getPublicBuilds } from "@/lib/db/index"
 import type { BrowseCategory } from "@/lib/warframe/types"
 
@@ -55,6 +56,106 @@ function buildFilterUrl(
   return `/builds${str ? `?${str}` : ""}`
 }
 
+function BuildResultsSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Skeleton key={i} className="h-24 w-full rounded-lg" />
+      ))}
+    </div>
+  )
+}
+
+async function BuildResults({
+  category,
+  sortBy,
+  page,
+  limit,
+  q,
+  author,
+  hasGuide,
+  hasShards,
+  filterState,
+}: {
+  category: string | undefined
+  sortBy: "newest" | "votes" | "views" | "updated"
+  page: number
+  limit: number
+  q: string | undefined
+  author: string | undefined
+  hasGuide: boolean | undefined
+  hasShards: boolean | undefined
+  filterState: {
+    category?: string
+    sort: string
+    q?: string
+    author?: string
+    hasGuide?: string
+    hasShards?: string
+  }
+}) {
+  const { builds, total } = await getPublicBuilds({
+    category,
+    sortBy,
+    page,
+    limit,
+    query: q,
+    author,
+    hasGuide,
+    hasShards,
+  })
+
+  const totalPages = Math.ceil(total / limit)
+
+  if (builds.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-muted-foreground">No builds found.</p>
+        <p className="text-muted-foreground mt-2 text-sm">
+          Be the first to{" "}
+          <Link href="/browse" className="text-primary underline">
+            create a build
+          </Link>
+          !
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <CommunityBuildsList builds={builds} count={total} />
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          {page > 1 && (
+            <Link
+              href={buildFilterUrl({ page: String(page - 1) }, filterState)}
+            >
+              <Button variant="outline" size="sm">
+                Previous
+              </Button>
+            </Link>
+          )}
+          <span className="text-muted-foreground text-sm">
+            Page {page} of {totalPages}
+          </span>
+          {page < totalPages && (
+            <Link
+              href={buildFilterUrl({ page: String(page + 1) }, filterState)}
+            >
+              <Button variant="outline" size="sm">
+                Next
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
 export default async function BuildsPage({ searchParams }: BuildsPageProps) {
   const params = await searchParams
   const category = params.category || undefined
@@ -75,19 +176,6 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
     hasGuide: params.hasGuide,
     hasShards: params.hasShards,
   }
-
-  const { builds, total } = await getPublicBuilds({
-    category,
-    sortBy,
-    page,
-    limit,
-    query: q,
-    author,
-    hasGuide,
-    hasShards,
-  })
-
-  const totalPages = Math.ceil(total / limit)
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -132,55 +220,19 @@ export default async function BuildsPage({ searchParams }: BuildsPageProps) {
           </Suspense>
 
           {/* Results */}
-          {builds.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-muted-foreground">No builds found.</p>
-              <p className="text-muted-foreground mt-2 text-sm">
-                Be the first to{" "}
-                <Link href="/browse" className="text-primary underline">
-                  create a build
-                </Link>
-                !
-              </p>
-            </div>
-          ) : (
-            <>
-              <CommunityBuildsList builds={builds} count={total} />
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2">
-                  {page > 1 && (
-                    <Link
-                      href={buildFilterUrl(
-                        { page: String(page - 1) },
-                        filterState,
-                      )}
-                    >
-                      <Button variant="outline" size="sm">
-                        Previous
-                      </Button>
-                    </Link>
-                  )}
-                  <span className="text-muted-foreground text-sm">
-                    Page {page} of {totalPages}
-                  </span>
-                  {page < totalPages && (
-                    <Link
-                      href={buildFilterUrl(
-                        { page: String(page + 1) },
-                        filterState,
-                      )}
-                    >
-                      <Button variant="outline" size="sm">
-                        Next
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+          <Suspense fallback={<BuildResultsSkeleton />}>
+            <BuildResults
+              category={category}
+              sortBy={sortBy}
+              page={page}
+              limit={limit}
+              q={q}
+              author={author}
+              hasGuide={hasGuide}
+              hasShards={hasShards}
+              filterState={filterState}
+            />
+          </Suspense>
         </div>
       </main>
       <Footer />

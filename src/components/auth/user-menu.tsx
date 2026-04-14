@@ -1,10 +1,15 @@
 "use client"
 
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useState } from "react"
 
-import { SettingsSheet } from "@/components/settings"
+const SettingsSheet = dynamic(
+  () =>
+    import("@/components/settings").then((mod) => mod.SettingsSheet),
+  { ssr: false },
+)
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

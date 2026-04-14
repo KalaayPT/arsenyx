@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Mark pg as external to avoid Turbopack bundling issues
   serverExternalPackages: ["pg", "sharp", "@sparticuz/chromium-min", "playwright-core"],
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   turbopack: {
     root: process.cwd(),
   },

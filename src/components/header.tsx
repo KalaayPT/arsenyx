@@ -1,9 +1,13 @@
+import dynamic from "next/dynamic"
 import Link from "next/link"
 
 import { UserMenu } from "@/components/auth"
 import { Icons } from "@/components/icons"
 import { MobileNav } from "@/components/mobile-nav"
-import { SearchCommand } from "@/components/search-command"
+
+const SearchCommand = dynamic(() =>
+  import("@/components/search-command").then((mod) => mod.SearchCommand),
+)
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { SITE_CONFIG, NAV_ITEMS, ROUTES } from "@/lib/constants"

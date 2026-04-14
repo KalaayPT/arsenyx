@@ -607,19 +607,16 @@ export async function normalizeBuildDraftForPersistence(
   )
 
   const normalizedBuildData = parseNormalizedBuildData(buildState)
-  const existingBuild = await resolveExistingBuildContext(
-    options?.existingBuildId,
-  )
-  const organizationId = await resolveOrganizationId(
-    draft.organizationSlug ?? null,
-    viewer,
-  )
+  const [existingBuild, organizationId, partnerBuildIds] = await Promise.all([
+    resolveExistingBuildContext(options?.existingBuildId),
+    resolveOrganizationId(draft.organizationSlug ?? null, viewer),
+    resolvePartnerBuildIds(
+      draft.partnerBuildSlugs,
+      viewer,
+      options?.existingBuildId,
+    ),
+  ])
   validateOrganizationRehome(viewer, existingBuild, organizationId)
-  const partnerBuildIds = await resolvePartnerBuildIds(
-    draft.partnerBuildSlugs,
-    viewer,
-    options?.existingBuildId,
-  )
 
   const guideSummary = normalizeOptionalString(draft.guide?.summary)
   const guideDescription = normalizeOptionalString(draft.guide?.description)

@@ -9,7 +9,6 @@
 import { revalidatePath } from "next/cache"
 import { after } from "next/server"
 
-import { getServerSession } from "@/lib/auth"
 import { requireAuth } from "@/lib/auth-helpers"
 import {
   BuildDraftError,
@@ -53,12 +52,12 @@ export async function saveBuildAction(
     const auth = await requireAuth("save a build")
     if (!auth.success) return auth
     const userId = auth.data
-    const session = await getServerSession()
+    // requireAuth already rejects banned users, so isBanned is always false here
     const { buildId, ...draftPayload } = input
     const normalized = await normalizeBuildDraftForPersistence(
       {
         userId,
-        isBanned: session?.user?.isBanned ?? false,
+        isBanned: false,
       },
       draftPayload,
       {
@@ -187,22 +186,21 @@ export async function updateBuildGuideAction(
   input: UpdateBuildGuideInput,
 ): Promise<SaveBuildResult> {
   try {
-    const auth = await requireAuth("update a guide")
-    if (!auth.success) return auth
-    const userId = auth.data
-
-    // Validate summary length
+    // Validate sync checks before expensive auth call
     if (input.summary && input.summary.length > MAX_SUMMARY_LENGTH) {
       return err(`Summary must be ${MAX_SUMMARY_LENGTH} characters or less`)
     }
 
-    // Validate partner builds count
     if (
       input.partnerBuildIds &&
       input.partnerBuildIds.length > MAX_PARTNER_BUILDS
     ) {
       return err(`Maximum ${MAX_PARTNER_BUILDS} partner builds allowed`)
     }
+
+    const auth = await requireAuth("update a guide")
+    if (!auth.success) return auth
+    const userId = auth.data
 
     const build = await updateBuild(buildId, userId, {
       guideSummary: input.summary,
