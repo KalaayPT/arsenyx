@@ -1,12 +1,15 @@
 "use client"
 
+import { ChevronDown } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface FilterDropdownProps {
   label: string
@@ -22,8 +25,8 @@ export function FilterDropdown({
   onChange,
 }: FilterDropdownProps) {
   return (
-    <Popover>
-      <PopoverTrigger
+    <DropdownMenu>
+      <DropdownMenuTrigger
         render={
           <Button
             variant="outline"
@@ -33,34 +36,17 @@ export function FilterDropdown({
         }
       >
         {label}
-        <svg
-          className="size-3 opacity-50"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </PopoverTrigger>
-      <PopoverContent className="w-32 p-1" align="start">
-        {options.map((option) => (
-          <button
-            key={option}
-            onClick={() => onChange(option)}
-            className={cn(
-              "hover:bg-muted w-full rounded px-2 py-1.5 text-left text-sm transition-colors",
-              value === option && "bg-muted font-medium",
-            )}
-          >
-            {option}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+        <ChevronDown data-icon="inline-end" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+          {options.map((option) => (
+            <DropdownMenuRadioItem key={option} value={option}>
+              {option}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

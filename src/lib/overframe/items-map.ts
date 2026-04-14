@@ -1,9 +1,6 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 
-let cachedMap: Map<string, string> | null = null
-let cachedLoadedFrom: string | null = null
-
 const HEADER_RE = /^id\s*,/i
 const QUOTE_WRAP_RE = /^"|"$/g
 const ESCAPED_QUOTE_RE = /""/g
@@ -49,14 +46,10 @@ function parseItemsJson(json: string): Map<string, string> {
   return map
 }
 
-export async function getOverframeItemsMap(): Promise<{
+async function loadOverframeItemsMap(): Promise<{
   map: Map<string, string>
   loadedFrom: string
 }> {
-  if (cachedMap && cachedLoadedFrom) {
-    return { map: cachedMap, loadedFrom: cachedLoadedFrom }
-  }
-
   // Prefer JSON map (generated once) for speed; fall back to CSV.
   // In Next.js server runtime, process.cwd() is the project root.
   const jsonPath = join(
@@ -78,15 +71,20 @@ export async function getOverframeItemsMap(): Promise<{
 
   try {
     const json = await readFile(jsonPath, "utf8")
-    cachedMap = parseItemsJson(json)
-    cachedLoadedFrom = jsonPath
+    return { map: parseItemsJson(json), loadedFrom: jsonPath }
   } catch {
     const csv = await readFile(csvPath, "utf8")
-    cachedMap = parseItemsCsv(csv)
-    cachedLoadedFrom = csvPath
+    return { map: parseItemsCsv(csv), loadedFrom: csvPath }
   }
+}
 
-  return { map: cachedMap, loadedFrom: cachedLoadedFrom }
+const overframeItemsMapPromise = loadOverframeItemsMap()
+
+export async function getOverframeItemsMap(): Promise<{
+  map: Map<string, string>
+  loadedFrom: string
+}> {
+  return overframeItemsMapPromise
 }
 
 export async function getOverframeNameById(

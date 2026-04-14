@@ -13,9 +13,6 @@ import { type Result, ok, err } from "@/lib/result"
 export async function createApiKeyAction(formData: FormData): Promise<
   Result<{ rawKey: string; prefix: string }>
 > {
-  const auth = await requireAdmin("manage API keys")
-  if (!auth.success) return auth
-
   const name = formData.get("name") as string
   const scopes = (formData.get("scopes") as string)
     .split(",")
@@ -31,6 +28,9 @@ export async function createApiKeyAction(formData: FormData): Promise<
   if (scopes.length === 0) {
     return err("At least one scope is required")
   }
+
+  const auth = await requireAdmin("manage API keys")
+  if (!auth.success) return auth
 
   let expiresAt: Date | null = null
   if (expiresIn === "30d") {

@@ -17,6 +17,12 @@ import {
   getModsForItem,
   getAllHelminthAugmentMods,
 } from "@/lib/warframe/mods"
+import {
+  slimItemForClient,
+  slimModsForClient,
+  slimArcanesForClient,
+  slimHelminthAugmentModsForClient,
+} from "@/lib/warframe/slim"
 import type { BrowseCategory } from "@/lib/warframe/types"
 
 export const metadata: Metadata = {
@@ -96,16 +102,18 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
             <main className="flex-1">
               <Suspense fallback={<BuildEditorSkeleton />}>
                 <BuildContainer
-                  item={fullItem}
+                  item={slimItemForClient(fullItem)}
                   category={category}
                   categoryLabel={categoryConfig?.label ?? "Item"}
-                  compatibleMods={compatibleMods}
+                  compatibleMods={slimModsForClient(compatibleMods)}
                   helminthAugmentMods={
-                    isWarframeCategory(category)
-                      ? getAllHelminthAugmentMods()
-                      : undefined
+                    slimHelminthAugmentModsForClient(
+                      isWarframeCategory(category)
+                        ? getAllHelminthAugmentMods()
+                        : undefined,
+                    )
                   }
-                  compatibleArcanes={compatibleArcanes}
+                  compatibleArcanes={slimArcanesForClient(compatibleArcanes)}
                   importedBuild={decodedBuild}
                 />
               </Suspense>
@@ -167,16 +175,18 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         <main className="flex-1">
           <Suspense fallback={<BuildEditorSkeleton />}>
             <BuildContainer
-              item={fullItem ?? item}
+              item={slimItemForClient(fullItem ?? item)}
               category={category}
               categoryLabel={categoryConfig?.label ?? "Item"}
-              compatibleMods={compatibleMods}
+              compatibleMods={slimModsForClient(compatibleMods)}
               helminthAugmentMods={
-                isWarframeCategory(category)
-                  ? getAllHelminthAugmentMods()
-                  : undefined
+                slimHelminthAugmentModsForClient(
+                  isWarframeCategory(category)
+                    ? getAllHelminthAugmentMods()
+                    : undefined,
+                )
               }
-              compatibleArcanes={compatibleArcanes}
+              compatibleArcanes={slimArcanesForClient(compatibleArcanes)}
               importedBuild={importedBuild}
             />
           </Suspense>
@@ -212,16 +222,18 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
         <main className="flex-1">
           <Suspense fallback={<BuildEditorSkeleton />}>
             <BuildContainer
-              item={fullItem ?? item}
+              item={slimItemForClient(fullItem ?? item)}
               category={category}
               categoryLabel={categoryConfig?.label ?? "Item"}
-              compatibleMods={compatibleMods}
+              compatibleMods={slimModsForClient(compatibleMods)}
               helminthAugmentMods={
-                isWarframeCategory(category)
-                  ? getAllHelminthAugmentMods()
-                  : undefined
+                slimHelminthAugmentModsForClient(
+                  isWarframeCategory(category)
+                    ? getAllHelminthAugmentMods()
+                    : undefined,
+                )
               }
-              compatibleArcanes={compatibleArcanes}
+              compatibleArcanes={slimArcanesForClient(compatibleArcanes)}
             />
           </Suspense>
         </main>

@@ -97,7 +97,8 @@ export async function requireApiKey(
     throw error
   }
 
-  await touchApiKeyLastUsedAt(apiKey.id)
+  // Fire-and-forget: updating last-used timestamp is not critical
+  void touchApiKeyLastUsedAt(apiKey.id).catch(console.error)
 
   return {
     success: true,

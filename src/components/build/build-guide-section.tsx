@@ -22,10 +22,15 @@ import {
   updateBuildGuideAction,
   getUserBuildsForPartnerSelectorAction,
 } from "@/app/actions/builds"
-import {
-  GuideEditor,
-  type GuideEditorData,
-} from "@/components/build-editor/guide-editor"
+import type { GuideEditorData } from "@/components/build-editor/guide-editor"
+
+const GuideEditor = dynamic(
+  () =>
+    import("@/components/build-editor/guide-editor").then(
+      (mod) => mod.GuideEditor,
+    ),
+  { ssr: false },
+)
 import type { PartnerBuild } from "@/components/build-editor/partner-build-card"
 import type { PartnerBuildOption } from "@/components/build-editor/partner-build-selector"
 import { PartnerBuildsSection } from "@/components/build/partner-builds-section"
@@ -87,9 +92,10 @@ export function BuildGuideSection({
     setKey((prev) => prev + 1)
 
     // Update partner builds from available builds
+    const buildById = new Map(availableBuilds.map((b) => [b.id, b]))
     const newPartnerBuilds = data.partnerBuildIds
       .map((id) => {
-        const build = availableBuilds.find((b) => b.id === id)
+        const build = buildById.get(id)
         if (!build) return null
         return {
           id: build.id,

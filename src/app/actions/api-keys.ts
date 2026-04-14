@@ -58,13 +58,13 @@ export async function createApiKeyAction(
   input: z.infer<typeof createApiKeySchema>,
 ): Promise<Result<CreateApiKeyActionResult>> {
   try {
-    const auth = await requireAuth("create an API key")
-    if (!auth.success) return auth
-
     const parsed = createApiKeySchema.safeParse(input)
     if (!parsed.success) {
       return err(parsed.error.issues[0]?.message ?? "Invalid API key input")
     }
+
+    const auth = await requireAuth("create an API key")
+    if (!auth.success) return auth
 
     const created = await createApiKey(auth.data, {
       name: parsed.data.name,

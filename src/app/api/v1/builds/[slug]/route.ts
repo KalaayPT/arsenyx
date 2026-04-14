@@ -21,13 +21,15 @@ export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ slug: string }> },
 ) {
-  const auth = await requireApiKey(request, "build:write")
+  const [auth, { slug }] = await Promise.all([
+    requireApiKey(request, "build:write"),
+    context.params,
+  ])
   if (!auth.success) {
     return jsonError(auth.error.status, auth.error.code, auth.error.message)
   }
 
   try {
-    const { slug } = await context.params
     const existingBuild = await prisma.build.findUnique({
       where: { slug },
       select: {

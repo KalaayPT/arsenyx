@@ -64,6 +64,10 @@ export async function createOrganizationAction(
   input: z.infer<typeof createOrgSchema>,
 ): Promise<Result<OrganizationProfile>> {
   try {
+    const parsed = createOrgSchema.safeParse(input)
+    if (!parsed.success)
+      return err(parsed.error.issues[0]?.message ?? "Invalid input")
+
     const auth = await requireAuth("create an organization")
     if (!auth.success) return auth
     const userId = auth.data
@@ -75,10 +79,6 @@ export async function createOrganizationAction(
     if (!user?.isCommunityLeader && !user?.isAdmin) {
       return err("You do not have permission to create organizations")
     }
-
-    const parsed = createOrgSchema.safeParse(input)
-    if (!parsed.success)
-      return err(parsed.error.issues[0]?.message ?? "Invalid input")
 
     const slugTaken = await isOrgSlugTaken(parsed.data.slug)
     if (slugTaken) return err("This slug is already taken")
@@ -106,15 +106,15 @@ export async function updateOrganizationAction(
   input: z.infer<typeof updateOrgSchema>,
 ): Promise<Result<OrganizationProfile>> {
   try {
+    const parsed = updateOrgSchema.safeParse(input)
+    if (!parsed.success)
+      return err(parsed.error.issues[0]?.message ?? "Invalid input")
+
     const auth = await requireAuth("update an organization")
     if (!auth.success) return auth
 
     const admin = await isOrgAdmin(orgId, auth.data)
     if (!admin) return err("Only admins can update organization settings")
-
-    const parsed = updateOrgSchema.safeParse(input)
-    if (!parsed.success)
-      return err(parsed.error.issues[0]?.message ?? "Invalid input")
 
     if (parsed.data.slug) {
       const slugTaken = await isOrgSlugTaken(parsed.data.slug, orgId)

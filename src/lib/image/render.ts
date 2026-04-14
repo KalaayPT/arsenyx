@@ -50,15 +50,10 @@ const POLARITY_FILES: Record<string, string> = {
   universal: "Any_Pol.svg",
 }
 
-// Raw SVG strings cached per polarity
-let rawSvgCache: Map<string, string> | null = null
-
 /**
  * Load raw SVG strings for all polarity icons.
  */
-async function loadRawPolaritySvgs(): Promise<Map<string, string>> {
-  if (rawSvgCache) return rawSvgCache
-
+async function loadRawPolaritySvgsInternal(): Promise<Map<string, string>> {
   const map = new Map<string, string>()
   const dir = join(process.cwd(), "public/focus-schools")
 
@@ -73,8 +68,13 @@ async function loadRawPolaritySvgs(): Promise<Map<string, string>> {
     }),
   )
 
-  rawSvgCache = map
   return map
+}
+
+const rawPolaritySvgsPromise = loadRawPolaritySvgsInternal()
+
+async function loadRawPolaritySvgs(): Promise<Map<string, string>> {
+  return rawPolaritySvgsPromise
 }
 
 /**

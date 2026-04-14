@@ -25,6 +25,9 @@ import { ItemSidebar } from "./item-sidebar"
 import { ModGrid } from "./mod-grid"
 import { useBuildKeyboard } from "./use-build-keyboard"
 
+const EMPTY_ARCANES: Arcane[] = []
+const EMPTY_PARTNER_BUILDS: BuildContainerProps["initialPartnerBuilds"] & {} = []
+
 export type { BuildContainerProps } from "./hooks/use-build-state"
 
 export function BuildContainer({
@@ -33,13 +36,13 @@ export function BuildContainer({
   categoryLabel,
   compatibleMods,
   helminthAugmentMods,
-  compatibleArcanes = [],
+  compatibleArcanes = EMPTY_ARCANES,
   importedBuild,
   savedBuildId,
   readOnly = false,
   isOwner = false,
   initialGuide,
-  initialPartnerBuilds = [],
+  initialPartnerBuilds = EMPTY_PARTNER_BUILDS,
   initialOrganizationSlug,
   initialVisibility,
 }: BuildContainerProps) {
@@ -145,6 +148,8 @@ export function BuildContainer({
     initialPartnerBuilds,
   })
 
+  const partnerBuildIds = useMemo(() => partnerBuilds.map((b) => b.slug), [partnerBuilds])
+
   const hydrateBuildState = useCallback(
     (partial: Partial<import("@/lib/warframe/types").BuildState>) => {
       dispatch({ type: "HYDRATE", state: partial, item, category })
@@ -175,7 +180,7 @@ export function BuildContainer({
     canEdit,
     guideSummary,
     guideDescription,
-    partnerBuildIds: partnerBuilds.map((b) => b.slug),
+    partnerBuildIds,
     setIsEditMode,
     initialOrganizationSlug,
     initialVisibility,

@@ -159,6 +159,13 @@ const TYPE_COLORS: Record<ChangelogEntry["changes"][number]["type"], string> = {
   chore: "bg-neutral-500/15 text-neutral-400",
 }
 
+const TYPE_ORDER: Record<ChangelogEntry["changes"][number]["type"], number> = {
+  feat: 0,
+  refactor: 1,
+  fix: 2,
+  chore: 3,
+}
+
 export default function ChangelogPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -186,7 +193,7 @@ export default function ChangelogPage() {
                   )}
                 </h2>
                 <ul className="flex flex-col gap-3">
-                  {entry.changes.map((change, i) => (
+                  {[...entry.changes].sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type]).map((change, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <span
                         className={`mt-0.5 shrink-0 rounded px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[change.type]}`}
