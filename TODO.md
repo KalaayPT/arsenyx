@@ -59,19 +59,19 @@
 
 #### Missing `React.cache()`
 
-- [ ] `src/lib/auth.ts:68` — `getServerSession()` not wrapped in `React.cache()`; called multiple times per request
+- [x] `src/lib/auth.ts:68` — `getServerSession()` not wrapped in `React.cache()`; called multiple times per request
 
 #### Over-serialization to client
 
-- [ ] `src/app/builds/[slug]/page.tsx:228-258` — Full WFCD `item` object (abilities, patchlogs, components) serialized to `BuildContainer`; only a subset needed
-- [ ] `src/app/builds/[slug]/page.tsx:231` — Entire `compatibleMods` array (hundreds of mod objects with drops, levelStats) serialized to client
-- [ ] `src/app/create/page.tsx` (3 paths) — Same over-serialization across all 3 category code paths
+- [x] `src/app/builds/[slug]/page.tsx:228-258` — Full WFCD `item` object (abilities, patchlogs, components) serialized to `BuildContainer`; only a subset needed
+- [x] `src/app/builds/[slug]/page.tsx:231` — Entire `compatibleMods` array (hundreds of mod objects with drops, levelStats) serialized to client
+- [x] `src/app/create/page.tsx` (3 paths) — Same over-serialization across all 3 category code paths
 
 #### Static I/O not hoisted to module level
 
-- [ ] `src/lib/image/font.ts:24-47` — Font files read inside function body with manual cache; should be module-level promise
-- [ ] `src/lib/image/render.ts:59-78` — Polarity SVGs read inside function body; same pattern
-- [ ] `src/lib/overframe/items-map.ts:52-90` — JSON/CSV file read inside function body
+- [x] `src/lib/image/font.ts:24-47` — Font files read inside function body with manual cache; should be module-level promise
+- [x] `src/lib/image/render.ts:59-78` — Polarity SVGs read inside function body; same pattern
+- [x] `src/lib/overframe/items-map.ts:52-90` — JSON/CSV file read inside function body
 
 #### Redundant fetches
 

@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 
-let fontCache: Array<{
+type FontEntry = {
   name: string
   data: ArrayBuffer
   weight: 400 | 700
   style: "normal"
-}> | null = null
+}
 
 async function loadFontFile(filename: string): Promise<ArrayBuffer> {
   const fontPath = join(
@@ -21,15 +21,13 @@ async function loadFontFile(filename: string): Promise<ArrayBuffer> {
   )
 }
 
-export async function loadFonts() {
-  if (fontCache) return fontCache
-
+async function loadFontsInternal(): Promise<FontEntry[]> {
   const [regular, bold] = await Promise.all([
     loadFontFile("Geist-Regular.ttf"),
     loadFontFile("Geist-Bold.ttf"),
   ])
 
-  fontCache = [
+  return [
     {
       name: "Geist",
       data: regular,
@@ -43,5 +41,10 @@ export async function loadFonts() {
       style: "normal" as const,
     },
   ]
-  return fontCache
+}
+
+const fontsPromise = loadFontsInternal()
+
+export async function loadFonts() {
+  return fontsPromise
 }

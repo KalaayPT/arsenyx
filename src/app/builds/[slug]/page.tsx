@@ -24,6 +24,12 @@ import {
   getModsForItem,
   getAllHelminthAugmentMods,
 } from "@/lib/warframe/mods"
+import {
+  slimItemForClient,
+  slimModsForClient,
+  slimArcanesForClient,
+  slimHelminthAugmentModsForClient,
+} from "@/lib/warframe/slim"
 import { slugify } from "@/lib/warframe/slugs"
 import type { BrowseCategory } from "@/lib/warframe/types"
 
@@ -225,16 +231,18 @@ export default async function BuildPage({ params }: BuildPageProps) {
 
         <Suspense fallback={<BuildViewSkeleton />}>
           <BuildContainer
-            item={fullItem}
+            item={slimItemForClient(fullItem)}
             category={category}
             categoryLabel={categoryConfig?.label ?? "Item"}
-            compatibleMods={compatibleMods}
+            compatibleMods={slimModsForClient(compatibleMods)}
             helminthAugmentMods={
-              isWarframeCategory(category)
-                ? getAllHelminthAugmentMods()
-                : undefined
+              slimHelminthAugmentModsForClient(
+                isWarframeCategory(category)
+                  ? getAllHelminthAugmentMods()
+                  : undefined,
+              )
             }
-            compatibleArcanes={compatibleArcanes}
+            compatibleArcanes={slimArcanesForClient(compatibleArcanes)}
             importedBuild={build.buildData}
             savedBuildId={build.id}
             readOnly={!canEdit}
