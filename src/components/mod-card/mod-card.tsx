@@ -310,19 +310,19 @@ function ExpandedModCard({
               {mod.rivenStats.positives.map((s, i) => (
                 <span
                   key={`pos-${i}`}
-                  className="text-center text-[12px] leading-snug font-normal text-green-400"
+                  className="text-center text-[12px] leading-snug font-normal text-gray-300"
                   style={{ fontFamily: "Roboto, sans-serif" }}
                 >
-                  +{s.value}% {s.stat}
+                  <span className="text-green-400">+{s.value}%</span> {s.stat}
                 </span>
               ))}
               {mod.rivenStats.negatives.map((s, i) => (
                 <span
                   key={`neg-${i}`}
-                  className="text-center text-[12px] leading-snug font-normal text-red-400"
+                  className="text-center text-[12px] leading-snug font-normal text-gray-300"
                   style={{ fontFamily: "Roboto, sans-serif" }}
                 >
-                  {s.value}% {s.stat}
+                  <span className="text-red-400">{s.value}%</span> {s.stat}
                 </span>
               ))}
             </div>

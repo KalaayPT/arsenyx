@@ -264,6 +264,7 @@ export function BuildContainer({
       const rivenMod: Mod = {
         uniqueName: RIVEN_UNIQUE_NAME,
         name: "Riven Mod",
+        imageName: "rifle-riven-mod-e05c5519f1.png",
         polarity: config.polarity,
         rarity: "Riven",
         baseDrain: config.drain,

@@ -41,6 +41,7 @@ export function createSyntheticRiven(): Mod {
   return {
     uniqueName: RIVEN_UNIQUE_NAME,
     name: "Riven Mod",
+    imageName: "rifle-riven-mod-e05c5519f1.png",
     polarity: "madurai",
     rarity: "Riven",
     baseDrain: 0,

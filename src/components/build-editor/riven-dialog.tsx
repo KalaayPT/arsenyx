@@ -153,7 +153,7 @@ export function RivenDialog({
                 value={drain}
                 onChange={(e) => setDrain(e.target.value)}
                 min={0}
-                className="h-8"
+                className="h-8 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
             </Field>
           </div>
@@ -218,23 +218,24 @@ function StatRow({ stat, value, onStatChange, onValueChange }: StatRowProps) {
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder="0"
-        className="h-8 w-20 shrink-0"
+        className="h-8 w-20 shrink-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
       <div className="flex-1">
         <Combobox
           value={stat}
           onValueChange={(val) => onStatChange(val)}
+          items={RIVEN_STATS}
         >
           <ComboboxInput placeholder="Select stat..." className="h-8" />
           <ComboboxContent>
-            <ComboboxList>
-              {RIVEN_STATS.map((s) => (
-                <ComboboxItem key={s} value={s}>
-                  {s}
-                </ComboboxItem>
-              ))}
-            </ComboboxList>
             <ComboboxEmpty>No stats found</ComboboxEmpty>
+            <ComboboxList>
+              {(item) => (
+                <ComboboxItem key={item} value={item}>
+                  {item}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
           </ComboboxContent>
         </Combobox>
       </div>

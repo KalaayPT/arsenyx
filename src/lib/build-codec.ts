@@ -304,6 +304,10 @@ function decodeSlot(
     const mod: import("./warframe/types").PlacedMod = {
       uniqueName: encoded.m.u,
       name: encoded.m.u === "/riven" ? "Riven Mod" : "",
+      imageName:
+        encoded.m.u === "/riven"
+          ? "rifle-riven-mod-e05c5519f1.png"
+          : undefined,
       polarity: (encoded.m.rv?.pol ?? "universal") as Polarity,
       baseDrain: encoded.m.rv?.d ?? 0,
       fusionLimit: encoded.m.u === "/riven" ? 8 : 0,

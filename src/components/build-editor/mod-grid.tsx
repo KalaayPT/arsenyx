@@ -321,6 +321,7 @@ const ModSlotCard = memo(function ModSlotCard({
         modSet: slot.mod!.modSet,
         modSetStats: slot.mod!.modSetStats,
         tradable: false,
+        rivenStats: slot.mod!.rivenStats,
       }
     : null
 
