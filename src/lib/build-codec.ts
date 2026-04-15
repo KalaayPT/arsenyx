@@ -2,6 +2,7 @@
 // Encodes builds to shareable base64 URLs and decodes them back
 
 import { SHARD_COLORS, getStatIndex, getStatByIndex } from "./warframe/shards"
+import { RIVEN_UNIQUE_NAME, RIVEN_IMAGE_NAME } from "./warframe/rivens"
 import type {
   BuildState,
   ModSlot,
@@ -9,7 +10,12 @@ import type {
   BrowseCategory,
   PlacedShard,
   PlacedArcane,
+  RivenStats,
 } from "./warframe/types"
+
+const VALID_POLARITIES = new Set<string>([
+  "madurai", "vazarin", "naramon", "zenurik", "unairu", "penjaga", "umbra", "any", "universal",
+])
 
 // =============================================================================
 // BUILD ENCODING
@@ -47,6 +53,12 @@ interface EncodedSlot {
 interface EncodedMod {
   u: string // Unique name
   r: number // Rank
+  rv?: {
+    p: { s: string; v: number }[] // Positive stats
+    n: { s: string; v: number }[] // Negative stats
+    d: number // Drain
+    pol: string // Polarity
+  }
 }
 
 interface EncodedArcane {
@@ -131,10 +143,21 @@ function encodeSlot(slot: ModSlot): EncodedSlot {
   }
 
   if (slot.mod) {
-    encoded.m = {
+    const encodedMod: EncodedMod = {
       u: slot.mod.uniqueName,
       r: slot.mod.rank,
     }
+
+    if (slot.mod.rivenStats) {
+      encodedMod.rv = {
+        p: slot.mod.rivenStats.positives.map((s) => ({ s: s.stat, v: s.value })),
+        n: slot.mod.rivenStats.negatives.map((s) => ({ s: s.stat, v: s.value })),
+        d: slot.mod.baseDrain,
+        pol: slot.mod.polarity,
+      }
+    }
+
+    encoded.m = encodedMod
   }
 
   return encoded
@@ -283,15 +306,27 @@ function decodeSlot(
   }
 
   if (encoded.m) {
-    slot.mod = {
+    const isRiven = encoded.m.u === RIVEN_UNIQUE_NAME
+    const rawPolarity = encoded.m.rv?.pol ?? "universal"
+    const mod: import("./warframe/types").PlacedMod = {
       uniqueName: encoded.m.u,
-      name: "", // Will be filled by the loader
-      polarity: "universal" as Polarity, // Will be filled by the loader
-      baseDrain: 0,
-      fusionLimit: 0,
+      name: isRiven ? "Riven Mod" : "",
+      imageName: isRiven ? RIVEN_IMAGE_NAME : undefined,
+      polarity: (VALID_POLARITIES.has(rawPolarity) ? rawPolarity : "universal") as Polarity,
+      baseDrain: encoded.m.rv?.d ?? 0,
+      fusionLimit: isRiven ? 8 : 0,
       rank: encoded.m.r,
-      rarity: "",
+      rarity: isRiven ? "Riven" : "",
     }
+
+    if (encoded.m.rv) {
+      mod.rivenStats = {
+        positives: encoded.m.rv.p.map((s) => ({ stat: s.s, value: s.v })),
+        negatives: encoded.m.rv.n.map((s) => ({ stat: s.s, value: s.v })),
+      }
+    }
+
+    slot.mod = mod
   }
 
   return slot

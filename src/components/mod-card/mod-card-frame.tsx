@@ -279,13 +279,27 @@ export function ModCardFrame({
         height={topFrameDims.h}
         className={cn(
           "pointer-events-none absolute left-1/2 z-20 -translate-x-1/2",
-          rarity === "Amalgam" || rarity === "Galvanized"
+          rarity === "Amalgam" || rarity === "Galvanized" || rarity === "Riven"
             ? "-top-2 h-auto w-[110%] max-w-none"
             : "top-0 w-full",
         )}
         priority={false}
         unoptimized
+        {...(rarity === "Riven" ? { "data-riven-frame-star": "" } : {})}
       />
+      {/* Riven no-star frame top (shown only in screenshot mode via CSS) */}
+      {rarity === "Riven" && (
+        <Image
+          data-riven-frame-nostar
+          src="/mod-components/riven/RivenFrameTopNoStar.png"
+          alt=""
+          width={topFrameDims.w}
+          height={topFrameDims.h}
+          className="pointer-events-none absolute -top-2 left-1/2 z-20 hidden h-auto w-[110%] max-w-none -translate-x-1/2"
+          priority={false}
+          unoptimized
+        />
+      )}
 
       {/* Content area - mod image, stats, etc */}
       {children}
@@ -299,7 +313,7 @@ export function ModCardFrame({
         className={cn(
           frameBottomPosition,
           "pointer-events-none z-20 w-full",
-          rarity === "Amalgam" || rarity === "Galvanized"
+          rarity === "Amalgam" || rarity === "Galvanized" || rarity === "Riven"
             ? "h-auto w-[110%] max-w-none"
             : "w-full",
         )}

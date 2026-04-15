@@ -1,6 +1,6 @@
 "use client"
 
-import type { Mod, Arcane } from "@/lib/warframe/types"
+import type { Mod, Arcane, BrowseCategory } from "@/lib/warframe/types"
 
 import { ArcaneSearchPanel } from "./arcane-search-panel"
 import type { DragItem } from "./hooks/use-build-state"
@@ -15,6 +15,7 @@ export interface BuildEditorSearchPanelProps {
   usedModNames: Set<string>
   onPlaceArcane: (arcane: Arcane, rank: number) => void
   onPlaceMod: (mod: Mod, rank?: number) => void
+  itemCategory: BrowseCategory
 }
 
 function getSlotType(
@@ -36,6 +37,7 @@ export function BuildEditorSearchPanel({
   usedModNames,
   onPlaceArcane,
   onPlaceMod,
+  itemCategory,
 }: BuildEditorSearchPanelProps) {
   return (
     <div className="bg-card rounded-lg border p-4">
@@ -54,6 +56,7 @@ export function BuildEditorSearchPanel({
           slotType={getSlotType(activeSlotId)}
           usedModNames={usedModNames}
           onSelectMod={onPlaceMod}
+          itemCategory={itemCategory}
         />
       )}
     </div>

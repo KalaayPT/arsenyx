@@ -6,7 +6,12 @@ import { useMemo, useCallback, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { getModBaseName } from "@/lib/warframe/mod-variants"
-import type { Mod, SlotType } from "@/lib/warframe/types"
+import {
+  RIVEN_ELIGIBLE_CATEGORIES,
+  createSyntheticRiven,
+  isRivenMod,
+} from "@/lib/warframe/rivens"
+import type { Mod, SlotType, BrowseCategory } from "@/lib/warframe/types"
 
 import { FilterDropdown } from "./filter-dropdown"
 import {
@@ -113,6 +118,7 @@ interface ModSearchGridProps {
   slotType: SlotType
   usedModNames: Set<string>
   onSelectMod: (mod: Mod, rank: number) => void
+  itemCategory: BrowseCategory
   className?: string
 }
 
@@ -121,6 +127,7 @@ export function ModSearchGrid({
   slotType,
   usedModNames,
   onSelectMod,
+  itemCategory,
   className,
 }: ModSearchGridProps) {
   const [polarityFilter, setPolarityFilter] = useState<PolarityFilter>("All")
@@ -205,15 +212,25 @@ export function ModSearchGrid({
     searchIndex,
   ])
 
+  const modsWithRiven = useMemo(() => {
+    if (slotType === "normal" && RIVEN_ELIGIBLE_CATEGORIES.has(itemCategory)) {
+      return [createSyntheticRiven(), ...filteredMods]
+    }
+    return filteredMods
+  }, [filteredMods, slotType, itemCategory])
+
   const boundedSelectedIndex = computeBoundedIndex(
     selectedIndex,
-    filteredMods.length,
+    modsWithRiven.length,
   )
 
   useScrollIntoView(gridRef, boundedSelectedIndex)
 
   const isModUsed = useCallback(
-    (mod: Mod) => usedModNames.has(getModBaseName(mod.name)),
+    (mod: Mod) => {
+      if (isRivenMod(mod)) return usedModNames.has("Riven Mod")
+      return usedModNames.has(getModBaseName(mod.name))
+    },
     [usedModNames],
   )
 
@@ -231,12 +248,12 @@ export function ModSearchGrid({
       handleGridKeyDown(e, {
         gridRef,
         inputRef,
-        itemCount: filteredMods.length,
+        itemCount: modsWithRiven.length,
         boundedSelectedIndex,
         selectedIndex,
         setSelectedIndex,
         onEnterSelect: (index) => {
-          const selectedMod = filteredMods[index]
+          const selectedMod = modsWithRiven[index]
           if (selectedMod && !isModUsed(selectedMod)) {
             handleSelectMod(selectedMod, selectedMod.fusionLimit ?? 0)
           }
@@ -244,7 +261,7 @@ export function ModSearchGrid({
       })
     },
     [
-      filteredMods,
+      modsWithRiven,
       boundedSelectedIndex,
       selectedIndex,
       setSelectedIndex,
@@ -307,12 +324,12 @@ export function ModSearchGrid({
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >
-        {filteredMods.length === 0 ? (
+        {modsWithRiven.length === 0 ? (
           <div className="text-muted-foreground flex h-32 w-[160px] items-center justify-center text-sm">
             No mods found
           </div>
         ) : (
-          filteredMods.map((mod, index) => (
+          modsWithRiven.map((mod, index) => (
             <SearchableModCard
               key={mod.uniqueName}
               mod={mod}

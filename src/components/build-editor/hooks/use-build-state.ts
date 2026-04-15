@@ -21,6 +21,7 @@ import type {
   Arcane,
   HelminthAbility,
   ItemStats,
+  RivenStats,
 } from "@/lib/warframe/types"
 
 // ---------------------------------------------------------------------------
@@ -247,6 +248,13 @@ export type BuildAction =
   | { type: "CHANGE_ARCANE_RANK"; slotIndex: number; newRank: number }
   | { type: "PLACE_SHARD"; slotIndex: number; shard: PlacedShard }
   | { type: "REMOVE_SHARD"; slotIndex: number }
+  | {
+      type: "SET_RIVEN_STATS"
+      slotId: string
+      rivenStats: RivenStats
+      drain: number
+      polarity: Polarity
+    }
   | {
       type: "HYDRATE"
       state: Partial<BuildState>
@@ -509,6 +517,22 @@ function buildReducer(state: BuildState, action: BuildAction): BuildState {
       ]
       newShardSlots[action.slotIndex] = null
       return { ...state, shardSlots: newShardSlots }
+    }
+
+    case "SET_RIVEN_STATS": {
+      const { slotId, rivenStats, drain, polarity } = action
+      const newState = { ...state }
+      const mod = getModFromSlot(slotId, newState)
+      if (mod) {
+        const updatedMod: PlacedMod = {
+          ...mod,
+          rivenStats,
+          baseDrain: drain,
+          polarity,
+        }
+        setModInSlot(slotId, updatedMod, newState)
+      }
+      return newState
     }
 
     case "HYDRATE": {
