@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { isRivenMod } from "@/lib/warframe/rivens"
 import {
   getSlotPolarity,
   calculateModDrain,
@@ -70,6 +71,8 @@ interface ModGridProps {
   draggedArcane?: Arcane | PlacedArcane
   /** Full arcane data for hydrating placed arcanes (for levelStats display) */
   arcaneDataMap?: Map<string, Arcane>
+  /** Callback when a placed riven mod is clicked for re-editing */
+  onRivenEdit?: (slotId: string, mod: PlacedMod) => void
   /** Read-only mode - disables all interactions */
   readOnly?: boolean
   /** Number of normal slots per row (default: 4) */
@@ -91,6 +94,7 @@ export function ModGrid({
   onRemoveArcane,
   onChangeArcaneRank,
   draggedArcane,
+  onRivenEdit,
   arcaneDataMap,
   readOnly = false,
   slotsPerRow = 4,
@@ -175,6 +179,7 @@ export function ModGrid({
                     onRemove={() => onRemoveMod(slot.id)}
                     onChangeRank={(rank) => onChangeRank(slot.id, rank)}
                     onApplyForma={(polarity) => onApplyForma(slot.id, polarity)}
+                    onRivenEdit={onRivenEdit}
                     className="h-[80px] w-full sm:h-[90px] sm:w-[150px] md:h-[100px] md:w-[184px]"
                     setCount={slot.mod?.modSet ? setCounts[slot.mod.modSet] : 0}
                     draggedMod={draggedMod}
@@ -223,6 +228,7 @@ interface ModSlotCardProps {
   onRemove: () => void
   onChangeRank: (rank: number) => void
   onApplyForma: (polarity: Polarity) => void
+  onRivenEdit?: (slotId: string, mod: PlacedMod) => void
   slotNumber?: number
   className?: string
   label?: string
@@ -238,6 +244,7 @@ const ModSlotCard = memo(function ModSlotCard({
   onRemove,
   onChangeRank,
   onApplyForma,
+  onRivenEdit,
   className,
   label,
   setCount = 0,
@@ -409,6 +416,8 @@ const ModSlotCard = memo(function ModSlotCard({
               if (readOnly) return
               if (e.shiftKey) {
                 setPolarityOpen(true)
+              } else if (slot.mod && isRivenMod(slot.mod) && onRivenEdit) {
+                onRivenEdit(slot.id, slot.mod)
               } else {
                 onSelect()
               }

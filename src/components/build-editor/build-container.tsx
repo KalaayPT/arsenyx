@@ -1,13 +1,14 @@
 "use client"
 
 import { DndContext, DragOverlay } from "@dnd-kit/core"
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 import { ArcaneDragGhost } from "@/components/arcane-card/arcane-card"
 import { CompactModCard, type ModRarity } from "@/components/mod-card/mod-card"
 import { getBuildLayout } from "@/lib/builds/layout"
 import { isWarframeCategory } from "@/lib/warframe/categories"
-import type { Mod, Arcane } from "@/lib/warframe/types"
+import { isRivenMod, RIVEN_UNIQUE_NAME } from "@/lib/warframe/rivens"
+import type { Mod, Arcane, RivenStats, Polarity, PlacedMod } from "@/lib/warframe/types"
 
 import { BuildEditorGuideSection } from "./build-editor-guide-section"
 import { BuildEditorHeader } from "./build-editor-header"
@@ -23,6 +24,7 @@ import {
 import { useBuildUI } from "./hooks/use-build-ui"
 import { ItemSidebar } from "./item-sidebar"
 import { ModGrid } from "./mod-grid"
+import { RivenDialog } from "./riven-dialog"
 import { useBuildKeyboard } from "./use-build-keyboard"
 
 const EMPTY_ARCANES: Arcane[] = []
@@ -113,6 +115,14 @@ export function BuildContainer({
     buildState,
   })
 
+  const [rivenDialogOpen, setRivenDialogOpen] = useState(false)
+  const [pendingRivenSlotId, setPendingRivenSlotId] = useState<string | null>(null)
+  const [editingRivenValues, setEditingRivenValues] = useState<{
+    rivenStats?: RivenStats
+    drain?: number
+    polarity?: Polarity
+  } | undefined>(undefined)
+
   const {
     activeDragItem,
     sensors,
@@ -190,6 +200,14 @@ export function BuildContainer({
 
   const handlePlaceMod = useCallback(
     (mod: Mod, rank: number = mod.fusionLimit) => {
+      // Intercept riven placement — open dialog instead
+      if (isRivenMod(mod)) {
+        setPendingRivenSlotId(activeSlotId)
+        setEditingRivenValues(undefined)
+        setRivenDialogOpen(true)
+        return
+      }
+
       const isAuraMod = mod.compatName?.toUpperCase() === "AURA"
 
       if (!isAuraMod && !activeSlotId) return
@@ -237,6 +255,57 @@ export function BuildContainer({
       }
     },
     [activeSlotId, placeArcaneInSlot, setActiveSlotId],
+  )
+
+  const handleRivenConfirm = useCallback(
+    (config: { rivenStats: RivenStats; drain: number; polarity: Polarity }) => {
+      if (!pendingRivenSlotId) return
+
+      const rivenMod: Mod = {
+        uniqueName: RIVEN_UNIQUE_NAME,
+        name: "Riven Mod",
+        polarity: config.polarity,
+        rarity: "Riven",
+        baseDrain: config.drain,
+        fusionLimit: 8,
+        type: "Riven",
+        tradable: false,
+      }
+
+      placeModInSlot(rivenMod, 8, pendingRivenSlotId)
+
+      dispatch({
+        type: "SET_RIVEN_STATS",
+        slotId: pendingRivenSlotId,
+        rivenStats: config.rivenStats,
+        drain: config.drain,
+        polarity: config.polarity,
+      })
+
+      setRivenDialogOpen(false)
+      setPendingRivenSlotId(null)
+
+      const currentIndex = parseInt(pendingRivenSlotId.replace("normal-", "") ?? "")
+      if (!isNaN(currentIndex) && currentIndex < 7) {
+        setActiveSlotId(`normal-${currentIndex + 1}`)
+      } else {
+        setActiveSlotId(null)
+      }
+    },
+    [pendingRivenSlotId, placeModInSlot, dispatch, setActiveSlotId],
+  )
+
+  const handleRivenEdit = useCallback(
+    (slotId: string, mod: PlacedMod) => {
+      setPendingRivenSlotId(slotId)
+      setEditingRivenValues({
+        rivenStats: mod.rivenStats,
+        drain: mod.baseDrain,
+        polarity: mod.polarity,
+      })
+      setRivenDialogOpen(true)
+    },
+    [],
   )
 
   // --- Per-slot arcane filtering for Archguns ---
@@ -349,6 +418,7 @@ export function BuildContainer({
                 onRemoveMod={canEdit ? handleRemoveMod : () => {}}
                 onChangeRank={canEdit ? handleChangeRank : () => {}}
                 onApplyForma={canEdit ? handleApplyForma : () => {}}
+                onRivenEdit={canEdit ? handleRivenEdit : undefined}
                 isWarframe={isWarframeOrNecramech}
                 slotsPerRow={isCompanion ? 5 : 4}
                 draggedMod={
@@ -387,6 +457,7 @@ export function BuildContainer({
               usedModNames={usedModNames}
               onPlaceArcane={handlePlaceArcane}
               onPlaceMod={handlePlaceMod}
+              itemCategory={category}
             />
           )}
 
@@ -433,6 +504,15 @@ export function BuildContainer({
           </div>
         ) : null}
       </DragOverlay>
+      <RivenDialog
+        open={rivenDialogOpen}
+        onOpenChange={(open) => {
+          setRivenDialogOpen(open)
+          if (!open) setPendingRivenSlotId(null)
+        }}
+        onConfirm={handleRivenConfirm}
+        initialValues={editingRivenValues}
+      />
     </DndContext>
   )
 }
