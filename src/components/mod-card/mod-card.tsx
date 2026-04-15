@@ -169,7 +169,10 @@ function CompactModCard({
       />
 
       {/* Mod Image */}
-      <div className="pointer-events-none absolute top-[4px] right-[3px] -bottom-4 left-[3px] z-10 overflow-hidden rounded-b-[5px]">
+      <div
+        className="pointer-events-none absolute top-[4px] right-[3px] -bottom-4 left-[3px] z-10 overflow-hidden rounded-b-[5px]"
+        {...(mod.rivenStats ? { "data-riven-image": "" } : {})}
+      >
         <ModImage
           mod={mod}
           alt={mod.name}
@@ -187,7 +190,7 @@ function CompactModCard({
         />
       </div>
 
-      {/* Mod Name */}
+      {/* Mod Name (hidden in screenshot mode for rivens) */}
       <span
         className="absolute top-[70%] left-1/2 z-30 line-clamp-2 w-[170px] -translate-x-1/2 -translate-y-1/2 text-center text-[16px] leading-tight font-normal"
         style={{
@@ -196,9 +199,40 @@ function CompactModCard({
           textShadow:
             "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000, 0 0 12px #000",
         }}
+        {...(mod.rivenStats ? { "data-riven-name": "" } : {})}
       >
         {mod.name}
       </span>
+
+      {/* Riven Stats (shown only in screenshot mode via CSS) */}
+      {mod.rivenStats && (
+        <div
+          data-riven-stats
+          className="absolute top-[55%] left-1/2 z-30 hidden w-[170px] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0"
+          style={{
+            fontFamily: "Roboto, sans-serif",
+            textShadow:
+              "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000, 0 0 12px #000",
+          }}
+        >
+          {mod.rivenStats.positives.map((s, i) => (
+            <span
+              key={`pos-${i}`}
+              className="text-center text-[11px] leading-snug font-normal text-gray-200"
+            >
+              <span className="text-green-400">+{s.value}%</span> {s.stat}
+            </span>
+          ))}
+          {mod.rivenStats.negatives.map((s, i) => (
+            <span
+              key={`neg-${i}`}
+              className="text-center text-[11px] leading-snug font-normal text-gray-200"
+            >
+              <span className="text-red-400">{s.value}%</span> {s.stat}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Rank Complete Line */}
       {isMaxRank && (

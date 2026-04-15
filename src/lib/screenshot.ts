@@ -73,6 +73,9 @@ export async function screenshotBuild(
       const target = document.querySelector("[data-screenshot-target]")
       if (!target) return
 
+      // Enable screenshot-specific rendering (e.g. riven stats on compact cards)
+      target.setAttribute("data-screenshot", "")
+
       target.querySelectorAll(":scope > .bg-card").forEach((el) => {
         ;(el as HTMLElement).style.backgroundColor = bgColor
         ;(el as HTMLElement).style.borderColor = "transparent"
