@@ -17,7 +17,7 @@ import { getPublicBuildsForItem } from "@/lib/db/index"
 import { getCategoryConfig, getImageUrl, isValidCategory } from "@/lib/warframe"
 // Server-only imports (uses Node.js fs via @wfcd/items)
 import { getItemBySlug, getStaticItems } from "@/lib/warframe/items"
-import type { BrowseCategory, Warframe, Gun, Melee } from "@/lib/warframe/types"
+import type { Attack, BrowseCategory, Warframe, Gun, Melee } from "@/lib/warframe/types"
 
 // Generate static params for top items
 export async function generateStaticParams() {
@@ -166,7 +166,9 @@ export default async function ItemPage({ params }: ItemPageProps) {
                   <div className="flex items-center gap-1">
                     <span className="text-muted-foreground">Type:</span>
                     <span className="font-medium">
-                      {(item as { type?: string }).type}
+                      {(item as { type?: string }).type === "Zaw Component"
+                        ? "Zaw Strike"
+                        : (item as { type?: string }).type}
                     </span>
                   </div>
                 )}
@@ -222,8 +224,46 @@ export default async function ItemPage({ params }: ItemPageProps) {
               </Card>
             )}
 
+            {/* Zaw Strike Stats (from attacks array) */}
+            {isWeapon &&
+              (item as { type?: string }).type === "Zaw Component" && (() => {
+                const zawStats = getZawStrikeStats(item as { attacks?: Attack[] })
+                if (!zawStats) return null
+                return (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Strike Stats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <dl className="grid grid-cols-2 gap-3 text-sm">
+                        <StatItem
+                          label="Damage"
+                          value={Math.round(zawStats.totalDamage)}
+                        />
+                        <StatItem
+                          label="Crit Chance"
+                          value={`${(zawStats.criticalChance * 100).toFixed(1)}%`}
+                        />
+                        <StatItem
+                          label="Crit Multi"
+                          value={`${zawStats.criticalMultiplier}x`}
+                        />
+                        <StatItem
+                          label="Status"
+                          value={`${(zawStats.statusChance * 100).toFixed(1)}%`}
+                        />
+                        <StatItem
+                          label="Attack Speed"
+                          value={zawStats.fireRate}
+                        />
+                      </dl>
+                    </CardContent>
+                  </Card>
+                )
+              })()}
+
             {/* Weapon Stats */}
-            {isWeapon && (
+            {isWeapon && (item as { type?: string }).type !== "Zaw Component" && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Weapon Stats</CardTitle>
@@ -415,6 +455,38 @@ async function CommunityBuildsSection({
       )}
     </section>
   )
+}
+
+/** Extract display stats from a Zaw Strike's attacks array */
+function getZawStrikeStats(item: { attacks?: Attack[] }): {
+  totalDamage: number
+  criticalChance: number
+  criticalMultiplier: number
+  statusChance: number
+  fireRate: number
+} | null {
+  const attacks = item.attacks
+  if (!attacks || attacks.length === 0) return null
+
+  const attack = attacks[0]
+  const damage =
+    typeof attack.damage === "object" && attack.damage
+      ? attack.damage
+      : null
+  if (!damage) return null
+
+  const totalDamage = Object.values(damage).reduce(
+    (sum: number, v) => sum + (typeof v === "number" ? v : 0),
+    0,
+  )
+
+  return {
+    totalDamage,
+    criticalChance: (attack.crit_chance ?? 0) / 100,
+    criticalMultiplier: attack.crit_mult ?? 1,
+    statusChance: (attack.status_chance ?? 0) / 100,
+    fireRate: attack.speed ?? 1,
+  }
 }
 
 function StatItem({
