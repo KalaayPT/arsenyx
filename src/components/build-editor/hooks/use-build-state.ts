@@ -119,7 +119,6 @@ export function createInitialBuildState(
 
   if (isZawStrike(item.name) && !importedBuild?.zawComponents) {
     baseState.zawComponents = {
-      strike: item.name,
       grip: "Jayap",
       link: "Jai",
     }

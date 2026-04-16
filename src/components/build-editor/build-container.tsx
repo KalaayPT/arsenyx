@@ -445,6 +445,7 @@ export function BuildContainer({
                 }
                 arcaneDataMap={arcaneDataMap}
                 zawComponents={buildState.zawComponents}
+                zawStrikeName={item.name}
                 onZawGripChange={handleSetZawGrip}
                 onZawLinkChange={handleSetZawLink}
                 readOnly={!canEdit}

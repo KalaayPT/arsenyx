@@ -480,11 +480,17 @@ function getZawStrikeStats(item: { attacks?: Attack[] }): {
     0,
   )
 
+  // WFCD attack mode stats may be in percentage (18) or decimal (0.18) form.
+  // Mirror the normalization used in weapon-stats.ts so display stays consistent.
+  const rawCrit = attack.crit_chance ?? 0
+  const rawStatus = attack.status_chance ?? 0
+  const toDecimal = (v: number) => (v > 1 ? v / 100 : v)
+
   return {
     totalDamage,
-    criticalChance: (attack.crit_chance ?? 0) / 100,
-    criticalMultiplier: attack.crit_mult ?? 1,
-    statusChance: (attack.status_chance ?? 0) / 100,
+    criticalChance: toDecimal(rawCrit),
+    criticalMultiplier: attack.crit_mult ?? 2,
+    statusChance: toDecimal(rawStatus),
     fireRate: attack.speed ?? 1,
   }
 }

@@ -432,17 +432,15 @@ describe("edge cases", () => {
       itemUniqueName: "/Lotus/Weapons/Tenno/Zaw/ZawStrike",
     })
     build.zawComponents = {
-      strike: "Balla",
       grip: "Korb",
-      link: "Ekwana Jai II",
+      link: "Ekwana Jai Ii",
     }
 
     const encoded = encodeBuild(build)
     const decoded = decodeBuild(encoded)
 
-    expect(decoded?.zawComponents?.strike).toBe("Balla")
     expect(decoded?.zawComponents?.grip).toBe("Korb")
-    expect(decoded?.zawComponents?.link).toBe("Ekwana Jai II")
+    expect(decoded?.zawComponents?.link).toBe("Ekwana Jai Ii")
   })
 
   it("handles all 5 shard slots filled and tauforged", () => {

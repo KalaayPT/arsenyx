@@ -36,18 +36,17 @@ export function calculateWeaponStats(
   // Check if weapon has specific attack modes defined
   const hasSpecificAttackModes = weapon.attacks && weapon.attacks.length > 0
 
-  // Apply Zaw component modifiers if set
+  // Apply Zaw component modifiers if set. The Strike is the weapon being built.
   let zawOverride: ReturnType<typeof calculateZawBaseStats> | null = null
   if (buildState.zawComponents && hasSpecificAttackModes) {
-    const { strike, grip, link } = buildState.zawComponents
+    const { grip, link } = buildState.zawComponents
     const gripData = getZawGrip(grip)
     if (gripData && weapon.attacks?.[0]) {
       zawOverride = calculateZawBaseStats(
         weapon.attacks[0],
         grip,
         link,
-        !gripData.oneHanded,
-        strike,
+        weapon.name,
       )
     }
   }

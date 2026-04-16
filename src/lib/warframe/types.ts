@@ -350,11 +350,11 @@ export interface BuildState {
     ability: HelminthAbility
   }
 
-  // Zaw component selection (Zaw melee weapons only)
+  // Zaw component selection (Zaw melee weapons only).
+  // Strike is derived from the build's item — it's not stored here.
   zawComponents?: {
-    strike: string // Strike name (matches item name)
-    grip: string // Grip name
-    link: string // Link name
+    grip: string
+    link: string
   }
 }
 

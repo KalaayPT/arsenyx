@@ -1,8 +1,24 @@
 // Zaw modular melee weapon data
 // Strikes: base stats come from WFCD attacks array
 // Grips & Links: hardcoded modifier tables (stable since Plains of Eidolon release)
+// Name casing (e.g. "Ekwana Ii Jai") matches WFCD's title-casing — do not "fix".
+
+import MeleeData from "@/data/warframe/Melee.json"
 
 import type { DamageTypes } from "./types"
+
+// Build a name → imageName lookup from WFCD Zaw Component entries so we can
+// render real grip/link icons without hardcoding volatile hash filenames.
+const zawImageMap = new Map<string, string>()
+for (const item of MeleeData as { name: string; type?: string; imageName?: string }[]) {
+  if (item.type === "Zaw Component" && item.imageName && !zawImageMap.has(item.name)) {
+    zawImageMap.set(item.name, item.imageName)
+  }
+}
+
+export function getZawComponentImage(name: string): string | undefined {
+  return zawImageMap.get(name)
+}
 
 // =============================================================================
 // TYPES
@@ -142,10 +158,10 @@ export function calculateZawBaseStats(
   },
   gripName: string,
   linkName: string,
-  isTwoHanded: boolean,
   strikeName: string,
 ): ZawBaseStats {
   const grip = gripMap.get(gripName)
+  const isTwoHanded = grip ? !grip.oneHanded : false
   const link = linkMap.get(linkName)
   const strike = strikeMap.get(strikeName)
 
