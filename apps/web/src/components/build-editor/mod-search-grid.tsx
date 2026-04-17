@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { Mod } from "@arsenyx/shared/warframe/types";
+import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
 import { ModCard } from "./mod-card";
 
@@ -29,20 +29,20 @@ const RARITY_OPTIONS = [
 ] as const;
 const POLARITY_OPTIONS = [
   "All",
-  "Madurai",
-  "Vazarin",
-  "Naramon",
-  "Zenurik",
-  "Unairu",
-  "Penjaga",
-  "Umbra",
-] as const;
+  "madurai",
+  "vazarin",
+  "naramon",
+  "zenurik",
+  "unairu",
+  "penjaga",
+  "umbra",
+] as const satisfies readonly ("All" | Polarity)[];
 
 type SortOption = (typeof SORT_OPTIONS)[number];
 type RarityFilter = (typeof RARITY_OPTIONS)[number];
 type PolarityFilter = (typeof POLARITY_OPTIONS)[number];
 
-const RARITY_ORDER: Record<string, number> = {
+const RARITY_ORDER: Record<Exclude<RarityFilter, "All">, number> = {
   Common: 0,
   Uncommon: 1,
   Rare: 2,
@@ -62,11 +62,50 @@ function getSearchable(mod: Mod): string {
   return `${name} ${desc} ${stats}`;
 }
 
-interface ModSearchGridProps {
-  mods: Mod[];
+function cap(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function ModSearchGrid({ mods }: ModSearchGridProps) {
+interface FilterSelectProps<T extends string> {
+  value: T;
+  onChange: (v: T) => void;
+  options: readonly T[];
+  labelFor?: (v: T) => string;
+}
+
+function FilterSelect<T extends string>({
+  value,
+  onChange,
+  options,
+  labelFor,
+}: FilterSelectProps<T>) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as T)}>
+      <SelectTrigger>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {labelFor ? labelFor(o) : o}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+interface ModSearchGridProps {
+  mods: Mod[];
+  usedModNames?: Set<string>;
+  onSelect?: (mod: Mod) => void;
+}
+
+export function ModSearchGrid({
+  mods,
+  usedModNames,
+  onSelect,
+}: ModSearchGridProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [sort, setSort] = useState<SortOption>("Drain");
@@ -92,7 +131,8 @@ export function ModSearchGrid({ mods }: ModSearchGridProps) {
       case "Rarity":
         copy.sort(
           (a, b) =>
-            (RARITY_ORDER[a.rarity] ?? 99) - (RARITY_ORDER[b.rarity] ?? 99) ||
+            (RARITY_ORDER[a.rarity as Exclude<RarityFilter, "All">] ?? 99) -
+              (RARITY_ORDER[b.rarity as Exclude<RarityFilter, "All">] ?? 99) ||
             a.name.localeCompare(b.name),
         );
         break;
@@ -106,48 +146,42 @@ export function ModSearchGrid({ mods }: ModSearchGridProps) {
     return map;
   }, [mods]);
 
-  const matches = useMemo(() => {
+  // One pass: partition `ordered` into matches vs non-matches, and track the
+  // match set. When searching, matches float to the front so they're visible
+  // without scrolling; otherwise `displayed` === `ordered`.
+  const { displayed, matches } = useMemo(() => {
     const q = deferredQuery.trim().toLowerCase();
     const hasQuery = q.length > 0;
     const hasRarity = rarity !== "All";
     const hasPolarity = polarity !== "All";
-    const pLower = polarity.toLowerCase();
 
     const set = new Set<string>();
-    for (const m of ordered) {
-      if (hasRarity && m.rarity !== rarity) continue;
-      if (hasPolarity && m.polarity.toLowerCase() !== pLower) continue;
-      if (hasQuery) {
-        const text = searchIndex.get(m.uniqueName) ?? "";
-        if (!text.includes(q)) continue;
-      }
-      set.add(m.uniqueName);
-    }
-    return set;
-  }, [ordered, deferredQuery, rarity, polarity, searchIndex]);
-
-  const matchCount = matches.size;
-
-  // When searching, float matches to the front so they're visible without
-  // horizontal scrolling. Non-matches keep their relative sort order behind
-  // them (and stay rendered, just dimmed).
-  const displayed = useMemo(() => {
-    if (deferredQuery.trim().length === 0) return ordered;
     const hits: Mod[] = [];
     const rest: Mod[] = [];
     for (const m of ordered) {
-      if (matches.has(m.uniqueName)) hits.push(m);
-      else rest.push(m);
+      const matchesFilters =
+        (!hasRarity || m.rarity === rarity) &&
+        (!hasPolarity || m.polarity === polarity) &&
+        (!hasQuery || (searchIndex.get(m.uniqueName) ?? "").includes(q));
+      if (matchesFilters) {
+        set.add(m.uniqueName);
+        hits.push(m);
+      } else {
+        rest.push(m);
+      }
     }
-    return [...hits, ...rest];
-  }, [ordered, matches, deferredQuery]);
+    return {
+      matches: set,
+      displayed: hasQuery ? [...hits, ...rest] : ordered,
+    };
+  }, [ordered, deferredQuery, rarity, polarity, searchIndex]);
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg font-semibold">Compatible Mods</h2>
         <span className="text-muted-foreground text-sm">
-          {matchCount} / {mods.length}
+          {matches.size} / {mods.length}
         </span>
       </div>
 
@@ -175,55 +209,27 @@ export function ModSearchGrid({ mods }: ModSearchGridProps) {
         </InputGroup>
 
         <div className="flex gap-2">
-          <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((o) => (
-                <SelectItem key={o} value={o}>
-                  {o}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
+          <FilterSelect
+            value={sort}
+            onChange={setSort}
+            options={SORT_OPTIONS}
+          />
+          <FilterSelect
             value={rarity}
-            onValueChange={(v) => setRarity(v as RarityFilter)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RARITY_OPTIONS.map((o) => (
-                <SelectItem key={o} value={o}>
-                  {o}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
+            onChange={setRarity}
+            options={RARITY_OPTIONS}
+          />
+          <FilterSelect
             value={polarity}
-            onValueChange={(v) => setPolarity(v as PolarityFilter)}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {POLARITY_OPTIONS.map((o) => (
-                <SelectItem key={o} value={o}>
-                  {o}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={setPolarity}
+            options={POLARITY_OPTIONS}
+            labelFor={(v) => (v === "All" ? "All" : cap(v))}
+          />
         </div>
       </div>
 
-      {/* 2-row horizontal scroll grid. grid-auto-flow: column with
-          grid-template-rows: repeat(2, …) fills top→bottom before moving
-          right. Positions are stable under filters: non-matching cards dim
-          but stay in place, so the eye doesn't lose its spot. */}
+      {/* Positions stay stable under filters: non-matches dim but keep their
+          slot so the eye doesn't lose its spot. */}
       <div
         className="grid max-w-full content-start gap-x-2 gap-y-4 overflow-x-auto px-1 pt-2 pb-6"
         style={{
@@ -234,18 +240,19 @@ export function ModSearchGrid({ mods }: ModSearchGridProps) {
         }}
       >
         {displayed.map((mod) => {
+          const isUsed = usedModNames?.has(mod.name) ?? false;
           const isMatch = matches.has(mod.uniqueName);
           return (
-            <div
+            <ModCard
               key={mod.uniqueName}
+              mod={mod}
+              onClick={onSelect && !isUsed ? () => onSelect(mod) : undefined}
               className={cn(
                 "transition-opacity duration-150",
-                !isMatch &&
-                  "pointer-events-none opacity-20 saturate-0",
+                !isMatch && "pointer-events-none opacity-20 saturate-0",
+                isUsed && "pointer-events-none opacity-30 grayscale",
               )}
-            >
-              <ModCard mod={mod} />
-            </div>
+            />
           );
         })}
       </div>

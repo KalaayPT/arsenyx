@@ -40,6 +40,11 @@ const CHANGELOG: ChangelogEntry[] = [
         description:
           "Compatible Mods grid — 2-row horizontal scroll with search, sort, and rarity/polarity filters; positions stay stable when filtering (no reshuffling)",
       },
+      {
+        type: "feat",
+        description:
+          "Click-to-place mods — click a compatible mod to drop it in the next free slot (aura / exilus / normal); click a filled slot to remove. Mods placed at max rank. Ranks, polarities, and capacity math land in a follow-up slice",
+      },
     ],
   },
   {

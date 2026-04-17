@@ -9,7 +9,12 @@ import { Suspense, useMemo } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { ModSearchGrid, ModSlot } from "@/components/build-editor";
+import {
+  ModSearchGrid,
+  ModSlot,
+  useBuildSlots,
+  type SlotId,
+} from "@/components/build-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -81,6 +86,10 @@ function EditorShell() {
   const categoryLabel =
     CATEGORIES.find((c) => c.id === category)?.label ?? category;
 
+  const isCompanion = category === "companions";
+  const normalSlotCount = 8;
+  const slots = useBuildSlots(normalSlotCount);
+
   return (
     <>
       <EditorHeader item={item} categoryLabel={categoryLabel} />
@@ -92,12 +101,22 @@ function EditorShell() {
           </div>
 
           <div className="bg-card min-w-0 flex-1 overflow-hidden rounded-lg border p-2 sm:p-4 lg:ml-[calc(260px+1rem)]">
-            <ModGrid category={category} />
+            <ModGrid
+              category={category}
+              isCompanion={isCompanion}
+              normalSlotCount={normalSlotCount}
+              placed={slots.placed}
+              onRemove={slots.remove}
+            />
           </div>
         </div>
 
         <div className="bg-card rounded-lg border p-4">
-          <SearchPanel item={item} />
+          <SearchPanel
+            item={item}
+            usedModNames={slots.usedNames}
+            onSelect={slots.place}
+          />
         </div>
 
         <div className="bg-card rounded-lg border p-4">
@@ -303,8 +322,19 @@ function StatsBlock({
   );
 }
 
-function ModGrid({ category }: { category: BrowseCategory }) {
-  const isCompanion = category === "companions";
+function ModGrid({
+  category,
+  isCompanion,
+  normalSlotCount,
+  placed,
+  onRemove,
+}: {
+  category: BrowseCategory;
+  isCompanion: boolean;
+  normalSlotCount: number;
+  placed: Partial<Record<SlotId, import("@arsenyx/shared/warframe/types").Mod>>;
+  onRemove: (id: SlotId) => void;
+}) {
   const slotsPerRow = isCompanion ? 5 : 4;
   const isWarframe = category === "warframes" || category === "necramechs";
 
@@ -313,8 +343,16 @@ function ModGrid({ category }: { category: BrowseCategory }) {
       {(isWarframe || isCompanion) && (
         <>
           <div className="flex flex-wrap gap-3">
-            <ModSlot kind="aura" />
-            <ModSlot kind="exilus" />
+            <ModSlot
+              kind="aura"
+              mod={placed["aura"]}
+              onClick={placed["aura"] ? () => onRemove("aura") : undefined}
+            />
+            <ModSlot
+              kind="exilus"
+              mod={placed["exilus"]}
+              onClick={placed["exilus"] ? () => onRemove("exilus") : undefined}
+            />
           </div>
           <Separator />
         </>
@@ -328,15 +366,31 @@ function ModGrid({ category }: { category: BrowseCategory }) {
             : "grid-cols-2 sm:grid-cols-5",
         )}
       >
-        {Array.from({ length: 8 }).map((_, i) => (
-          <ModSlot key={i} />
-        ))}
+        {Array.from({ length: normalSlotCount }).map((_, i) => {
+          const id: SlotId = `normal-${i}`;
+          const mod = placed[id];
+          return (
+            <ModSlot
+              key={i}
+              mod={mod}
+              onClick={mod ? () => onRemove(id) : undefined}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
-function SearchPanel({ item }: { item: DetailItem }) {
+function SearchPanel({
+  item,
+  usedModNames,
+  onSelect,
+}: {
+  item: DetailItem;
+  usedModNames: Set<string>;
+  onSelect: (mod: import("@arsenyx/shared/warframe/types").Mod) => void;
+}) {
   const { data: allMods } = useSuspenseQuery(modsQuery);
   const compatible = useMemo(
     () =>
@@ -351,7 +405,13 @@ function SearchPanel({ item }: { item: DetailItem }) {
     [allMods, item.type, item.category, item.name],
   );
 
-  return <ModSearchGrid mods={compatible} />;
+  return (
+    <ModSearchGrid
+      mods={compatible}
+      usedModNames={usedModNames}
+      onSelect={onSelect}
+    />
+  );
 }
 
 function GuidePlaceholder() {

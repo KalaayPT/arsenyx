@@ -276,9 +276,7 @@ export function ModCard({
   className,
 }: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [hoverCenter, setHoverCenter] = useState<{ x: number; y: number } | null>(
-    null,
-  );
+  const hoverCenter = useRef<{ x: number; y: number } | null>(null);
   const compactRef = useRef<HTMLDivElement>(null);
   const rarity = normalizeRarity(mod.rarity);
   const maxRank = mod.fusionLimit ?? 0;
@@ -341,10 +339,10 @@ export function ModCard({
       onMouseEnter={() => {
         const r = compactRef.current?.getBoundingClientRect();
         if (r) {
-          setHoverCenter({
+          hoverCenter.current = {
             x: r.left + DISPLAY_SIZE.compact.width / 2,
             y: r.top + DISPLAY_SIZE.compact.height / 2,
-          });
+          };
         }
         setIsHovered(true);
       }}
@@ -377,14 +375,14 @@ export function ModCard({
           viewport-center; scroll listener closes hover so stale coords
           don't matter. 150ms scale-in keyframe matches legacy's behavior. */}
       {effectiveHover &&
-        hoverCenter &&
+        hoverCenter.current &&
         typeof document !== "undefined" &&
         createPortal(
           <div
             className="pointer-events-none fixed z-50"
             style={{
-              top: hoverCenter.y,
-              left: hoverCenter.x,
+              top: hoverCenter.current.y,
+              left: hoverCenter.current.x,
               width: DISPLAY_SIZE.expanded.width,
               height: DISPLAY_SIZE.expanded.height,
               transform: "translate(-50%, -50%)",
