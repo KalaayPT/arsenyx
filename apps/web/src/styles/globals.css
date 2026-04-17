@@ -216,11 +216,11 @@ body {
 
 @keyframes mod-card-expand {
   from {
-    transform: scale(0.225);
+    transform: translate(-50%, -50%) scale(0.225);
     opacity: 0;
   }
   to {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
 }
@@ -236,15 +236,3 @@ body {
   }
 }
 
-/*
- * Mod card view-transition tuning.
- * Each named layer (frame-top, frame-bottom, art, badge, name, dots) gets
- * its own ::view-transition-group that the browser morphs between the
- * compact and expanded subtrees via FLIP. Sharing a duration/easing keeps
- * the layers moving in sync so the whole card reads as one coordinated
- * expand — different start/end bounding boxes do the rest.
- */
-::view-transition-group(*) {
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-}

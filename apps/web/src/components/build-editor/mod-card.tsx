@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -265,26 +264,6 @@ const HOVER_OVERHANG = 32;
 // Center the expanded card around the compact visual.
 const COMPACT_CENTER_Y = DISPLAY_SIZE.compact.height / 2;
 
-function sanitizeVtId(uniqueName: string): string {
-  return uniqueName.replace(/[^a-zA-Z0-9]/g, "-");
-}
-
-// Feature detection for the View Transitions API (same-document). Available
-// in Chrome 111+, Edge 111+, Safari 18+, Firefox 144+ (Oct 2025). On browsers
-// without it we fall back to an instant swap.
-function supportsViewTransitions(): boolean {
-  return (
-    typeof document !== "undefined" &&
-    typeof (document as unknown as { startViewTransition?: unknown })
-      .startViewTransition === "function"
-  );
-}
-
-type MinimalViewTransition = {
-  finished: Promise<void>;
-  skipTransition: () => void;
-};
-
 export function ModCard({
   mod,
   rank,
@@ -298,76 +277,22 @@ export function ModCard({
   className,
 }: ModCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const activeVT = useRef<MinimalViewTransition | null>(null);
   const rarity = normalizeRarity(mod.rarity);
   const maxRank = mod.fusionLimit ?? 0;
   // Default to max rank so preview cards read the way equipped mods look
   // in-game. Callers that need a specific rank (placed slots) pass one.
   const effectiveRank = rank ?? maxRank;
   const isMaxRank = maxRank > 0 && effectiveRank >= maxRank;
-  const vtPrefix = `mcard-${sanitizeVtId(mod.uniqueName)}`;
+  const effectiveHover = isHovered && !disableHover;
 
-  // State setter that wraps in View Transitions when available. The browser
-  // snapshots both the old and new DOM and morphs matching `view-transition-
-  // name` layers between them — that's how frame, badge, name, mod art, and
-  // rank dots slide into their new positions rather than just crossfading.
-  const transitionHover = (next: boolean) => {
-    if (next === isHovered) return;
-    // Skip any in-flight transition so rapid hover toggles don't queue.
-    if (activeVT.current) {
-      try {
-        activeVT.current.skipTransition();
-      } catch {
-        // skipTransition can throw if the transition has already finished —
-        // safe to ignore.
-      }
-      activeVT.current = null;
-    }
-    if (!supportsViewTransitions()) {
-      setIsHovered(next);
-      return;
-    }
-    const doc = document as unknown as {
-      startViewTransition: (cb: () => void) => MinimalViewTransition;
-    };
-    // Must be invoked as a method on document — destructuring loses `this`
-    // and throws "TypeError: 'startViewTransition' called on an object that
-    // does not implement interface Document".
-    const vt = doc.startViewTransition(() => {
-      // Synchronous commit — the VT API captures the DOM immediately after
-      // this callback returns, so we can't rely on React's batching.
-      flushSync(() => setIsHovered(next));
-    });
-    activeVT.current = vt;
-    vt.finished.finally(() => {
-      if (activeVT.current === vt) activeVT.current = null;
-    });
-  };
-
-  // Scroll collapses the preview — otherwise the card can stay stuck open if
-  // its wrapper moves out from under the cursor silently.
+  // Scroll collapses the preview — otherwise the card can stay stuck open
+  // if its wrapper moves out from under the cursor silently.
   useEffect(() => {
     if (!isHovered) return;
-    const close = () => transitionHover(false);
+    const close = () => setIsHovered(false);
     window.addEventListener("scroll", close, { capture: true, passive: true });
     return () => window.removeEventListener("scroll", close, { capture: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHovered]);
-
-  // Cancel any in-flight transition on unmount so the pseudo-element tree
-  // doesn't linger after the card is gone.
-  useEffect(
-    () => () => {
-      if (activeVT.current) {
-        try {
-          activeVT.current.skipTransition();
-        } catch {
-          // Intentionally ignored — transition may already have settled.
-        }
-      }
-    },
-    [],
-  );
 
   // alwaysExpanded skips all the hover machinery.
   if (alwaysExpanded) {
@@ -410,18 +335,43 @@ export function ModCard({
         width: DISPLAY_SIZE.compact.width,
         height: DISPLAY_SIZE.compact.height + HOVER_OVERHANG,
       }}
-      onMouseEnter={() => !disableHover && transitionHover(true)}
-      onMouseLeave={() => transitionHover(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
     >
-      {isHovered ? (
+      {/* Compact — always mounted, fades on hover so it crossfades into
+          the expanded card. */}
+      <div
+        className="absolute top-0 left-0 transition-opacity duration-100 ease-out"
+        style={{
+          width: DISPLAY_SIZE.compact.width,
+          height: DISPLAY_SIZE.compact.height,
+          opacity: effectiveHover ? 0 : 1,
+        }}
+      >
+        <CompactModCard
+          mod={mod}
+          rarity={rarity}
+          rank={effectiveRank}
+          isMaxRank={isMaxRank}
+          drainOverride={drainOverride}
+          matchState={matchState}
+        />
+      </div>
+
+      {/* Expanded — mounted only while hovered. 150ms scale-in keyframe
+          (see `mod-card-expand` in globals.css) matches legacy's behavior. */}
+      {effectiveHover && (
         <div
-          className="absolute left-1/2 z-50"
+          className="pointer-events-none absolute left-1/2 z-50"
           style={{
             top: `${COMPACT_CENTER_Y}px`,
             width: DISPLAY_SIZE.expanded.width,
             height: DISPLAY_SIZE.expanded.height,
             transform: "translate(-50%, -50%)",
+            transformOrigin: "center center",
+            animation:
+              "mod-card-expand 150ms cubic-bezier(0.4, 0, 0.2, 1) forwards",
             filter: "drop-shadow(0 0 20px rgba(0,0,0,0.8))",
           }}
         >
@@ -433,25 +383,6 @@ export function ModCard({
             setCount={setCount}
             drainOverride={drainOverride}
             matchState={matchState}
-            vtPrefix={vtPrefix}
-          />
-        </div>
-      ) : (
-        <div
-          className="absolute top-0 left-0"
-          style={{
-            width: DISPLAY_SIZE.compact.width,
-            height: DISPLAY_SIZE.compact.height,
-          }}
-        >
-          <CompactModCard
-            mod={mod}
-            rarity={rarity}
-            rank={effectiveRank}
-            isMaxRank={isMaxRank}
-            drainOverride={drainOverride}
-            matchState={matchState}
-            vtPrefix={vtPrefix}
           />
         </div>
       )}
