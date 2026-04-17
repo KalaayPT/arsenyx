@@ -1,5 +1,4 @@
 set dotenv-load := true
-set positional-arguments := true
 set shell := ["pwsh", "-NoLogo", "-Command"]
 
 # Run legacy Next.js app (while migration is in progress).
@@ -7,9 +6,18 @@ legacy:
     docker compose up -d postgres
     bun --cwd legacy run dev
 
+# Run legacy app without starting Docker Postgres (for low-power machines).
+legacy-nodb:
+    bun --cwd legacy run dev
+
 # Run new Vite SPA + Hono API in parallel.
 dev:
     docker compose up -d postgres
+    Start-Process -NoNewWindow -FilePath bun -ArgumentList '--cwd','apps/api','run','dev'
+    bun --cwd apps/web run dev
+
+# Run new web + api without Docker (for low-power machines).
+dev-nodb:
     Start-Process -NoNewWindow -FilePath bun -ArgumentList '--cwd','apps/api','run','dev'
     bun --cwd apps/web run dev
 
