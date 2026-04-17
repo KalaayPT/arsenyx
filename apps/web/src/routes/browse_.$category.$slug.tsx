@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link as RouterLink } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 
 import { Footer } from "@/components/footer";
@@ -8,26 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { itemQuery } from "@/lib/item-query";
 import {
   CATEGORIES,
   getImageUrl,
   isValidCategory,
   type BrowseCategory,
-  type DetailItem,
 } from "@/lib/warframe";
-
-const itemQuery = (category: BrowseCategory, slug: string) =>
-  queryOptions({
-    queryKey: ["item", category, slug],
-    queryFn: async (): Promise<DetailItem> => {
-      const r = await fetch(`/data/items/${category}/${slug}.json`);
-      if (r.status === 404) throw notFound();
-      if (!r.ok) throw new Error("failed to load item");
-      return r.json();
-    },
-    staleTime: Infinity,
-    gcTime: Infinity,
-  });
 
 export const Route = createFileRoute("/browse_/$category/$slug")({
   beforeLoad: ({ params }) => {
@@ -139,8 +126,16 @@ function ItemDetailContent() {
           </div>
 
           <div className="flex flex-wrap gap-3 pt-4">
-            <Button size="lg" disabled>
-              Create Build (coming soon)
+            <Button
+              size="lg"
+              render={
+                <RouterLink
+                  to="/create"
+                  search={{ item: slug, category: cat }}
+                />
+              }
+            >
+              Create Build
             </Button>
           </div>
         </div>

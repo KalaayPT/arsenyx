@@ -30,6 +30,11 @@ const CHANGELOG: ChangelogEntry[] = [
         type: "feat",
         description: "Press / to focus the search input on the Browse page",
       },
+      {
+        type: "feat",
+        description:
+          "Build editor shell — /create?item=… with item sidebar and breadcrumb (mod editor + save land in follow-up slices)",
+      },
     ],
   },
   {
