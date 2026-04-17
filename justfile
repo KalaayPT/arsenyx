@@ -25,6 +25,10 @@ dev-nodb:
 web:
     bun --cwd apps/web run dev
 
+# Regenerate the slim items index (static asset consumed by /browse).
+build-items-index:
+    bun --cwd legacy run scripts/build-items-index.ts
+
 # Run only the new Hono API.
 api:
     bun --cwd apps/api run dev

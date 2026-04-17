@@ -40,6 +40,11 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 - Modify `src/components/ui/` — override via className instead
 - Use npm/npx — always use bun/bunx
 
+## Architecture principles
+
+- **Prefer static/precomputed over runtime-served.** When data is read-heavy and changes rarely (game data, slim indexes, per-item JSON), emit it as a static asset at build time and ship via the CDN. Don't spin up an API route to serve something that could be a file. The backend exists for user data and mutations, not read-caching game data.
+- **Default to "does this need a server?" and say no when you can.** Each server-side touchpoint is latency, cost, and scale-to-zero friction. A browse page that loads a 200KB static JSON and filters client-side beats a Hono route every time.
+
 ## Data Quirks
 
 - WFCD item fields can vary types across items (e.g. `aura` is `string` for most warframes but `string[]` for Jade) — always handle both forms
