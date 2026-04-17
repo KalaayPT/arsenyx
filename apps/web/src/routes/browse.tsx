@@ -4,14 +4,19 @@ import { Suspense, useDeferredValue, useMemo } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { CategoryTabs } from "@/components/browse/category-tabs";
+import { FilterDropdown, MASTERY_MAX } from "@/components/browse/filter-dropdown";
 import { ItemCard } from "@/components/browse/item-card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
-  CATEGORIES,
+  SortDropdown,
+  SORT_VALUES,
+  type SortOption,
+} from "@/components/browse/sort-dropdown";
+import { Input } from "@/components/ui/input";
+import {
   isValidCategory,
   type BrowseCategory,
+  type BrowseItem,
   type ItemsIndex,
 } from "@/lib/warframe";
 
@@ -29,15 +34,42 @@ const itemsIndexQuery = queryOptions({
 type BrowseSearch = {
   category: BrowseCategory;
   q?: string;
+  sort?: SortOption;
+  mastery?: number;
+  prime?: boolean;
+  vaulted?: boolean;
 };
 
 export const Route = createFileRoute("/browse")({
   validateSearch: (search: Record<string, unknown>): BrowseSearch => {
-    const cat = typeof search.category === "string" && isValidCategory(search.category)
-      ? search.category
-      : "warframes";
-    const q = typeof search.q === "string" && search.q.length > 0 ? search.q : undefined;
-    return { category: cat, q };
+    const category =
+      typeof search.category === "string" && isValidCategory(search.category)
+        ? search.category
+        : "warframes";
+    const q =
+      typeof search.q === "string" && search.q.length > 0
+        ? search.q
+        : undefined;
+    const sort =
+      typeof search.sort === "string" && SORT_VALUES.includes(search.sort as SortOption)
+        ? (search.sort as SortOption)
+        : undefined;
+    const masteryNum =
+      typeof search.mastery === "string"
+        ? parseInt(search.mastery, 10)
+        : typeof search.mastery === "number"
+          ? search.mastery
+          : NaN;
+    const mastery =
+      !Number.isNaN(masteryNum) && masteryNum >= 0 && masteryNum < MASTERY_MAX
+        ? masteryNum
+        : undefined;
+    const prime = search.prime === true || search.prime === "true" ? true : undefined;
+    const vaulted =
+      search.vaulted === true || search.vaulted === "true" || search.vaulted === "hide"
+        ? true
+        : undefined;
+    return { category, q, sort, mastery, prime, vaulted };
   },
   loader: ({ context }) => context.queryClient.ensureQueryData(itemsIndexQuery),
   component: BrowsePage,
@@ -67,73 +99,142 @@ function BrowsePage() {
 
 function BrowseContent() {
   const { data } = useSuspenseQuery(itemsIndexQuery);
-  const { category, q = "" } = Route.useSearch();
+  const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+
+  const { category, q = "" } = search;
+  const sort = search.sort ?? "name-asc";
+  const masteryMax = search.mastery ?? MASTERY_MAX;
+  const primeOnly = search.prime ?? false;
+  const hideVaulted = search.vaulted ?? false;
 
   const deferredQ = useDeferredValue(q);
 
   const items = data[category] ?? [];
 
-  const filtered = useMemo(() => {
-    const term = deferredQ.trim().toLowerCase();
-    if (!term) return items;
-    return items.filter(
-      (it) =>
-        it.name.toLowerCase().includes(term) ||
-        it.type?.toLowerCase().includes(term),
-    );
-  }, [items, deferredQ]);
+  const visible = useMemo(
+    () => filterAndSort(items, { deferredQ, masteryMax, primeOnly, hideVaulted, sort }),
+    [items, deferredQ, masteryMax, primeOnly, hideVaulted, sort],
+  );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap gap-1">
-        {CATEGORIES.map((c) => {
-          const count = data[c.id]?.length ?? 0;
-          const active = c.id === category;
-          return (
-            <Button
-              key={c.id}
-              size="sm"
-              variant={active ? "secondary" : "ghost"}
-              onClick={() =>
-                navigate({ search: (s) => ({ ...s, category: c.id }) })
-              }
-            >
-              {c.label}
-              <span className={cn("ml-1.5 text-xs", active ? "text-muted-foreground" : "text-muted-foreground/60")}>
-                {count}
-              </span>
-            </Button>
-          );
-        })}
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Input
+          placeholder="Search items…"
+          value={q}
+          onChange={(e) => {
+            const next = e.target.value;
+            navigate({
+              search: (s) => ({ ...s, q: next || undefined }),
+              replace: true,
+            });
+          }}
+          className="flex-1"
+        />
+        <div className="flex gap-3">
+          <SortDropdown
+            value={sort}
+            onChange={(value) =>
+              navigate({
+                search: (s) => ({ ...s, sort: value === "name-asc" ? undefined : value }),
+                replace: true,
+              })
+            }
+          />
+          <FilterDropdown
+            filters={{ masteryMax, primeOnly, hideVaulted }}
+            onChange={(next) =>
+              navigate({
+                search: (s) => ({
+                  ...s,
+                  mastery: next.masteryMax < MASTERY_MAX ? next.masteryMax : undefined,
+                  prime: next.primeOnly ? true : undefined,
+                  vaulted: next.hideVaulted ? true : undefined,
+                }),
+                replace: true,
+              })
+            }
+          />
+        </div>
       </div>
 
-      <Input
-        placeholder="Search by name or type…"
-        value={q}
-        onChange={(e) => {
-          const next = e.target.value;
+      <CategoryTabs
+        activeCategory={category}
+        onChange={(next) =>
           navigate({
-            search: (s) => ({ ...s, q: next || undefined }),
-            replace: true,
-          });
-        }}
-        className="max-w-md"
+            search: (s) => ({ ...s, category: next, q: undefined }),
+          })
+        }
       />
 
       <div className="text-muted-foreground text-sm">
-        {filtered.length} {filtered.length === 1 ? "item" : "items"}
+        {visible.length} {visible.length === 1 ? "item" : "items"}
+        {q && ` matching "${q}"`}
       </div>
 
-      {filtered.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center">No items match your search.</p>
+      {visible.length === 0 ? (
+        <p className="text-muted-foreground py-12 text-center">
+          No items match your filters.
+        </p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {filtered.map((item, i) => (
+          {visible.map((item, i) => (
             <ItemCard key={item.uniqueName} item={item} index={i} />
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function filterAndSort(
+  items: BrowseItem[],
+  {
+    deferredQ,
+    masteryMax,
+    primeOnly,
+    hideVaulted,
+    sort,
+  }: {
+    deferredQ: string;
+    masteryMax: number;
+    primeOnly: boolean;
+    hideVaulted: boolean;
+    sort: SortOption;
+  },
+): BrowseItem[] {
+  const term = deferredQ.trim().toLowerCase();
+
+  const filtered = items.filter((item) => {
+    if (term) {
+      const nameMatch = item.name.toLowerCase().includes(term);
+      const typeMatch = item.type?.toLowerCase().includes(term);
+      if (!nameMatch && !typeMatch) return false;
+    }
+    if (item.masteryReq !== undefined && item.masteryReq > masteryMax) return false;
+    if (primeOnly && !item.isPrime) return false;
+    if (hideVaulted && item.vaulted) return false;
+    return true;
+  });
+
+  return sortItems(filtered, sort);
+}
+
+function sortItems(items: BrowseItem[], option: SortOption): BrowseItem[] {
+  const sorted = [...items];
+  switch (option) {
+    case "name-asc":
+      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    case "name-desc":
+      return sorted.sort((a, b) => b.name.localeCompare(a.name));
+    case "date-desc":
+      return sorted.sort((a, b) =>
+        (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""),
+      );
+    case "date-asc":
+      return sorted.sort((a, b) =>
+        (a.releaseDate ?? "").localeCompare(b.releaseDate ?? ""),
+      );
+  }
 }

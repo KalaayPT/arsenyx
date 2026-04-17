@@ -93,11 +93,17 @@ function toBrowseItem(
 function categorizeItem(item: BrowseableItem): BrowseCategory[] {
   if (!item.name || item.name.includes(" Blueprint")) return []
 
-  // Filter out items excluded from codex (PvP variants, duplicates)
-  if ((item as { excludeFromCodex?: boolean }).excludeFromCodex) return []
-
   const itemCategory = item.category as string
   const itemType = (item as { type?: string }).type
+
+  // Filter out items excluded from codex (PvP variants, duplicates) — but keep
+  // Exalted Weapons, which carry excludeFromCodex but are intentionally
+  // browsable as a standalone category.
+  if (
+    (item as { excludeFromCodex?: boolean }).excludeFromCodex &&
+    itemType !== "Exalted Weapon"
+  )
+    return []
   const categories: BrowseCategory[] = []
 
   if (itemCategory === "Warframes") {

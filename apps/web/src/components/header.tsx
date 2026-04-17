@@ -1,8 +1,9 @@
 import { Link } from "@/components/link"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { SITE_CONFIG, NAV_ITEMS, ROUTES } from "@/lib/constants"
 
-// Slice 1: search, theme toggle, and user menu deferred to later slices.
+// Search and user menu deferred to later slices.
 export function Header() {
   return (
     <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
@@ -27,6 +28,10 @@ export function Header() {
               </Button>
             ))}
           </nav>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
         </div>
       </div>
     </header>
