@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   DISPLAY_SIZE,
   type ModRarity,
+  getModAssetUrl,
   getRarityColor,
   normalizeRarity,
 } from "@/lib/mod-card-config";
@@ -158,6 +159,13 @@ function ExpandedModCard({
       </div>
 
       <div className="absolute right-[3px] bottom-[20px] left-[3px] z-[15]">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <img
+            src={getModAssetUrl(rarity, "Background")}
+            alt=""
+            className="h-full w-full object-cover object-bottom"
+          />
+        </div>
         <div className="relative z-20 flex flex-col items-center px-2 pt-1.5 pb-2">
           <span
             className="text-center text-[14px] leading-tight font-medium"
