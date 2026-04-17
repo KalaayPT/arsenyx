@@ -327,12 +327,13 @@ export function ModCard({
       setIsHovered(next);
       return;
     }
-    const startViewTransition = (
-      document as unknown as {
-        startViewTransition: (cb: () => void) => MinimalViewTransition;
-      }
-    ).startViewTransition;
-    const vt = startViewTransition(() => {
+    const doc = document as unknown as {
+      startViewTransition: (cb: () => void) => MinimalViewTransition;
+    };
+    // Must be invoked as a method on document — destructuring loses `this`
+    // and throws "TypeError: 'startViewTransition' called on an object that
+    // does not implement interface Document".
+    const vt = doc.startViewTransition(() => {
       // Synchronous commit — the VT API captures the DOM immediately after
       // this callback returns, so we can't rely on React's batching.
       flushSync(() => setIsHovered(next));
