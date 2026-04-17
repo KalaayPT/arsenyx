@@ -10,12 +10,12 @@ export function ArcaneSlot() {
   return (
     <div
       className={cn(
-        "border-muted-foreground/20 bg-muted/20 relative flex h-[80px] flex-1 flex-col items-center justify-center rounded-md border-2 border-dashed",
+        "border-muted-foreground/10 relative flex h-[80px] flex-1 flex-col items-center justify-center rounded-md border border-dashed",
         "sm:h-[90px] sm:w-[120px] sm:flex-none md:h-[100px] md:w-[140px]",
       )}
     >
-      <Plus className="text-muted-foreground/20 size-6" />
-      <span className="text-muted-foreground/50 mt-1 font-mono text-[10px] uppercase tracking-wide">
+      <Plus className="text-muted-foreground/15 size-6" />
+      <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] uppercase tracking-wide">
         Arcane
       </span>
     </div>

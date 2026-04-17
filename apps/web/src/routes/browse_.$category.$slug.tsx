@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator";
 import { itemQuery } from "@/lib/item-query";
 import {
   CATEGORIES,
+  formatPct,
+  formatStat,
   getImageUrl,
   isValidCategory,
   type BrowseCategory,
@@ -171,7 +173,7 @@ function ItemDetailContent() {
                 <StatItem label="Damage" value={item.totalDamage} />
                 <StatItem
                   label="Crit Chance"
-                  value={pct(item.criticalChance)}
+                  value={formatPct(item.criticalChance)}
                 />
                 <StatItem
                   label="Crit Multi"
@@ -181,12 +183,12 @@ function ItemDetailContent() {
                       : undefined
                   }
                 />
-                <StatItem label="Status" value={pct(item.procChance)} />
+                <StatItem label="Status" value={formatPct(item.procChance)} />
                 <StatItem
                   label="Fire Rate"
                   value={
                     item.fireRate !== undefined
-                      ? parseFloat(item.fireRate.toFixed(3))
+                      ? formatStat(item.fireRate, 3)
                       : undefined
                   }
                 />
@@ -195,7 +197,7 @@ function ItemDetailContent() {
                   label="Reload"
                   value={
                     item.reloadTime !== undefined
-                      ? `${parseFloat(item.reloadTime.toFixed(2))}s`
+                      ? `${formatStat(item.reloadTime)}s`
                       : undefined
                   }
                 />
@@ -258,11 +260,6 @@ function ItemNotFound() {
   );
 }
 
-function pct(v: number | undefined): string | undefined {
-  if (v === undefined) return undefined;
-  return `${(v * 100).toFixed(1)}%`;
-}
-
 function StatItem({
   label,
   value,
@@ -271,10 +268,7 @@ function StatItem({
   value: string | number | undefined;
 }) {
   if (value === undefined || value === null || value === "") return null;
-  const display =
-    typeof value === "number" && !Number.isInteger(value)
-      ? parseFloat(value.toFixed(2))
-      : value;
+  const display = typeof value === "number" ? formatStat(value) : value;
   return (
     <div className="flex flex-col">
       <dt className="text-muted-foreground">{label}</dt>

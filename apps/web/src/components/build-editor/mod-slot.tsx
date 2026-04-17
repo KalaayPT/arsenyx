@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
+import { effectivePolarity } from "./calculations";
 import { ModCard } from "./mod-card";
 import { PolarityIcon } from "./polarity-icon";
 import { PolarityPicker } from "./polarity-picker";
@@ -38,17 +39,6 @@ const KIND_LABEL: Record<ModSlotKind, string> = {
   aura: "Aura",
   exilus: "Exilus",
 };
-
-/** `"universal"` forma is a real value that means "explicitly cleared". */
-function effectivePolarity(
-  innate?: Polarity,
-  forma?: Polarity,
-): Polarity | undefined {
-  if (forma !== undefined) {
-    return forma === "universal" ? undefined : forma;
-  }
-  return innate;
-}
 
 export function ModSlot({
   kind = "normal",
@@ -109,11 +99,11 @@ export function ModSlot({
           "group relative flex h-[80px] w-full flex-col items-center justify-center transition-colors",
           "sm:h-[90px] sm:w-[150px] md:h-[100px] md:w-[184px]",
           "cursor-pointer",
-          !mod && "rounded-md border-2 bg-muted/20",
+          !mod && "rounded-md border",
           !mod &&
             (selected
-              ? "border-solid border-white/80"
-              : "border-muted-foreground/20 hover:border-muted-foreground/50 border-dashed"),
+              ? "border-solid border-white/70"
+              : "border-muted-foreground/10 hover:border-muted-foreground/25 border-dashed"),
           mod && selected && "ring-2 ring-white/60 rounded-md",
         )}
       >
@@ -124,12 +114,12 @@ export function ModSlot({
             {effective && (
               <PolarityIcon
                 polarity={effective}
-                className="absolute top-2 right-2 size-4 opacity-30"
+                className="absolute top-2 right-2 size-4 opacity-20"
               />
             )}
-            <Plus className="text-muted-foreground/20 group-hover:text-muted-foreground/40 size-5 transition-colors" />
+            <Plus className="text-muted-foreground/15 group-hover:text-muted-foreground/30 size-5 transition-colors" />
             {KIND_LABEL[kind] && (
-              <span className="text-muted-foreground/50 mt-1 font-mono text-[10px] uppercase tracking-wide">
+              <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] uppercase tracking-wide">
                 {KIND_LABEL[kind]}
               </span>
             )}

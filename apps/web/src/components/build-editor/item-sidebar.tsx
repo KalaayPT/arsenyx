@@ -34,6 +34,8 @@ import { cn } from "@/lib/utils";
 import {
   type BrowseCategory,
   type DetailItem,
+  formatPct,
+  formatStat,
   getImageUrl,
 } from "@/lib/warframe";
 
@@ -44,7 +46,6 @@ export interface ItemSidebarProps {
   category: BrowseCategory;
   capacityUsed: number;
   capacityMax: number;
-  capacityAuraBonus: number;
   hasReactor: boolean;
   onToggleReactor: () => void;
   shards: (PlacedShard | null)[];
@@ -58,7 +59,6 @@ export function ItemSidebar({
   category,
   capacityUsed,
   capacityMax,
-  capacityAuraBonus,
   hasReactor,
   onToggleReactor,
   shards,
@@ -135,11 +135,7 @@ export function ItemSidebar({
           />
         </div>
 
-        <CapacityBar
-          used={capacityUsed}
-          max={capacityMax}
-          auraBonus={capacityAuraBonus}
-        />
+        <CapacityBar used={capacityUsed} max={capacityMax} />
       </div>
 
       <Separator />
@@ -149,11 +145,11 @@ export function ItemSidebar({
           <>
             <StatsBlock
               rows={[
-                ["Health", item.health, shardBonuses.health, ""],
-                ["Shield", item.shield, shardBonuses.shield, ""],
-                ["Armor", item.armor, shardBonuses.armor, ""],
-                ["Energy", item.power, shardBonuses.energy, ""],
-                ["Sprint", item.sprintSpeed, 0, ""],
+                { label: "Health", value: item.health, bonus: shardBonuses.health },
+                { label: "Shield", value: item.shield, bonus: shardBonuses.shield },
+                { label: "Armor", value: item.armor, bonus: shardBonuses.armor },
+                { label: "Energy", value: item.power, bonus: shardBonuses.energy },
+                { label: "Sprint", value: item.sprintSpeed },
               ]}
             />
 
@@ -161,10 +157,10 @@ export function ItemSidebar({
 
             <StatsBlock
               rows={[
-                ["Duration", 100, 0, "%"],
-                ["Efficiency", 100, 0, "%"],
-                ["Range", 100, 0, "%"],
-                ["Strength", 100, 0, "%"],
+                { label: "Duration", value: 100, unit: "%" },
+                { label: "Efficiency", value: 100, unit: "%" },
+                { label: "Range", value: 100, unit: "%" },
+                { label: "Strength", value: 100, unit: "%" },
               ]}
             />
           </>
@@ -172,27 +168,24 @@ export function ItemSidebar({
         {isWeapon && (
           <StatsBlock
             rows={[
-              ["Damage", item.totalDamage, 0, ""],
-              ["Crit Chance", pct(item.criticalChance), 0, ""],
-              [
-                "Crit Multi",
-                item.criticalMultiplier
+              { label: "Damage", value: item.totalDamage },
+              { label: "Crit Chance", value: formatPct(item.criticalChance) },
+              {
+                label: "Crit Multi",
+                value: item.criticalMultiplier
                   ? `${item.criticalMultiplier}x`
                   : undefined,
-                0,
-                "",
-              ],
-              ["Status", pct(item.procChance), 0, ""],
-              ["Fire Rate", item.fireRate, 0, ""],
-              ["Magazine", item.magazineSize, 0, ""],
-              [
-                "Reload",
-                item.reloadTime !== undefined
-                  ? `${parseFloat(item.reloadTime.toFixed(2))}s`
-                  : undefined,
-                0,
-                "",
-              ],
+              },
+              { label: "Status", value: formatPct(item.procChance) },
+              { label: "Fire Rate", value: item.fireRate },
+              { label: "Magazine", value: item.magazineSize },
+              {
+                label: "Reload",
+                value:
+                  item.reloadTime !== undefined
+                    ? `${formatStat(item.reloadTime)}s`
+                    : undefined,
+              },
             ]}
           />
         )}
@@ -217,7 +210,7 @@ function AbilityIcon({
     <button
       type="button"
       className={cn(
-        "bg-muted relative size-10 overflow-hidden rounded border transition-colors",
+        "bg-muted relative size-10 overflow-hidden rounded-sm border transition-colors",
         isHelminth
           ? "border-destructive/60"
           : "border-border hover:border-muted-foreground/60",
@@ -347,112 +340,64 @@ function HelminthPicker({
   );
 }
 
-function CapacityBar({
-  used,
-  max,
-  auraBonus,
-}: {
-  used: number;
-  max: number;
-  auraBonus: number;
-}) {
+function CapacityBar({ used, max }: { used: number; max: number }) {
   const pctVal = max > 0 ? Math.min(100, (used / max) * 100) : 0;
   const over = used > max;
   return (
-    <Popover>
-      <PopoverTrigger
-        render={<div className="flex cursor-help flex-col gap-1.5" />}
-      >
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground font-medium">Capacity</span>
-          <span
-            className={cn(
-              "font-semibold tabular-nums",
-              over && "text-destructive",
-            )}
-          >
-            {used} / {max}
-          </span>
-        </div>
-        <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
-          <div
-            className={cn(
-              "h-full transition-all",
-              over ? "bg-destructive" : "bg-primary",
-            )}
-            style={{ width: `${pctVal}%` }}
-          />
-        </div>
-      </PopoverTrigger>
-      <PopoverContent side="right" align="start" className="w-56 text-xs">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Base</span>
-          <span className="tabular-nums">{max - auraBonus}</span>
-        </div>
-        {auraBonus > 0 && (
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Aura bonus</span>
-            <span className="tabular-nums">+{auraBonus}</span>
-          </div>
-        )}
-        <Separator />
-        <div className="flex justify-between font-medium">
-          <span>Total</span>
-          <span className="tabular-nums">{max}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Used</span>
-          <span className="tabular-nums">{used}</span>
-        </div>
-      </PopoverContent>
-    </Popover>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground font-medium">Capacity</span>
+        <span
+          className={cn(
+            "font-semibold tabular-nums",
+            over && "text-destructive",
+          )}
+        >
+          {used} / {max}
+        </span>
+      </div>
+      <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+        <div
+          className={cn(
+            "h-full transition-all",
+            over ? "bg-destructive" : "bg-primary",
+          )}
+          style={{ width: `${pctVal}%` }}
+        />
+      </div>
+    </div>
   );
 }
 
-function StatsBlock({
-  rows,
-}: {
-  rows: [string, string | number | undefined, number, string][];
-}) {
+interface StatRowSpec {
+  label: string;
+  value: string | number | undefined;
+  bonus?: number;
+  unit?: string;
+}
+
+function StatsBlock({ rows }: { rows: StatRowSpec[] }) {
   const shown = rows.filter(
-    ([, v]) => v !== undefined && v !== null && v !== "",
+    (r) => r.value !== undefined && r.value !== null && r.value !== "",
   );
   if (shown.length === 0) return null;
   return (
     <div className="flex flex-col gap-1 text-xs">
-      {shown.map(([label, v, bonus, unit]) => (
-        <StatRow
-          key={label}
-          label={label}
-          value={v}
-          bonus={bonus}
-          unit={unit}
-        />
+      {shown.map((r) => (
+        <StatRow key={r.label} {...r} />
       ))}
     </div>
   );
 }
 
-function StatRow({
-  label,
-  value,
-  bonus,
-  unit,
-}: {
-  label: string;
-  value: string | number | undefined;
-  bonus: number;
-  unit: string;
-}) {
+function StatRow({ label, value, bonus = 0, unit = "" }: StatRowSpec) {
   const isNum = typeof value === "number";
   const base = isNum ? (value as number) : undefined;
-  const total = isNum && bonus ? (base as number) + bonus : undefined;
   const hasBonus = isNum && bonus > 0;
-  const display = hasBonus
-    ? `${formatNum(total!)}${unit}`
-    : isNum
-      ? `${formatNum(base!)}${unit}`
-      : (value as string);
+  const total = hasBonus ? base! + bonus : undefined;
+  const display = isNum
+    ? `${formatStat(hasBonus ? total! : base!)}${unit}`
+    : (value as string);
 
   const row = (
     <div
@@ -481,16 +426,16 @@ function StatRow({
       <PopoverContent side="right" align="start" className="w-48 text-xs">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Base</span>
-          <span className="tabular-nums">{formatNum(base!)}</span>
+          <span className="tabular-nums">{formatStat(base!)}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shards</span>
-          <span className="tabular-nums">+{formatNum(bonus)}</span>
+          <span className="tabular-nums">+{formatStat(bonus)}</span>
         </div>
         <Separator />
         <div className="flex justify-between font-medium">
           <span>Total</span>
-          <span className="tabular-nums">{formatNum(total!)}</span>
+          <span className="tabular-nums">{formatStat(total!)}</span>
         </div>
       </PopoverContent>
     </Popover>
@@ -509,10 +454,10 @@ function ShardSlot({
     <button
       type="button"
       className={cn(
-        "bg-muted/40 relative flex size-10 items-center justify-center rounded-md border transition-colors",
+        "relative flex size-10 items-center justify-center rounded-sm border transition-colors",
         shard
-          ? "border-border hover:border-muted-foreground/60"
-          : "border-muted-foreground/30 border-dashed hover:border-muted-foreground/60",
+          ? "bg-muted/40 border-border hover:border-muted-foreground/60"
+          : "border-muted-foreground/10 hover:border-muted-foreground/25 border-dashed",
       )}
     >
       {shard ? (
@@ -522,7 +467,7 @@ function ShardSlot({
           className="size-9"
         />
       ) : (
-        <Plus className="text-muted-foreground/60 size-4" />
+        <Plus className="text-muted-foreground/20 size-4" />
       )}
     </button>
   );
@@ -536,11 +481,11 @@ function ShardSlot({
         <TooltipContent side="bottom">
           {shard ? (
             <>
-              <span className="font-semibold">
+              <p className="font-semibold">
                 {SHARD_COLOR_NAMES[shard.color]}
                 {shard.tauforged ? " (Tauforged)" : ""}
-              </span>
-              <span className="text-muted-foreground"> — {shard.stat}</span>
+              </p>
+              <p className="text-muted-foreground mt-0.5">{shard.stat}</p>
             </>
           ) : (
             <span className="text-muted-foreground">Empty shard slot</span>
@@ -664,13 +609,3 @@ function ShardPicker({
   );
 }
 
-function pct(v: number | undefined): string | undefined {
-  if (v === undefined) return undefined;
-  return `${(v * 100).toFixed(1)}%`;
-}
-
-function formatNum(v: number): string {
-  return Number.isInteger(v)
-    ? v.toString()
-    : parseFloat(v.toFixed(2)).toString();
-}

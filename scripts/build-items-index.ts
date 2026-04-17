@@ -126,18 +126,21 @@ interface HelminthAbility {
   source: string
 }
 
-async function buildHelminthAbilities(): Promise<HelminthAbility[]> {
-  const body = await readFile(resolve(WFCD_JSON, "Warframes.json"), "utf8")
-  const warframes = JSON.parse(body) as Array<{
+type MaybeWarframe = {
+  name: string
+  abilities?: Array<{
+    uniqueName: string
     name: string
-    abilities?: Array<{
-      uniqueName: string
-      name: string
-      imageName?: string
-      description: string
-    }>
+    imageName?: string
+    description: string
   }>
-  const byName = new Map(warframes.map((w) => [w.name, w]))
+}
+
+function buildHelminthAbilities(allItems: BrowseableItem[]): HelminthAbility[] {
+  const byName = new Map<string, MaybeWarframe>()
+  for (const item of allItems as unknown as MaybeWarframe[]) {
+    if (item.name && item.abilities) byName.set(item.name, item)
+  }
   const out: HelminthAbility[] = []
 
   const helminth = byName.get("Helminth")
@@ -148,8 +151,7 @@ async function buildHelminthAbilities(): Promise<HelminthAbility[]> {
   }
 
   for (const [frame, abilityName] of Object.entries(SUBSUMABLE_ABILITIES)) {
-    const wf = byName.get(frame)
-    const a = wf?.abilities?.find((x) => x.name === abilityName)
+    const a = byName.get(frame)?.abilities?.find((x) => x.name === abilityName)
     if (a) out.push({ ...a, source: frame })
   }
 
@@ -229,7 +231,7 @@ async function main() {
     `✓ wrote ${mods.length} normalized mods → mods-all.json (${modsMb} MB)`,
   )
 
-  const helminth = await buildHelminthAbilities()
+  const helminth = buildHelminthAbilities(allItems)
   const helminthBody = JSON.stringify(helminth)
   await writeFile(HELMINTH_OUT, helminthBody, "utf8")
   const helminthKb = (Buffer.byteLength(helminthBody, "utf8") / 1024).toFixed(1)

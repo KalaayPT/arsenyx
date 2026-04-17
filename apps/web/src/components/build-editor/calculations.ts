@@ -32,7 +32,8 @@ export function calculateTotalEndoCost(
   return total;
 }
 
-function effectivePolarity(
+/** Resolve a slot's effective polarity: forma overrides innate; "universal" explicitly clears. */
+export function effectivePolarity(
   innate: Polarity | undefined,
   forma: Polarity | undefined,
 ): Polarity | undefined {
@@ -122,14 +123,6 @@ export interface CapacityResult {
   auraBonus: number;
 }
 
-function effPol(
-  innate: Polarity | undefined,
-  forma: Polarity | undefined,
-): Polarity | undefined {
-  if (forma !== undefined) return forma === "universal" ? undefined : forma;
-  return innate;
-}
-
 export function calculateCapacity(input: CapacityInput): CapacityResult {
   const {
     placed,
@@ -149,7 +142,7 @@ export function calculateCapacity(input: CapacityInput): CapacityResult {
     auraBonus += auraBonusForMod(
       auraPlaced.mod,
       auraPlaced.rank,
-      effPol(auraInnate, formaPolarities.aura),
+      effectivePolarity(auraInnate, formaPolarities.aura),
     );
   }
 
@@ -159,7 +152,7 @@ export function calculateCapacity(input: CapacityInput): CapacityResult {
     used += effectiveDrainForMod(
       exilus.mod,
       exilus.rank,
-      effPol(undefined, formaPolarities.exilus),
+      effectivePolarity(undefined, formaPolarities.exilus),
     );
   }
   for (let i = 0; i < normalInnates.length; i++) {
@@ -169,7 +162,7 @@ export function calculateCapacity(input: CapacityInput): CapacityResult {
     used += effectiveDrainForMod(
       p.mod,
       p.rank,
-      effPol(normalInnates[i], formaPolarities[id]),
+      effectivePolarity(normalInnates[i], formaPolarities[id]),
     );
   }
 

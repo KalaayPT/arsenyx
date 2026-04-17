@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
 import { cn } from "@/lib/utils";
@@ -50,6 +49,3 @@ function TooltipContent({
 }
 
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
-
-// Preserve React namespace reference for tooling
-void React;

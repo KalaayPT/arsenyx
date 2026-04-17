@@ -23,7 +23,7 @@ import {
   type ModSlotKind,
   type SlotId,
 } from "@/components/build-editor";
-import type { HelminthAbility } from "@/lib/helminth-query";
+import { helminthQuery, type HelminthAbility } from "@/lib/helminth-query";
 import type { PlacedShard } from "@/lib/shards";
 import type { Polarity } from "@arsenyx/shared/warframe/types";
 import { Badge } from "@/components/ui/badge";
@@ -64,10 +64,14 @@ export const Route = createFileRoute("/create")({
     category: search.category,
   }),
   loader: async ({ context, deps }) => {
-    await Promise.all([
+    const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(itemQuery(deps.category, deps.item)),
       context.queryClient.ensureQueryData(modsQuery),
-    ]);
+    ];
+    if (deps.category === "warframes") {
+      tasks.push(context.queryClient.ensureQueryData(helminthQuery));
+    }
+    await Promise.all(tasks);
   },
   component: CreatePage,
 });
@@ -178,7 +182,6 @@ function EditorShell() {
               category={category}
               capacityUsed={capacity.used}
               capacityMax={capacity.max}
-              capacityAuraBonus={capacity.auraBonus}
               hasReactor={hasReactor}
               onToggleReactor={() => setHasReactor((v) => !v)}
               shards={shards}
