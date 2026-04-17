@@ -309,13 +309,10 @@ function ModGrid({ category }: { category: BrowseCategory }) {
   const isWarframe = category === "warframes" || category === "necramechs";
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {(isWarframe || isCompanion) && (
         <>
-          <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Aura · Exilus
-          </span>
-          <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          <div className="flex flex-wrap gap-3">
             <ModSlot kind="aura" />
             <ModSlot kind="exilus" />
           </div>
@@ -323,13 +320,12 @@ function ModGrid({ category }: { category: BrowseCategory }) {
         </>
       )}
 
-      <span className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-        Mods
-      </span>
       <div
         className={cn(
-          "grid gap-2",
-          slotsPerRow === 4 ? "grid-cols-4" : "grid-cols-5",
+          "grid gap-3",
+          slotsPerRow === 4
+            ? "grid-cols-2 sm:grid-cols-4"
+            : "grid-cols-2 sm:grid-cols-5",
         )}
       >
         {Array.from({ length: 8 }).map((_, i) => (
@@ -363,7 +359,7 @@ function SearchPanel({ item }: { item: DetailItem }) {
           {compatible.length} mod{compatible.length === 1 ? "" : "s"}
         </span>
       </div>
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
+      <div className="flex flex-wrap gap-x-3 gap-y-10 pt-2">
         {compatible.map((mod) => (
           <ModCard key={mod.uniqueName} mod={mod} />
         ))}

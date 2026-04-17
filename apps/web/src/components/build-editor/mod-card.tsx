@@ -1,108 +1,298 @@
+import { useState } from "react";
+
 import { cn } from "@/lib/utils";
+import {
+  DISPLAY_SIZE,
+  type ModRarity,
+  getRarityColor,
+  normalizeRarity,
+} from "@/lib/mod-card-config";
 import { getImageUrl } from "@/lib/warframe";
 import type { Mod } from "@arsenyx/shared/warframe/types";
 
-import { PolarityIcon } from "./polarity-icon";
+import {
+  DrainBadge,
+  type DrainMatchState,
+  LowerTab,
+  ModCardFrame,
+  RankCompleteLine,
+  RankDots,
+} from "./mod-card-frame";
 
-type Rarity =
-  | "Common"
-  | "Uncommon"
-  | "Rare"
-  | "Legendary"
-  | "Amalgam"
-  | "Galvanized"
-  | undefined;
+const NUMBER_PATTERN = /(\d+(\.\d+)?)/g;
 
-const RARITY_BORDER: Record<string, string> = {
-  Common: "border-zinc-500/70",
-  Uncommon: "border-slate-300/70",
-  Rare: "border-amber-400/80",
-  Legendary: "border-fuchsia-400/80",
-  Amalgam: "border-rose-500/80",
-  Galvanized: "border-emerald-400/80",
-};
+function getModStats(mod: Mod, rank: number, setCount: number = 0): string[] {
+  if (!mod.levelStats || mod.levelStats.length === 0) return [];
+  const levelIndex = Math.min(rank, mod.levelStats.length - 1);
+  const baseStats = mod.levelStats[levelIndex]?.stats ?? [];
 
-const RARITY_TEXT: Record<string, string> = {
-  Common: "text-zinc-200",
-  Uncommon: "text-slate-100",
-  Rare: "text-amber-200",
-  Legendary: "text-fuchsia-200",
-  Amalgam: "text-rose-200",
-  Galvanized: "text-emerald-200",
-};
+  if (
+    mod.modSet === "/Lotus/Upgrades/Mods/Sets/Umbra/UmbraSetMod" &&
+    setCount > 1
+  ) {
+    const isIntensify = mod.name.includes("Intensify");
+    let multiplier = 1.0;
+    if (setCount === 2) multiplier = isIntensify ? 1.25 : 1.3;
+    else if (setCount >= 3) multiplier = isIntensify ? 1.75 : 1.8;
+    return baseStats.map((stat) =>
+      stat.replace(NUMBER_PATTERN, (match) => {
+        const value = parseFloat(match);
+        return parseFloat((value * multiplier).toFixed(1)).toString();
+      }),
+    );
+  }
 
-function resolveRarity(mod: Mod): Rarity {
-  const r = mod.rarity as Rarity;
-  if (!r) return "Common";
-  return r;
+  return baseStats;
 }
 
-interface ModCardProps {
+interface CompactProps {
   mod: Mod;
-  rank?: number;
-  className?: string;
-  onClick?: () => void;
+  rarity: ModRarity;
+  rank: number;
+  isMaxRank: boolean;
+  drainOverride?: number;
+  matchState?: DrainMatchState;
 }
 
-/**
- * Compact visual mod card — rarity-framed tile with image, name, drain/polarity
- * badge, and rank dots. No drag, rank picker, or rivens yet; see Slice 6c/6d.
- */
-export function ModCard({ mod, rank = 0, className, onClick }: ModCardProps) {
-  const rarity = resolveRarity(mod) ?? "Common";
+function CompactModCard({
+  mod,
+  rarity,
+  rank,
+  isMaxRank,
+  drainOverride,
+  matchState = "neutral",
+}: CompactProps) {
   const maxRank = mod.fusionLimit ?? 0;
-  const drain = (mod.baseDrain ?? 0) + rank;
+  const drain = drainOverride ?? (mod.baseDrain ?? 0) + rank;
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={!onClick}
-      className={cn(
-        "relative flex aspect-[3/4] w-full flex-col overflow-hidden rounded-md border-2 bg-zinc-900/80 text-left shadow-sm transition-transform",
-        RARITY_BORDER[rarity] ?? RARITY_BORDER.Common,
-        onClick && "hover:scale-[1.02] hover:shadow-md focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:outline-none",
-        !onClick && "cursor-default",
-        className,
-      )}
-    >
-      <img
-        src={getImageUrl(mod.imageName)}
-        alt=""
-        loading="lazy"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
-        style={{ filter: "grayscale(0.6) brightness(0.55)" }}
+    <ModCardFrame rarity={rarity} variant="compact">
+      <DrainBadge
+        drain={drain}
+        polarity={mod.polarity}
+        rarity={rarity}
+        matchState={matchState}
       />
 
-      <div className="relative z-10 flex items-start justify-between p-1.5">
-        <div className="flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white">
-          <span>{drain}</span>
-          <PolarityIcon polarity={mod.polarity} className="size-3 opacity-80" />
-        </div>
+      <div
+        className="pointer-events-none absolute top-[4px] right-[3px] -bottom-4 left-[3px] z-10 overflow-hidden rounded-b-[5px]"
+      >
+        <img
+          src={getImageUrl(mod.imageName)}
+          alt=""
+          className="h-full w-full object-cover object-top"
+          style={{ filter: "grayscale(0.7) brightness(0.35)" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-15"
+          style={{
+            backgroundColor: getRarityColor(rarity),
+            mixBlendMode: "hard-light",
+          }}
+        />
       </div>
 
       <span
-        className={cn(
-          "relative z-10 mt-auto line-clamp-2 px-1.5 pb-2 text-center text-[11px] leading-tight font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]",
-          RARITY_TEXT[rarity] ?? RARITY_TEXT.Common,
-        )}
+        className="absolute top-[70%] left-1/2 z-30 line-clamp-2 w-[170px] -translate-x-1/2 -translate-y-1/2 text-center text-[16px] leading-tight font-normal"
+        style={{
+          fontFamily: "Roboto, sans-serif",
+          color: getRarityColor(rarity),
+          textShadow:
+            "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000, 0 0 12px #000",
+        }}
       >
         {mod.name}
       </span>
 
-      {maxRank > 0 && (
-        <div className="relative z-10 flex items-center justify-center gap-[2px] pb-1.5">
-          {Array.from({ length: maxRank }).map((_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "size-1 rounded-full",
-                i < rank ? "bg-amber-400" : "bg-zinc-600/80",
-              )}
-            />
-          ))}
-        </div>
+      {isMaxRank && (
+        <RankCompleteLine
+          rarity={rarity}
+          className="absolute -bottom-[28px] left-1/2 z-25 w-[calc(100%-8px)] -translate-x-1/2"
+        />
       )}
-    </button>
+
+      <RankDots rank={rank} maxRank={maxRank} variant="compact" />
+    </ModCardFrame>
+  );
+}
+
+interface ExpandedProps extends CompactProps {
+  setCount?: number;
+}
+
+function ExpandedModCard({
+  mod,
+  rarity,
+  rank,
+  isMaxRank,
+  setCount = 0,
+  drainOverride,
+  matchState = "neutral",
+}: ExpandedProps) {
+  const stats = getModStats(mod, rank, setCount);
+  const maxRank = mod.fusionLimit ?? 0;
+  const drain = drainOverride ?? (mod.baseDrain ?? 0) + rank;
+  const compatLabel =
+    mod.compatName ||
+    (mod.type ? mod.type.replace(" Mod", "").toUpperCase() : "");
+
+  const formattedStats = stats
+    .map((s) => s.replace(/\\n/g, "<br/>"))
+    .join("<br/>");
+
+  return (
+    <ModCardFrame rarity={rarity} variant="expanded">
+      <DrainBadge
+        drain={drain}
+        polarity={mod.polarity}
+        rarity={rarity}
+        matchState={matchState}
+      />
+
+      <div className="absolute top-[4px] right-[3px] bottom-[4px] left-[3px] z-10 overflow-hidden">
+        <img
+          src={getImageUrl(mod.imageName)}
+          alt=""
+          className="h-full w-full object-contain object-top"
+        />
+      </div>
+
+      <div className="absolute right-[3px] bottom-[20px] left-[3px] z-[15]">
+        <div className="relative z-20 flex flex-col items-center px-2 pt-1.5 pb-2">
+          <span
+            className="text-center text-[14px] leading-tight font-medium"
+            style={{
+              fontFamily: "Roboto, sans-serif",
+              color: getRarityColor(rarity),
+            }}
+          >
+            {mod.name}
+          </span>
+
+          {formattedStats && (
+            <div className="mt-1 flex w-full flex-col items-center gap-1 px-1">
+              <span
+                className="text-center text-[12px] leading-snug font-normal text-gray-300"
+                style={{ fontFamily: "Roboto, sans-serif" }}
+                dangerouslySetInnerHTML={{ __html: formattedStats }}
+              />
+            </div>
+          )}
+
+          <LowerTab label={compatLabel} rarity={rarity} className="mt-1" />
+        </div>
+      </div>
+
+      {isMaxRank && (
+        <RankCompleteLine
+          rarity={rarity}
+          className="absolute bottom-[4px] left-1/2 z-25 w-[calc(100%-8px)] -translate-x-1/2"
+        />
+      )}
+
+      <RankDots rank={rank} maxRank={maxRank} variant="expanded" />
+    </ModCardFrame>
+  );
+}
+
+export interface ModCardProps {
+  mod: Mod;
+  rank?: number;
+  setCount?: number;
+  drainOverride?: number;
+  matchState?: DrainMatchState;
+  /** When true, always show the expanded variant (no hover behavior). */
+  alwaysExpanded?: boolean;
+  /** When true, never show the expanded variant (used while dragging). */
+  disableHover?: boolean;
+  onClick?: () => void;
+  isSelected?: boolean;
+  className?: string;
+}
+
+/**
+ * In-game-styled mod card. Compact by default; expands on hover to show the
+ * stats panel. No portal — the expanded variant floats over the compact one
+ * in an absolute wrapper. Screenshot-perfect rendering lives in a separate
+ * component (to be built with the screenshot service, Slice 8).
+ */
+export function ModCard({
+  mod,
+  rank = 0,
+  setCount = 0,
+  drainOverride,
+  matchState,
+  alwaysExpanded = false,
+  disableHover = false,
+  onClick,
+  isSelected,
+  className,
+}: ModCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const rarity = normalizeRarity(mod.rarity);
+  const maxRank = mod.fusionLimit ?? 0;
+  const isMaxRank = maxRank > 0 && rank >= maxRank;
+  const showExpanded = alwaysExpanded || (isHovered && !disableHover);
+
+  const size = showExpanded ? DISPLAY_SIZE.expanded : DISPLAY_SIZE.compact;
+
+  return (
+    <div
+      className={cn(
+        "relative",
+        onClick && "cursor-pointer",
+        isSelected && "brightness-125",
+        className,
+      )}
+      style={{
+        width: DISPLAY_SIZE.compact.width,
+        height: DISPLAY_SIZE.compact.height,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+    >
+      {/* When expanded, the expanded card floats centered above the compact footprint. */}
+      <div
+        className={cn(
+          "absolute left-1/2 -translate-x-1/2 transition-opacity",
+          showExpanded
+            ? "-top-[calc(50%+(var(--expanded-h,285px)-var(--compact-h,64px))/2)] pointer-events-none z-50"
+            : "top-0",
+        )}
+        style={
+          showExpanded
+            ? ({
+                "--expanded-h": `${DISPLAY_SIZE.expanded.height}px`,
+                "--compact-h": `${DISPLAY_SIZE.compact.height}px`,
+                width: size.width,
+                height: size.height,
+                filter: "drop-shadow(0 0 20px rgba(0,0,0,0.8))",
+              } as React.CSSProperties)
+            : { width: size.width, height: size.height }
+        }
+      >
+        {showExpanded ? (
+          <ExpandedModCard
+            mod={mod}
+            rarity={rarity}
+            rank={rank}
+            isMaxRank={isMaxRank}
+            setCount={setCount}
+            drainOverride={drainOverride}
+            matchState={matchState}
+          />
+        ) : (
+          <CompactModCard
+            mod={mod}
+            rarity={rarity}
+            rank={rank}
+            isMaxRank={isMaxRank}
+            drainOverride={drainOverride}
+            matchState={matchState}
+          />
+        )}
+      </div>
+    </div>
   );
 }
