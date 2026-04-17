@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense, useDeferredValue, useMemo } from "react";
+import { Suspense, useDeferredValue, useEffect, useMemo, useRef } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -109,6 +109,26 @@ function BrowseContent() {
   const hideVaulted = search.vaulted ?? false;
 
   const deferredQ = useDeferredValue(q);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "/") return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      e.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const items = data[category] ?? [];
 
@@ -121,7 +141,8 @@ function BrowseContent() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 sm:flex-row">
         <Input
-          placeholder="Search items…"
+          ref={searchRef}
+          placeholder="Search items… (press / to focus)"
           value={q}
           onChange={(e) => {
             const next = e.target.value;

@@ -26,6 +26,10 @@ const CHANGELOG: ChangelogEntry[] = [
         description:
           "Item detail pages — per-item static JSON served from the CDN, no backend required",
       },
+      {
+        type: "feat",
+        description: "Press / to focus the search input on the Browse page",
+      },
     ],
   },
   {
