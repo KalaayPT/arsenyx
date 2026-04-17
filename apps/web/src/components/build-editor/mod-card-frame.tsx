@@ -18,11 +18,15 @@ export function ModCardFrame({
   variant,
   children,
   className,
+  vtPrefix,
 }: {
   rarity: ModRarity;
   variant: CardVariant;
   children?: React.ReactNode;
   className?: string;
+  /** Per-card id. Enables View Transitions to morph matching layers between
+   *  compact and expanded subtrees. Omit if you don't want VT on this card. */
+  vtPrefix?: string;
 }) {
   const size = DISPLAY_SIZE[variant];
   const isExpanded = variant === "expanded";
@@ -55,6 +59,11 @@ export function ModCardFrame({
           "pointer-events-none absolute left-1/2 z-20 -translate-x-1/2",
           isOversizedTop ? "-top-2 h-auto w-[110%] max-w-none" : "top-0 w-full",
         )}
+        style={
+          vtPrefix
+            ? ({ viewTransitionName: `${vtPrefix}-frame-top` } as React.CSSProperties)
+            : undefined
+        }
       />
 
       {children}
@@ -67,6 +76,11 @@ export function ModCardFrame({
           isExpanded ? "bottom-0" : "-bottom-8",
           isOversizedTop ? "h-auto w-[110%] max-w-none" : "w-full",
         )}
+        style={
+          vtPrefix
+            ? ({ viewTransitionName: `${vtPrefix}-frame-bottom` } as React.CSSProperties)
+            : undefined
+        }
       />
     </div>
   );
@@ -77,11 +91,13 @@ export function RankDots({
   maxRank,
   variant,
   className,
+  vtPrefix,
 }: {
   rank: number;
   maxRank: number;
   variant: CardVariant;
   className?: string;
+  vtPrefix?: string;
 }) {
   if (maxRank === 0) return null;
   const position =
@@ -96,6 +112,11 @@ export function RankDots({
         "pointer-events-none z-30 flex gap-0.5",
         className,
       )}
+      style={
+        vtPrefix
+          ? ({ viewTransitionName: `${vtPrefix}-dots` } as React.CSSProperties)
+          : undefined
+      }
     >
       {Array.from({ length: maxRank }, (_, i) => (
         <div
@@ -157,11 +178,13 @@ export function DrainBadge({
   polarity,
   rarity,
   matchState = "neutral",
+  vtPrefix,
 }: {
   drain: number;
   polarity: Polarity;
   rarity: ModRarity;
   matchState?: DrainMatchState;
+  vtPrefix?: string;
 }) {
   const rarityColor = getRarityColor(rarity);
   const badgeColor =
@@ -178,7 +201,14 @@ export function DrainBadge({
         : undefined;
 
   return (
-    <div className="absolute top-[7px] right-[2px] z-30 flex items-center justify-center">
+    <div
+      className="absolute top-[7px] right-[2px] z-30 flex items-center justify-center"
+      style={
+        vtPrefix
+          ? ({ viewTransitionName: `${vtPrefix}-badge` } as React.CSSProperties)
+          : undefined
+      }
+    >
       <img
         src={getModAssetUrl(rarity, "TopRightBacker")}
         alt=""
