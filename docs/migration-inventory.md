@@ -5,17 +5,17 @@ Light inventory of what needs to cross from `legacy/` → `apps/` + `packages/`.
 ## Pages (23)
 
 **Public read:**
-- [ ] `/` — home
-- [ ] `/browse` — browse categories
+- [x] `/` — home
+- [x] `/browse` — browse categories
 - [ ] `/browse/[category]/[slug]` — browse items
 - [ ] `/builds` — builds list
 - [ ] `/builds/[slug]` — build view
 - [ ] `/profile/[username]`
 - [ ] `/org/[slug]`
-- [ ] `/changelog`
-- [ ] `/about`
-- [ ] `/privacy`
-- [ ] `/terms`
+- [x] `/changelog`
+- [x] `/about`
+- [x] `/privacy`
+- [x] `/terms`
 
 **Auth:**
 - [ ] `/auth/signin`
@@ -75,8 +75,8 @@ Light inventory of what needs to cross from `legacy/` → `apps/` + `packages/`.
 - [ ] Postgres (Neon EU for prod, Docker local)
 - [ ] Better Auth (GitHub OAuth, Hono middleware)
 - [ ] Prisma (moves to apps/api, schema stays identical)
-- [ ] shadcn/ui (install in apps/web, copy components from legacy/src/components/ui)
-- [ ] Tailwind v4 (CSS-first config in apps/web)
+- [x] shadcn/ui (install in apps/web, copy components from legacy/src/components/ui)
+- [x] Tailwind v4 (CSS-first config in apps/web)
 - [ ] Deploy: CF Pages (web) + CF Workers (api) + Fly (screenshot) + Neon (db)
 
 ## Shape of each slice
