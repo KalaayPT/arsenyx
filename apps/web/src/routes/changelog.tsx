@@ -21,6 +21,11 @@ const CHANGELOG: ChangelogEntry[] = [
         description:
           "Begin migration from Next.js to Vite + TanStack Router — homepage, browse (with filters/sort), and static pages ported",
       },
+      {
+        type: "feat",
+        description:
+          "Item detail pages — per-item static JSON served from the CDN, no backend required",
+      },
     ],
   },
   {

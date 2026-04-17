@@ -20,10 +20,10 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] `/about`, `/privacy`, `/terms`, `/changelog`
 - [x] Theme toggle (light/dark/system dropdown, no flash of wrong theme)
 - [x] Fix exalted weapons excludeFromCodex bug in categorization
+- [x] `/browse/[category]/[slug]` item detail page (per-item static JSON)
 
 ### Slice 2c — Browse polish
 
-- [ ] `/browse/[category]/[slug]` item detail page (per-item static JSON or Hono route)
 - [ ] Keyboard navigation in browse grid (arrow keys, enter, focus ring)
 - [ ] Vaulted badge polish / primed indicator
 

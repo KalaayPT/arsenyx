@@ -44,6 +44,32 @@ export interface BrowseItem {
 
 export type ItemsIndex = Partial<Record<BrowseCategory, BrowseItem[]>>;
 
+export interface ItemAbility {
+  uniqueName: string;
+  name: string;
+  description: string;
+}
+
+export interface DetailItem extends BrowseItem {
+  description?: string;
+  // warframe
+  health?: number;
+  shield?: number;
+  armor?: number;
+  power?: number;
+  sprintSpeed?: number;
+  abilities?: ItemAbility[];
+  // weapon
+  totalDamage?: number;
+  criticalChance?: number;
+  criticalMultiplier?: number;
+  procChance?: number;
+  fireRate?: number;
+  magazineSize?: number;
+  reloadTime?: number;
+  range?: number;
+}
+
 export const CATEGORIES: { id: BrowseCategory; label: string }[] = [
   { id: "warframes", label: "Warframes" },
   { id: "primary", label: "Primary" },
