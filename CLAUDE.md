@@ -4,16 +4,28 @@
 
 Arsenyx is a Warframe build planner — create, share, and discover equipment builds. Features keyboard-first navigation, rich text guides, mod/arcane management, and social features (voting, favorites, forking).
 
-Game data (items, mods, arcanes) comes from static JSON files (`src/data/warframe/`) loaded into in-memory Maps at server start — not from the database. User data (builds, guides, votes, favorites) lives in PostgreSQL.
+Game data (items, mods, arcanes) is static. Per-item JSON is precomputed at build time and served from the CDN under `apps/web/public/data/`. User data (builds, guides, votes, favorites) lives in PostgreSQL.
+
+## Monorepo layout
+
+Bun workspaces (`bun@1.3+`).
+
+- `apps/web/` — the new SPA: Vite + React 19 + TanStack Router (file-based, generated tree at `src/routeTree.gen.ts`) + TanStack Query + Tailwind v4 + shadcn/ui. Has its own [CLAUDE.md](apps/web/CLAUDE.md) with router rules and conventions.
+- `apps/api/` — Hono backend (**not scaffolded yet** — lands with Slice 3 auth).
+- `packages/shared/` — cross-cut types/codecs shared by web and api.
+- `legacy/` — the old Next.js 16 app still running side-by-side. Feature-complete; gets deleted slice by slice as `apps/web` catches up. **Do not add new features here** — port instead.
+- `scripts/` — repo-level build scripts (e.g. data pipeline).
+
+Run the new stack: `just web` / `just dev`. Run the legacy app alongside: `just legacy` (with Docker) or `just legacy-nodb` (without).
+
+Migration progress tracker: [TODO.md](TODO.md) · inventory: [docs/migration-inventory.md](docs/migration-inventory.md).
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router, React 19, Server Components by default)
+- **Frontend** (`apps/web`): Vite, React 19, TanStack Router + Query, Tailwind v4, shadcn/ui (Base UI under the hood)
+- **Backend** (`apps/api`, planned): Hono + Prisma + Better Auth + Postgres (Neon EU)
 - **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS v4 + shadcn/ui (New York theme)
-- **Database**: PostgreSQL via Prisma ORM with `@prisma/adapter-pg`
-- **Auth**: Better Auth with GitHub OAuth
-- **Linting/Formatting**: Oxlint + Oxfmt (with Tailwind class sorting)
+- **Linting/Formatting**: Oxlint + Oxfmt
 - **Package Manager**: Bun (required — never use npm/npx)
 - **Data Source**: `@wfcd/items` (Warframe Community Data)
 
@@ -21,13 +33,10 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 
 ### Always
 
-- Update the changelog (`src/app/changelog/page.tsx`) when completing user-facing changes — add entries to the `CHANGELOG` array
-- Run `bun build` before claiming work is done — `bun dev` hides type errors
+- Update the changelog (`apps/web/src/routes/changelog.tsx`) when completing user-facing changes — add entries to the `CHANGELOG` array
+- Run `bun run build` in `apps/web/` before claiming work is done — `bun run dev` hides type errors
 - Invoke the `shadcn` skill before any frontend work (new components, UI changes, styling). **Monorepo gotcha:** the skill's bootstrap runs `shadcn info` from the current working directory, which errors at the monorepo root (`error: monorepo_root`). Workaround: either start Claude Code with cwd `apps/web` (preferred), or skip the skill and work with the CLI directly — `cd apps/web && bunx shadcn@latest view <name>` to inspect, `cd apps/web && bunx shadcn@latest add <name> -c apps/web` to add. When adding a component whose deps conflict with our customised `button`/`input`, fetch the file via `view` + write manually to `apps/web/src/components/ui/` and rewrite the `@/registry/base-nova/...` imports to `@/lib/utils` and `@/components/ui/...`
-- Use Server Components by default; only add `"use client"` when actually needed
 - Preserve keyboard navigation in browse components
-- Use `unoptimized` on all Next.js `<Image>` components
-- Never import from `@/lib/warframe/items` or `@/lib/db` in client components (server-only)
 - Use `uv` instead of `python` directly
 
 ### Ask First
@@ -37,8 +46,10 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 
 ### Never
 
-- Modify `src/components/ui/` — override via className instead
+- Add new features in `legacy/` — port to `apps/web` instead
+- Modify `apps/web/src/components/ui/` (or `legacy/src/components/ui/`) — override via className instead
 - Use npm/npx — always use bun/bunx
+- Import `@/lib/warframe/items` or `@/lib/db` from legacy into `apps/web` — they're Node-only and use `fs`
 
 ## Architecture principles
 
@@ -51,6 +62,8 @@ Game data (items, mods, arcanes) comes from static JSON files (`src/data/warfram
 
 ## Reference Docs
 
-- [docs/commands.md](docs/commands.md) — Build, test, database, and data sync commands
-- [docs/gotchas.md](docs/gotchas.md) — Non-obvious pitfalls (Satori, Base UI, PowerShell, etc.)
-- [docs/database.md](docs/database.md) — Local dev setup, migrations, and prod deployment
+- [apps/web/CLAUDE.md](apps/web/CLAUDE.md) — app-specific rules (TanStack Router nesting, custom conventions)
+- [apps/web/docs/rules/](apps/web/docs/rules/) — vibe-rules docs from `@tanstack/react-router`, load on demand
+- [docs/commands.md](docs/commands.md) — build, test, database, and data sync commands (**some entries predate the monorepo split — double-check before running**)
+- [docs/gotchas.md](docs/gotchas.md) — non-obvious pitfalls (Satori, Base UI, PowerShell, etc.)
+- [docs/database.md](docs/database.md) — local dev setup, migrations, prod deployment (legacy-era, will be rewritten in Slice 3)

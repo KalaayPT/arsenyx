@@ -99,7 +99,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 ### Cleanup (after web feature parity)
 
 - [ ] Delete `legacy/`
-- [ ] Consolidate `build-items-index.ts` into `apps/api` or a root `scripts/`
+- [x] Move `build-items-index.ts` out of legacy → root `scripts/`, backed by `packages/shared/warframe`
 - [ ] Update root CLAUDE.md to reflect new architecture (Next.js references)
 - [ ] Write `apps/web/CLAUDE.md` and `apps/api/CLAUDE.md`
 - [ ] Split frontend bundle — route-level code splitting to get under the 500KB Vite warning

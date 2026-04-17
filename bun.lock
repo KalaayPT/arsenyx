@@ -4,6 +4,10 @@
   "workspaces": {
     "": {
       "name": "arsenyx-monorepo",
+      "dependencies": {
+        "@arsenyx/shared": "workspace:*",
+        "@wfcd/items": "^1.1273.17",
+      },
     },
     "apps/api": {
       "name": "arsenyx-spike-api",

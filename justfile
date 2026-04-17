@@ -25,9 +25,9 @@ dev-nodb:
 web:
     Push-Location apps/web; bun run dev
 
-# Regenerate the slim items index (static asset consumed by /browse).
+# Regenerate the static browse data (items-index.json + per-item JSON).
 build-items-index:
-    Push-Location legacy; bun run scripts/build-items-index.ts
+    bun run build:items
 
 # Run only the new Hono API.
 api:
