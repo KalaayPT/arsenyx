@@ -19,6 +19,11 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         type: "feat",
         description:
+          "User menu gets real entries — My Profile, My Builds, My Favorites, Settings, Sign out, plus a conditional Admin entry for staff. Settings opens an in-app dialog (sidebar layout, sidebar-13 style) with Appearance / Profile / Connected accounts / Notifications / Privacy / Advanced sections; the standalone header theme toggle is gone — theme now lives under Appearance",
+      },
+      {
+        type: "feat",
+        description:
           "Command palette — Ctrl/Cmd+K from anywhere opens a universal search (shadcn Command) with three sections: navigation shortcuts, Warframe items (filtered from the static items index), and community builds (debounced against the `/builds?q=` endpoint). A \"Search all builds for …\" action kicks the query over to `/builds` when you want the full grid. Header gets a proper search button with a ⌘K hint",
       },
       {

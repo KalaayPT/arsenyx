@@ -3,7 +3,6 @@ import { Search } from "lucide-react"
 
 import { CommandPalette } from "@/components/command-palette"
 import { Link } from "@/components/link"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { UserMenu } from "@/components/user-menu"
@@ -69,7 +68,6 @@ export function Header() {
           >
             <Search />
           </Button>
-          <ThemeToggle />
           <UserMenu />
         </div>
       </div>

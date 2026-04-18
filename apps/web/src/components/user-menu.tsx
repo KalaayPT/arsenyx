@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router"
+import { useState } from "react"
 import {
   Heart,
   LogIn,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react"
 
 import { Link } from "@/components/link"
+import { SettingsDialog } from "@/components/settings-dialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -24,6 +26,7 @@ import { ROUTES } from "@/lib/constants"
 export function UserMenu() {
   const { data: session, isPending } = authClient.useSession()
   const navigate = useNavigate()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   if (isPending) {
     return <div className="bg-muted size-8 animate-pulse rounded-full" />
@@ -54,6 +57,7 @@ export function UserMenu() {
   }
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
@@ -99,7 +103,7 @@ export function UserMenu() {
           <Heart className="size-4" />
           My Favorites
         </DropdownMenuItem>
-        <DropdownMenuItem render={<Link href={ROUTES.settings} />}>
+        <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
           <Settings className="size-4" />
           Settings
         </DropdownMenuItem>
@@ -119,5 +123,7 @@ export function UserMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+    </>
   )
 }
