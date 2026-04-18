@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Diamond, Gem, Pencil, UploadCloud, X } from "lucide-react";
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -125,6 +125,28 @@ function EditorShell() {
     () => getArcanesForCategory(allArcanes, category),
     [allArcanes, category],
   );
+
+  // Escape deselects the active mod/arcane slot, mirroring the
+  // click-outside behavior. Skip when a dialog/popover is open (base-ui
+  // closes those via its own Escape handler) or when typing in a field.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t?.tagName === "INPUT" ||
+        t?.tagName === "TEXTAREA" ||
+        t?.isContentEditable
+      ) {
+        return;
+      }
+      if (document.querySelector("[data-state='open'][role='dialog']")) return;
+      slots.select(null);
+      arcanes.select(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [slots, arcanes]);
 
   const [hasReactor, setHasReactor] = useState(true);
   const [shards, setShards] = useState<(PlacedShard | null)[]>(() =>
