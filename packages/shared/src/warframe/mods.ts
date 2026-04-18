@@ -204,7 +204,7 @@ export function getModsForItem(
       return isPrimaryMod(compatName, modType, itemTypeLower)
     }
 
-    if (itemTypeLower === "pistol") {
+    if (itemTypeLower === "pistol" || itemTypeLower === "throwing") {
       if (
         modType.includes("secondary") &&
         compatName &&

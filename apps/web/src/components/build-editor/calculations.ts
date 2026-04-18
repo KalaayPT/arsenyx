@@ -1,3 +1,4 @@
+import { isRivenMod } from "@arsenyx/shared/warframe/rivens";
 import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
 import type { PlacedMod, SlotId } from "./use-build-slots";
@@ -98,7 +99,9 @@ export function effectiveDrainForMod(
   rank: number,
   slotPolarity: Polarity | undefined,
 ): number {
-  const base = mod.baseDrain + rank;
+  // Riven `baseDrain` is the user-configured drain at max rank (what the
+  // game displays). Regular mods add 1 drain per rank on top of `baseDrain`.
+  const base = isRivenMod(mod) ? mod.baseDrain : mod.baseDrain + rank;
   if (!slotPolarity || slotPolarity === "universal") return base;
   if (slotPolarity === "any") {
     return mod.polarity === "umbra" ? base : Math.ceil(base / 2);

@@ -23,7 +23,33 @@ import {
 
 const NUMBER_PATTERN = /(\d+(\.\d+)?)/g;
 
+// Stats where a "positive" riven roll is semantically a debuff — we invert the
+// displayed sign so the number reads the way the in-game arsenal shows it.
+const INVERTED_RIVEN_STATS = new Set(["Zoom"]);
+
+function formatRivenValue(stat: string, v: number): string {
+  const display = INVERTED_RIVEN_STATS.has(stat) ? -v : v;
+  const fixed = display.toFixed(1);
+  const stripped = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
+  const sign = display > 0 ? "+" : "";
+  return `${sign}${stripped}%`;
+}
+
 function getModStats(mod: Mod, rank: number, setCount: number = 0): string[] {
+  if (mod.rivenStats) {
+    const out: string[] = [];
+    for (const p of mod.rivenStats.positives ?? []) {
+      out.push(
+        `<span class="text-green-400">${formatRivenValue(p.stat, p.value)}</span> ${p.stat}`,
+      );
+    }
+    for (const n of mod.rivenStats.negatives ?? []) {
+      out.push(
+        `<span class="text-red-400">${formatRivenValue(n.stat, n.value)}</span> ${n.stat}`,
+      );
+    }
+    return out;
+  }
   if (!mod.levelStats || mod.levelStats.length === 0) return [];
   const levelIndex = Math.min(rank, mod.levelStats.length - 1);
   const baseStats = mod.levelStats[levelIndex]?.stats ?? [];
@@ -67,7 +93,9 @@ function CompactModCard({
   vtPrefix,
 }: CompactProps) {
   const maxRank = mod.fusionLimit ?? 0;
-  const drain = drainOverride ?? (mod.baseDrain ?? 0) + rank;
+  const drain =
+    drainOverride ??
+    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank);
 
   return (
     <ModCardFrame rarity={rarity} variant="compact" vtPrefix={vtPrefix}>
@@ -150,7 +178,9 @@ function ExpandedModCard({
 }: ExpandedProps) {
   const stats = getModStats(mod, rank, setCount);
   const maxRank = mod.fusionLimit ?? 0;
-  const drain = drainOverride ?? (mod.baseDrain ?? 0) + rank;
+  const drain =
+    drainOverride ??
+    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank);
   const compatLabel =
     mod.compatName ||
     (mod.type ? mod.type.replace(" Mod", "").toUpperCase() : "");

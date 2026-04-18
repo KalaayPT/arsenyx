@@ -16,15 +16,25 @@ import {
   calculateTotalEndoCost,
   CANONICAL_POLARITIES,
   getArcaneSlotCount,
+  hasAuraSlot,
+  hasExilusSlot,
   ItemSidebar,
   ModSearchGrid,
   ModSlot,
+  RivenDialog,
   useArcaneSlots,
   useBuildSlots,
   type ArcaneSlotsState,
   type ModSlotKind,
+  type RivenDialogValues,
   type SlotId,
 } from "@/components/build-editor";
+import {
+  createSyntheticRiven,
+  isRivenMod,
+  RIVEN_ELIGIBLE_CATEGORIES,
+} from "@arsenyx/shared/warframe/rivens";
+import type { Mod } from "@arsenyx/shared/warframe/types";
 import { arcanesQuery } from "@/lib/arcanes-query";
 import { getArcanesForCategory } from "@arsenyx/shared/warframe/arcanes";
 import { helminthQuery, type HelminthAbility } from "@/lib/helminth-query";
@@ -128,6 +138,51 @@ function EditorShell() {
     });
   };
 
+  const [rivenEdit, setRivenEdit] = useState<{
+    slotId: SlotId;
+    initial?: Partial<RivenDialogValues>;
+  } | null>(null);
+
+  const openRivenForPlacement = () => {
+    const target = findFreeNormalSlot(slots, normalSlotCount);
+    if (!target) return;
+    setRivenEdit({ slotId: target, initial: undefined });
+  };
+
+  const openRivenForEdit = (slotId: SlotId) => {
+    const placed = slots.placed[slotId];
+    if (!placed) return;
+    setRivenEdit({
+      slotId,
+      initial: {
+        polarity: placed.mod.polarity,
+        drain: placed.mod.baseDrain,
+        rivenStats: placed.mod.rivenStats,
+      },
+    });
+  };
+
+  const confirmRiven = (values: RivenDialogValues) => {
+    if (!rivenEdit) return;
+    const base = createSyntheticRiven();
+    const mod: Mod = {
+      ...base,
+      polarity: values.polarity,
+      baseDrain: values.drain,
+      rivenStats: values.rivenStats,
+    };
+    slots.placeAt(rivenEdit.slotId, mod, base.fusionLimit);
+    setRivenEdit(null);
+  };
+
+  const handleModSelect = (mod: Mod) => {
+    if (isRivenMod(mod)) {
+      openRivenForPlacement();
+      return;
+    }
+    slots.place(mod);
+  };
+
   const [helminth, setHelminth] = useState<Record<number, HelminthAbility>>({});
   const setHelminthAt = (i: number, ab: HelminthAbility | null) => {
     setHelminth((prev) => {
@@ -219,6 +274,7 @@ function EditorShell() {
               isCompanion={isCompanion}
               normalSlotCount={normalSlotCount}
               slots={slots}
+              onEditRiven={openRivenForEdit}
               arcaneRow={
                 arcaneCount > 0 ? (
                   <ArcaneRow
@@ -235,8 +291,9 @@ function EditorShell() {
         <div className="bg-card rounded-lg border p-4">
           <SearchPanel
             item={item}
+            category={category}
             usedModNames={slots.usedNames}
-            onSelect={slots.place}
+            onSelect={handleModSelect}
             selectedSlotKind={
               slots.selected === "aura" || slots.selected === "exilus"
                 ? slots.selected
@@ -249,6 +306,19 @@ function EditorShell() {
           <GuidePlaceholder />
         </div>
       </div>
+
+      {rivenEdit && (
+        <RivenDialog
+          key={rivenEdit.slotId}
+          open={true}
+          onOpenChange={(o) => {
+            if (!o) setRivenEdit(null);
+          }}
+          category={category}
+          initialValues={rivenEdit.initial}
+          onConfirm={confirmRiven}
+        />
+      )}
     </>
   );
 }
@@ -418,6 +488,7 @@ function ModGrid({
   isCompanion,
   normalSlotCount,
   slots,
+  onEditRiven,
   arcaneRow,
 }: {
   item: DetailItem;
@@ -425,10 +496,12 @@ function ModGrid({
   isCompanion: boolean;
   normalSlotCount: number;
   slots: import("@/components/build-editor").BuildSlotsState;
+  onEditRiven?: (id: SlotId) => void;
   arcaneRow?: React.ReactNode;
 }) {
+  const showAura = hasAuraSlot(category);
+  const showExilus = hasExilusSlot(category);
   const slotsPerRow = isCompanion ? 5 : 4;
-  const isWarframe = category === "warframes" || category === "necramechs";
 
   // WFCD `aura` is usually a string, but a few items (e.g. Jade) ship it as string[].
   const auraRaw = Array.isArray(item.aura) ? item.aura[0] : item.aura;
@@ -460,15 +533,23 @@ function ModGrid({
       onRankChange: placed
         ? (delta: number) => slots.setRank(id, placed.rank + delta)
         : undefined,
+      onEditRiven:
+        placed && onEditRiven && isRivenMod(placed.mod)
+          ? () => onEditRiven(id)
+          : undefined,
     };
   };
 
   return (
     <div className="flex flex-col gap-6 sm:gap-4">
-      {(isWarframe || isCompanion) && (
+      {(showAura || showExilus) && (
         <div className="flex w-full justify-center gap-2 sm:gap-4">
-          <ModSlot kind="aura" {...slotProps("aura", auraPolarity)} />
-          <ModSlot kind="exilus" {...slotProps("exilus", undefined)} />
+          {showAura && (
+            <ModSlot kind="aura" {...slotProps("aura", auraPolarity)} />
+          )}
+          {showExilus && (
+            <ModSlot kind="exilus" {...slotProps("exilus", undefined)} />
+          )}
         </div>
       )}
 
@@ -493,28 +574,32 @@ function ModGrid({
 
 function SearchPanel({
   item,
+  category,
   usedModNames,
   onSelect,
   selectedSlotKind,
 }: {
   item: DetailItem;
+  category: BrowseCategory;
   usedModNames: Set<string>;
-  onSelect: (mod: import("@arsenyx/shared/warframe/types").Mod) => void;
+  onSelect: (mod: Mod) => void;
   selectedSlotKind?: ModSlotKind;
 }) {
   const { data: allMods } = useSuspenseQuery(modsQuery);
-  const compatible = useMemo(
-    () =>
-      getModsForItem(
-        {
-          type: item.type,
-          category: item.category,
-          name: item.name,
-        },
-        allMods,
-      ),
-    [allMods, item.type, item.category, item.name],
-  );
+  const compatible = useMemo(() => {
+    const mods = getModsForItem(
+      {
+        type: item.type,
+        category: item.category,
+        name: item.name,
+      },
+      allMods,
+    );
+    if (RIVEN_ELIGIBLE_CATEGORIES.has(category)) {
+      return [createSyntheticRiven(), ...mods];
+    }
+    return mods;
+  }, [allMods, item.type, item.category, item.name, category]);
 
   return (
     <ModSearchGrid
@@ -524,6 +609,25 @@ function SearchPanel({
       selectedSlotKind={selectedSlotKind}
     />
   );
+}
+
+function findFreeNormalSlot(
+  slots: import("@/components/build-editor").BuildSlotsState,
+  normalSlotCount: number,
+): SlotId | null {
+  if (
+    slots.selected &&
+    slots.selected !== "aura" &&
+    slots.selected !== "exilus" &&
+    !slots.placed[slots.selected]
+  ) {
+    return slots.selected;
+  }
+  for (let i = 0; i < normalSlotCount; i++) {
+    const id = `normal-${i}` as SlotId;
+    if (!slots.placed[id]) return id;
+  }
+  return null;
 }
 
 function GuidePlaceholder() {

@@ -64,7 +64,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] Editor sidebar — abilities, archon shards, capacity, reactor toggle, stats
 - [x] Arcane slots — click-to-open picker, +/- rank while hovered, click-out deselects
 - [x] Polarity-aware mod drain (green/red badge, halved/×1.25 cost)
-- [ ] Riven editor (stat input for riven mods)
+- [x] Riven editor (stat input for riven mods)
 - [x] Helminth abilities (subsume picker in editor sidebar)
 - [ ] Zaw component editors
 - [ ] Stats panel — recalc from placed mods/arcanes (currently shows base stats)

@@ -14,3 +14,13 @@ export function getArcaneSlotCount(category: BrowseCategory): number {
       return 0;
   }
 }
+
+/** Categories that have an Exilus slot. Necramechs don't; everything else does. */
+export function hasExilusSlot(category: BrowseCategory): boolean {
+  return category !== "necramechs";
+}
+
+/** Categories with an Aura slot (polarity bonus to capacity). */
+export function hasAuraSlot(category: BrowseCategory): boolean {
+  return category === "warframes" || category === "companions";
+}

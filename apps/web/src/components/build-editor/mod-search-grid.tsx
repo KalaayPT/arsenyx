@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { isRivenMod } from "@arsenyx/shared/warframe/rivens";
 import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
 import { ModCard } from "./mod-card";
@@ -153,7 +154,10 @@ export function ModSearchGrid({
   // of remove, so positions don't shift when search/rarity/polarity narrow
   // the view — mirrors how the in-game arsenal keeps mods in place.
   const ordered = useMemo(() => {
-    const copy = [...mods];
+    // Rivens always pin to the front — they're a special action, not a
+    // regular mod, and sorting them by drain/rarity buries them.
+    const rivens = mods.filter(isRivenMod);
+    const copy = mods.filter((m) => !isRivenMod(m));
     switch (sort) {
       case "Name":
         copy.sort((a, b) => a.name.localeCompare(b.name));
@@ -175,7 +179,7 @@ export function ModSearchGrid({
         );
         break;
     }
-    return copy;
+    return [...rivens, ...copy];
   }, [mods, sort]);
 
   const searchIndex = useMemo(() => {

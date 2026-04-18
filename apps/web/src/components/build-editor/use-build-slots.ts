@@ -46,6 +46,13 @@ export interface BuildSlotsState {
   selected: SlotId | null;
   formaPolarities: Partial<Record<SlotId, Polarity>>;
   place: (mod: Mod) => void;
+  /**
+   * Stamp a mod directly into a specific slot, overwriting whatever was
+   * there. Used for rivens, where we replace a freshly-placed synthetic
+   * with a fully-configured one (and for re-editing). Skips the
+   * usedNames dedupe check.
+   */
+  placeAt: (id: SlotId, mod: Mod, rank?: number) => void;
   remove: (id: SlotId) => void;
   select: (id: SlotId | null) => void;
   setRank: (id: SlotId, rank: number) => void;
@@ -101,6 +108,13 @@ export function useBuildSlots(normalSlotCount: number): BuildSlotsState {
     [normalSlotCount, selected],
   );
 
+  const placeAt = useCallback((id: SlotId, mod: Mod, rank?: number) => {
+    setPlaced((prev) => ({
+      ...prev,
+      [id]: { mod, rank: rank ?? maxRank(mod) },
+    }));
+  }, []);
+
   const remove = useCallback((id: SlotId) => {
     setPlaced((prev) => {
       if (!prev[id]) return prev;
@@ -145,6 +159,7 @@ export function useBuildSlots(normalSlotCount: number): BuildSlotsState {
     selected,
     formaPolarities,
     place,
+    placeAt,
     remove,
     select,
     setRank,

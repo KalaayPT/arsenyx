@@ -12,9 +12,10 @@ export {
   calculateModEndoCost,
   calculateTotalEndoCost,
 } from "./calculations";
-export { getArcaneSlotCount } from "./layout";
+export { getArcaneSlotCount, hasAuraSlot, hasExilusSlot } from "./layout";
 export { ModCard } from "./mod-card";
 export { ModSearchGrid } from "./mod-search-grid";
+export { RivenDialog, type RivenDialogValues } from "./riven-dialog";
 export { ModSlot, type ModSlotKind } from "./mod-slot";
 export { PolarityIcon } from "./polarity-icon";
 export { CANONICAL_POLARITIES, PolarityPicker } from "./polarity-picker";

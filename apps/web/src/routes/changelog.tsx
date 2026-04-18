@@ -19,6 +19,21 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         type: "feat",
         description:
+          "Riven editor — on weapons, a synthetic Riven Mod appears in search; placing or clicking the pencil opens a dialog for polarity, drain, 3 positives + 1 negative (stat list filters to melee-only or gun-only)",
+      },
+      {
+        type: "feat",
+        description:
+          "Exilus slot now appears on weapons (primary, secondary, melee, archwing, companion weapons) — previously only warframes and companions had one",
+      },
+      {
+        type: "fix",
+        description:
+          "Thrown secondaries (e.g. Aegrit) now pull in pistol-compatible mods instead of showing an empty search",
+      },
+      {
+        type: "feat",
+        description:
           "Arcane slots — click to open a searchable picker, right-click to remove, +/- to rank while hovered",
       },
       {

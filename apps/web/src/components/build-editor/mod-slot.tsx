@@ -1,8 +1,9 @@
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useState, type MouseEvent } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { isRivenMod } from "@arsenyx/shared/warframe/rivens";
 import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
 import {
@@ -38,6 +39,8 @@ interface ModSlotProps {
   onPickPolarity?: (polarity: Polarity) => void;
   /** Rank delta from `-` / `=` while the slot is hovered. */
   onRankChange?: (delta: number) => void;
+  /** Pencil-button handler, only rendered for riven mods. */
+  onEditRiven?: () => void;
 }
 
 const KIND_LABEL: Record<ModSlotKind, string> = {
@@ -57,6 +60,7 @@ export function ModSlot({
   onRemove,
   onPickPolarity,
   onRankChange,
+  onEditRiven,
 }: ModSlotProps) {
   const effective = effectivePolarity(slotPolarity, formaPolarity);
   const [hovered, setHovered] = useState(false);
@@ -98,17 +102,32 @@ export function ModSlot({
         )}
       >
         {mod ? (
-          <ModCard
-            mod={mod}
-            rank={rank}
-            disableHover={pickerOpen}
-            drainOverride={
-              kind === "aura"
-                ? auraBonusForMod(mod, rank, effective)
-                : effectiveDrainForMod(mod, rank, effective)
-            }
-            matchState={getMatchState(mod.polarity, effective)}
-          />
+          <>
+            <ModCard
+              mod={mod}
+              rank={rank}
+              disableHover={pickerOpen}
+              drainOverride={
+                kind === "aura"
+                  ? auraBonusForMod(mod, rank, effective)
+                  : effectiveDrainForMod(mod, rank, effective)
+              }
+              matchState={getMatchState(mod.polarity, effective)}
+            />
+            {isRivenMod(mod) && onEditRiven && (
+              <button
+                type="button"
+                aria-label="Edit riven stats"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditRiven();
+                }}
+                className="bg-background/80 text-muted-foreground hover:bg-accent hover:text-accent-foreground absolute top-1 right-1 z-30 flex size-5 items-center justify-center rounded-full border opacity-0 transition-opacity group-hover:opacity-100 max-md:opacity-100"
+              >
+                <Pencil className="size-3" />
+              </button>
+            )}
+          </>
         ) : (
           <>
             {effective && (
