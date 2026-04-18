@@ -79,7 +79,21 @@ function groupForma(slots: NormalSlotEntry[]): number {
   return Math.max(additions, removals);
 }
 
-function effectiveDrainForMod(
+export type MatchState = "match" | "mismatch" | "neutral";
+
+/** Polarity-match state between a mod and a slot's effective polarity. */
+export function getMatchState(
+  modPolarity: Polarity,
+  slotPolarity: Polarity | undefined,
+): MatchState {
+  if (!slotPolarity || slotPolarity === "universal") return "neutral";
+  if (slotPolarity === "any") {
+    return modPolarity === "umbra" ? "neutral" : "match";
+  }
+  return modPolarity === slotPolarity ? "match" : "mismatch";
+}
+
+export function effectiveDrainForMod(
   mod: Mod,
   rank: number,
   slotPolarity: Polarity | undefined,
@@ -93,7 +107,7 @@ function effectiveDrainForMod(
   return Math.ceil(base * 1.25);
 }
 
-function auraBonusForMod(
+export function auraBonusForMod(
   mod: Mod,
   rank: number,
   slotPolarity: Polarity | undefined,

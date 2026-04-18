@@ -15,10 +15,12 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
 import { createRequire } from "node:module"
 import { dirname, resolve } from "node:path"
 
+import { normalizeArcanes } from "@arsenyx/shared/warframe/arcanes"
 import { buildIndex } from "@arsenyx/shared/warframe/categorize"
 import { BROWSE_CATEGORIES } from "@arsenyx/shared/warframe/categories"
 import { normalizeMods } from "@arsenyx/shared/warframe/mods"
 import type {
+  Arcane,
   BrowseableItem,
   BrowseCategory,
   BrowseItem,
@@ -49,6 +51,7 @@ const PUBLIC_DATA = resolve(REPO, "apps/web/public/data")
 const INDEX_OUT = resolve(PUBLIC_DATA, "items-index.json")
 const DETAIL_DIR = resolve(PUBLIC_DATA, "items")
 const MODS_OUT = resolve(PUBLIC_DATA, "mods-all.json")
+const ARCANES_OUT = resolve(PUBLIC_DATA, "arcanes-all.json")
 const HELMINTH_OUT = resolve(PUBLIC_DATA, "helminth-abilities.json")
 
 // Warframe → subsumed ability name. Mirrors legacy/src/lib/warframe/helminth.ts.
@@ -174,12 +177,19 @@ async function loadAllMods(): Promise<Mod[]> {
   return JSON.parse(body) as Mod[]
 }
 
+async function loadAllArcanes(): Promise<Arcane[]> {
+  const body = await readFile(resolve(WFCD_JSON, "Arcanes.json"), "utf8")
+  return JSON.parse(body) as Arcane[]
+}
+
 async function main() {
-  const [allItems, rawMods] = await Promise.all([
+  const [allItems, rawMods, rawArcanes] = await Promise.all([
     loadAllItems(),
     loadAllMods(),
+    loadAllArcanes(),
   ])
   const mods = normalizeMods(rawMods)
+  const arcanes = normalizeArcanes(rawArcanes)
   const { byCategory, slugLookup } = buildIndex(allItems)
 
   await mkdir(dirname(INDEX_OUT), { recursive: true })
@@ -229,6 +239,13 @@ async function main() {
   const modsMb = (Buffer.byteLength(modsBody, "utf8") / 1024 / 1024).toFixed(2)
   console.log(
     `✓ wrote ${mods.length} normalized mods → mods-all.json (${modsMb} MB)`,
+  )
+
+  const arcanesBody = JSON.stringify(arcanes)
+  await writeFile(ARCANES_OUT, arcanesBody, "utf8")
+  const arcanesKb = (Buffer.byteLength(arcanesBody, "utf8") / 1024).toFixed(1)
+  console.log(
+    `✓ wrote ${arcanes.length} normalized arcanes → arcanes-all.json (${arcanesKb} KB)`,
   )
 
   const helminth = buildHelminthAbilities(allItems)

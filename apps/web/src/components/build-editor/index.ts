@@ -1,4 +1,10 @@
+export { ArcaneCard } from "./arcane-card";
 export { ArcaneSlot } from "./arcane-slot";
+export {
+  useArcaneSlots,
+  type ArcaneSlotsState,
+  type PlacedArcane,
+} from "./use-arcane-slots";
 export { ItemSidebar } from "./item-sidebar";
 export {
   calculateCapacity,

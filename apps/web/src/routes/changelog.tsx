@@ -14,6 +14,21 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-04-18",
+    changes: [
+      {
+        type: "feat",
+        description:
+          "Arcane slots — click to open a searchable picker, right-click to remove, +/- to rank while hovered",
+      },
+      {
+        type: "feat",
+        description:
+          "Placed mods now reflect slot polarity — drain turns green/red and adjusts for matching or mismatching polarity",
+      },
+    ],
+  },
+  {
     date: "2026-04-17",
     changes: [
       {

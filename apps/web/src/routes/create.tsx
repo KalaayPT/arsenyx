@@ -19,10 +19,14 @@ import {
   ItemSidebar,
   ModSearchGrid,
   ModSlot,
+  useArcaneSlots,
   useBuildSlots,
+  type ArcaneSlotsState,
   type ModSlotKind,
   type SlotId,
 } from "@/components/build-editor";
+import { arcanesQuery } from "@/lib/arcanes-query";
+import { getArcanesForCategory } from "@arsenyx/shared/warframe/arcanes";
 import { helminthQuery, type HelminthAbility } from "@/lib/helminth-query";
 import type { PlacedShard } from "@/lib/shards";
 import type { Polarity } from "@arsenyx/shared/warframe/types";
@@ -67,6 +71,7 @@ export const Route = createFileRoute("/create")({
     const tasks: Promise<unknown>[] = [
       context.queryClient.ensureQueryData(itemQuery(deps.category, deps.item)),
       context.queryClient.ensureQueryData(modsQuery),
+      context.queryClient.ensureQueryData(arcanesQuery),
     ];
     if (deps.category === "warframes") {
       tasks.push(context.queryClient.ensureQueryData(helminthQuery));
@@ -103,6 +108,13 @@ function EditorShell() {
   const isCompanion = category === "companions";
   const normalSlotCount = 8;
   const slots = useBuildSlots(normalSlotCount);
+  const arcaneCount = getArcaneSlotCount(category);
+  const arcanes = useArcaneSlots(arcaneCount);
+  const { data: allArcanes } = useSuspenseQuery(arcanesQuery);
+  const arcaneOptions = useMemo(
+    () => getArcanesForCategory(allArcanes, category),
+    [allArcanes, category],
+  );
 
   const [hasReactor, setHasReactor] = useState(true);
   const [shards, setShards] = useState<(PlacedShard | null)[]>(() =>
@@ -197,6 +209,7 @@ function EditorShell() {
               if (!(e.target instanceof HTMLElement)) return;
               if (!e.target.closest("[data-build-slot]")) {
                 slots.select(null);
+                arcanes.select(null);
               }
             }}
           >
@@ -206,6 +219,15 @@ function EditorShell() {
               isCompanion={isCompanion}
               normalSlotCount={normalSlotCount}
               slots={slots}
+              arcaneRow={
+                arcaneCount > 0 ? (
+                  <ArcaneRow
+                    count={arcaneCount}
+                    arcanes={arcanes}
+                    options={arcaneOptions}
+                  />
+                ) : undefined
+              }
             />
           </div>
         </div>
@@ -360,22 +382,53 @@ function toPolarity(v: string | undefined): Polarity | undefined {
   return CANONICAL_SET.has(v as Polarity) ? (v as Polarity) : undefined;
 }
 
+function ArcaneRow({
+  count,
+  arcanes,
+  options,
+}: {
+  count: number;
+  arcanes: ArcaneSlotsState;
+  options: import("@arsenyx/shared/warframe/types").Arcane[];
+}) {
+  return (
+    <div className="flex w-full items-start justify-center gap-3 sm:gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <ArcaneSlot
+          key={i}
+          options={options}
+          placed={arcanes.placed[i]}
+          usedNames={arcanes.usedNames}
+          selected={arcanes.selected === i}
+          onSelect={() => arcanes.select(i)}
+          onPick={(a) => arcanes.placeAt(i, a)}
+          onRemove={() => arcanes.remove(i)}
+          onRankChange={(delta) =>
+            arcanes.setRank(i, (arcanes.placed[i]?.rank ?? 0) + delta)
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
 function ModGrid({
   item,
   category,
   isCompanion,
   normalSlotCount,
   slots,
+  arcaneRow,
 }: {
   item: DetailItem;
   category: BrowseCategory;
   isCompanion: boolean;
   normalSlotCount: number;
   slots: import("@/components/build-editor").BuildSlotsState;
+  arcaneRow?: React.ReactNode;
 }) {
   const slotsPerRow = isCompanion ? 5 : 4;
   const isWarframe = category === "warframes" || category === "necramechs";
-  const arcaneCount = getArcaneSlotCount(category);
 
   // WFCD `aura` is usually a string, but a few items (e.g. Jade) ship it as string[].
   const auraRaw = Array.isArray(item.aura) ? item.aura[0] : item.aura;
@@ -433,13 +486,7 @@ function ModGrid({
         </div>
       ))}
 
-      {arcaneCount > 0 && (
-        <div className="flex w-full items-start justify-center gap-3 sm:gap-6">
-          {Array.from({ length: arcaneCount }).map((_, i) => (
-            <ArcaneSlot key={i} />
-          ))}
-        </div>
-      )}
+      {arcaneRow}
     </div>
   );
 }

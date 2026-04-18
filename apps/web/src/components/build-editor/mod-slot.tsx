@@ -1,14 +1,20 @@
 import { Plus } from "lucide-react";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
 
-import { effectivePolarity } from "./calculations";
+import {
+  auraBonusForMod,
+  effectiveDrainForMod,
+  effectivePolarity,
+  getMatchState,
+} from "./calculations";
 import { ModCard } from "./mod-card";
 import { PolarityIcon } from "./polarity-icon";
 import { PolarityPicker } from "./polarity-picker";
+import { useRankHotkey } from "./use-rank-hotkey";
 
 export type ModSlotKind = "normal" | "aura" | "exilus";
 
@@ -56,26 +62,10 @@ export function ModSlot({
   const [hovered, setHovered] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // Rank hotkeys while hovering a filled slot.
-  useEffect(() => {
-    if (!mod || !hovered || !onRankChange) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLElement) {
-        const tag = e.target.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable)
-          return;
-      }
-      if (e.key === "-" || e.key === "_") {
-        e.preventDefault();
-        onRankChange(-1);
-      } else if (e.key === "=" || e.key === "+") {
-        e.preventDefault();
-        onRankChange(1);
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [mod, hovered, onRankChange]);
+  useRankHotkey({
+    enabled: !!mod && hovered && !!onRankChange,
+    onDelta: (d) => onRankChange?.(d),
+  });
 
   const handleContextMenu = (e: MouseEvent) => {
     if (mod && onRemove) {
@@ -108,7 +98,17 @@ export function ModSlot({
         )}
       >
         {mod ? (
-          <ModCard mod={mod} rank={rank} disableHover={pickerOpen} />
+          <ModCard
+            mod={mod}
+            rank={rank}
+            disableHover={pickerOpen}
+            drainOverride={
+              kind === "aura"
+                ? auraBonusForMod(mod, rank, effective)
+                : effectiveDrainForMod(mod, rank, effective)
+            }
+            matchState={getMatchState(mod.polarity, effective)}
+          />
         ) : (
           <>
             {effective && (
