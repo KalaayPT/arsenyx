@@ -17,6 +17,11 @@ const CHANGELOG: ChangelogEntry[] = [
     date: "2026-04-18",
     changes: [
       {
+        type: "feat",
+        description:
+          "Build guide editor — optional summary line (160 char cap) and a markdown description with Edit/Preview tabs (GFM: tables, task lists, links, fenced code with syntax highlighting). The textarea auto-continues `-`/`*`/`1.`/`- [ ]` lists on Enter (and exits on an empty item), Tab/Shift+Tab indents and dedents, Ctrl+B / Ctrl+I wraps the selection, and pasting a URL over selected text turns it into a `[text](url)` link. Partner-builds dropdown is stubbed until save support lands",
+      },
+      {
         type: "refactor",
         description:
           "Browse / editor UI polish — dropped the orange Prime badge on item detail pages (Prime items are still surfaced by name and by the Prime-only filter), default shadcn styling on the category tabs, and unified widths on the filter selects",

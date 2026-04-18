@@ -16,6 +16,7 @@ import {
   calculateTotalEndoCost,
   CANONICAL_POLARITIES,
   getArcaneSlotCount,
+  GuideEditor,
   hasAuraSlot,
   hasExilusSlot,
   ItemSidebar,
@@ -205,6 +206,9 @@ function EditorShell() {
     slots.place(mod);
   };
 
+  const [guideSummary, setGuideSummary] = useState("");
+  const [guideDescription, setGuideDescription] = useState("");
+
   const [helminth, setHelminth] = useState<Record<number, HelminthAbility>>({});
   const setHelminthAt = (i: number, ab: HelminthAbility | null) => {
     setHelminth((prev) => {
@@ -327,7 +331,12 @@ function EditorShell() {
         </div>
 
         <div className="bg-card rounded-lg border p-4">
-          <GuidePlaceholder />
+          <GuideEditor
+            summary={guideSummary}
+            onSummaryChange={setGuideSummary}
+            description={guideDescription}
+            onDescriptionChange={setGuideDescription}
+          />
         </div>
       </div>
 
@@ -654,19 +663,3 @@ function findFreeNormalSlot(
   return null;
 }
 
-function GuidePlaceholder() {
-  return (
-    <div className="flex flex-col gap-2">
-      <h2 className="text-lg font-semibold">Build Guide</h2>
-      <p className="text-muted-foreground text-sm">
-        Rich-text guide editor (summary + description + partner builds) lands
-        with save support in Slice 6d.
-      </p>
-    </div>
-  );
-}
-
-function pct(v: number | undefined): string | undefined {
-  if (v === undefined) return undefined;
-  return `${(v * 100).toFixed(1)}%`;
-}

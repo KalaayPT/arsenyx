@@ -5,6 +5,7 @@ export {
   type ArcaneSlotsState,
   type PlacedArcane,
 } from "./use-arcane-slots";
+export { GuideEditor } from "./guide-editor";
 export { ItemSidebar } from "./item-sidebar";
 export {
   calculateCapacity,
