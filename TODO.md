@@ -65,7 +65,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] Arcane slots — click-to-open picker, +/- rank while hovered, click-out deselects
 - [x] Polarity-aware mod drain (green/red badge, halved/×1.25 cost)
 - [ ] Riven editor (stat input for riven mods)
-- [ ] Helminth abilities (subsume flow — abilities list exists, editor UI pending)
+- [x] Helminth abilities (subsume picker in editor sidebar)
 - [ ] Zaw component editors
 - [ ] Stats panel — recalc from placed mods/arcanes (currently shows base stats)
 - [ ] Save / delete / fork build mutations (blocked on Slice 3 auth)
