@@ -1,5 +1,13 @@
 import { useNavigate } from "@tanstack/react-router"
-import { LogIn, LogOut } from "lucide-react"
+import {
+  Heart,
+  LogIn,
+  LogOut,
+  Settings,
+  Shield,
+  Swords,
+  User,
+} from "lucide-react"
 
 import { Link } from "@/components/link"
 import { Button } from "@/components/ui/button"
@@ -38,6 +46,7 @@ export function UserMenu() {
   const user = session.user
   const name = user.name ?? user.email ?? "Account"
   const initial = name.charAt(0).toUpperCase()
+  const isAdmin = (user as { role?: string }).role === "admin"
 
   async function onSignOut() {
     await authClient.signOut()
@@ -77,6 +86,32 @@ export function UserMenu() {
             </span>
           ) : null}
         </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href={ROUTES.profile} />}>
+          <User className="size-4" />
+          My Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={ROUTES.myBuilds} />}>
+          <Swords className="size-4" />
+          My Builds
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={ROUTES.favorites} />}>
+          <Heart className="size-4" />
+          My Favorites
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={ROUTES.settings} />}>
+          <Settings className="size-4" />
+          Settings
+        </DropdownMenuItem>
+        {isAdmin ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href={ROUTES.admin} />}>
+              <Shield className="size-4" />
+              Admin
+            </DropdownMenuItem>
+          </>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSignOut}>
           <LogOut className="size-4" />

@@ -10,14 +10,8 @@ legacy:
 legacy-nodb:
     Push-Location legacy; bun run dev
 
-# Run new Vite SPA + Hono API in parallel.
+# Run new Vite SPA + Hono API in parallel. Talks to Neon, no Docker needed.
 dev:
-    docker compose up -d postgres
-    Start-Process -NoNewWindow -WorkingDirectory apps/api -FilePath bun -ArgumentList 'run','dev'
-    Push-Location apps/web; bun run dev
-
-# Run new web + api without Docker (for low-power machines).
-dev-nodb:
     Start-Process -NoNewWindow -WorkingDirectory apps/api -FilePath bun -ArgumentList 'run','dev'
     Push-Location apps/web; bun run dev
 

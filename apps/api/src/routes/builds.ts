@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { customAlphabet } from "nanoid";
 
 import { isValidCategory } from "@arsenyx/shared/warframe/categories";
+import { Prisma } from "../generated/prisma/client";
 import { BuildVisibility } from "../generated/prisma/enums";
 import type { InputJsonValue } from "../generated/prisma/internal/prismaNamespace";
 
@@ -184,6 +185,226 @@ builds.patch("/:slug", async (c) => {
     select: { id: true, slug: true },
   });
   return c.json(updated);
+});
+
+const LIST_LIMIT = 24;
+const LIST_SORTS = ["newest", "updated"] as const;
+type ListSort = (typeof LIST_SORTS)[number];
+
+const LIST_SELECT = {
+  id: true,
+  slug: true,
+  name: true,
+  visibility: true,
+  voteCount: true,
+  favoriteCount: true,
+  viewCount: true,
+  hasGuide: true,
+  hasShards: true,
+  createdAt: true,
+  updatedAt: true,
+  itemName: true,
+  itemImageName: true,
+  itemCategory: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      displayUsername: true,
+      image: true,
+    },
+  },
+  organization: {
+    select: { id: true, name: true, slug: true, image: true },
+  },
+} as const;
+
+type ListRow = Prisma.BuildGetPayload<{ select: typeof LIST_SELECT }>;
+
+function serializeListRow(b: ListRow) {
+  return {
+    id: b.id,
+    slug: b.slug,
+    name: b.name,
+    visibility: b.visibility,
+    voteCount: b.voteCount,
+    favoriteCount: b.favoriteCount,
+    viewCount: b.viewCount,
+    hasGuide: b.hasGuide,
+    hasShards: b.hasShards,
+    createdAt: b.createdAt.toISOString(),
+    updatedAt: b.updatedAt.toISOString(),
+    item: {
+      name: b.itemName,
+      imageName: b.itemImageName,
+      category: b.itemCategory,
+    },
+    user: b.user,
+    organization: b.organization,
+  };
+}
+
+type ListFilters = {
+  page: number;
+  sort: ListSort | undefined;
+  q: string | undefined;
+  category: string | undefined;
+};
+
+function parseListQuery(c: {
+  req: { query: (k: string) => string | undefined };
+}): ListFilters {
+  const pageRaw = parseInt(c.req.query("page") ?? "1", 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
+  const sortRaw = c.req.query("sort");
+  const sort: ListSort | undefined = (LIST_SORTS as readonly string[]).includes(
+    sortRaw ?? "",
+  )
+    ? (sortRaw as ListSort)
+    : undefined;
+  const qRaw = c.req.query("q")?.trim();
+  const q = qRaw && qRaw.length > 0 ? qRaw.slice(0, 200) : undefined;
+  const catRaw = c.req.query("category");
+  const category = catRaw && isValidCategory(catRaw) ? catRaw : undefined;
+  return { page, sort, q, category };
+}
+
+function orderByForSort(sort: ListSort) {
+  return sort === "updated"
+    ? { updatedAt: "desc" as const }
+    : { createdAt: "desc" as const };
+}
+
+/**
+ * Search path: tsvector match ordered by ts_rank (with sort as tiebreaker).
+ * Returns the paginated ID list + total match count.
+ */
+async function searchBuildIds(params: {
+  q: string;
+  category: string | undefined;
+  baseFilter: Prisma.Sql;
+  sort: ListSort;
+  skip: number;
+  take: number;
+}): Promise<{ ids: string[]; total: number }> {
+  const { q, category, baseFilter, sort, skip, take } = params;
+  const query = Prisma.sql`websearch_to_tsquery('english', ${q})`;
+  const categoryFilter = category
+    ? Prisma.sql`AND "itemCategory" = ${category}`
+    : Prisma.empty;
+  const tiebreaker =
+    sort === "updated"
+      ? Prisma.sql`"updatedAt" DESC`
+      : Prisma.sql`"createdAt" DESC`;
+
+  const [rows, totalRows] = await Promise.all([
+    prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+      SELECT id
+      FROM builds
+      WHERE "searchVector" @@ ${query}
+        AND ${baseFilter}
+        ${categoryFilter}
+      ORDER BY ts_rank("searchVector", ${query}) DESC, ${tiebreaker}
+      LIMIT ${take} OFFSET ${skip}
+    `),
+    prisma.$queryRaw<{ n: number }[]>(Prisma.sql`
+      SELECT COUNT(*)::int AS n
+      FROM builds
+      WHERE "searchVector" @@ ${query}
+        AND ${baseFilter}
+        ${categoryFilter}
+    `),
+  ]);
+  return { ids: rows.map((r) => r.id), total: totalRows[0]?.n ?? 0 };
+}
+
+async function runList({
+  filters,
+  baseWhere,
+  baseFilter,
+  defaultSort,
+}: {
+  filters: ListFilters;
+  baseWhere: Record<string, unknown>;
+  baseFilter: Prisma.Sql;
+  defaultSort: ListSort;
+}) {
+  const { page, q, category } = filters;
+  const sort: ListSort = filters.sort ?? defaultSort;
+  const skip = (page - 1) * LIST_LIMIT;
+
+  const where: Record<string, unknown> = { ...baseWhere };
+  if (category) where.itemCategory = category;
+
+  if (q) {
+    const { ids, total } = await searchBuildIds({
+      q,
+      category,
+      baseFilter,
+      sort,
+      skip,
+      take: LIST_LIMIT,
+    });
+    if (ids.length === 0) {
+      return { builds: [], total, page, limit: LIST_LIMIT };
+    }
+    const rows = await prisma.build.findMany({
+      where: { id: { in: ids } },
+      select: LIST_SELECT,
+    });
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const ordered = ids
+      .map((id) => byId.get(id))
+      .filter((r): r is ListRow => r != null);
+    return {
+      builds: ordered.map(serializeListRow),
+      total,
+      page,
+      limit: LIST_LIMIT,
+    };
+  }
+
+  const [rows, total] = await Promise.all([
+    prisma.build.findMany({
+      where,
+      orderBy: orderByForSort(sort),
+      skip,
+      take: LIST_LIMIT,
+      select: LIST_SELECT,
+    }),
+    prisma.build.count({ where }),
+  ]);
+
+  return {
+    builds: rows.map(serializeListRow),
+    total,
+    page,
+    limit: LIST_LIMIT,
+  };
+}
+
+builds.get("/", async (c) => {
+  const result = await runList({
+    filters: parseListQuery(c),
+    baseWhere: { visibility: BuildVisibility.PUBLIC },
+    baseFilter: Prisma.sql`visibility = 'PUBLIC'`,
+    defaultSort: "newest",
+  });
+  return c.json(result);
+});
+
+builds.get("/mine", async (c) => {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session?.user) return c.json({ error: "unauthorized" }, 401);
+
+  const result = await runList({
+    filters: parseListQuery(c),
+    baseWhere: { userId: session.user.id },
+    baseFilter: Prisma.sql`"userId" = ${session.user.id}`,
+    defaultSort: "updated",
+  });
+  return c.json(result);
 });
 
 builds.get("/:slug", async (c) => {

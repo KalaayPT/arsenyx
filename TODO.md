@@ -49,12 +49,12 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [ ] Build codec moved to `packages/shared`
 - [ ] Warframe types moved to `packages/shared` (items.ts loader stays backend)
 - [ ] Full mod/arcane/shard render (reuse Slice 6 editor in read-only mode)
-- [ ] Port tsvector search trigger + index as raw SQL migration (needed for Slice 5 search)
+- [x] Port tsvector search trigger + index as raw SQL migration (needed for Slice 5 search)
 
 ### Slice 5 — Build listing + social (reads)
 
-- [ ] `/builds` — public builds list (paginated)
-- [ ] `/builds/mine` — authored builds
+- [x] `/builds` — public builds list (paginated, sort, full-text search, category filter)
+- [x] `/builds/mine` — authored builds
 - [ ] `/favorites` — favorited builds
 - [ ] `/profile/[username]`
 - [ ] `/org/[slug]`
@@ -98,7 +98,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 
 ### Header polish (pulls in as slices land)
 
-- [ ] Search command (Ctrl+K palette)
+- [x] Search command (Ctrl+K palette)
 - [ ] Mobile nav (hamburger + sheet)
 - [ ] UserMenu (after auth)
 

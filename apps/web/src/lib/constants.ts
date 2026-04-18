@@ -25,6 +25,11 @@ export const ROUTES = {
   about: "/about",
   signIn: "/auth/signin",
   signInError: "/auth/error",
+  profile: "/profile",
+  myBuilds: "/builds/mine",
+  favorites: "/favorites",
+  settings: "/settings",
+  admin: "/admin",
 } as const
 
 // API base URL (Hono). Override with VITE_API_URL in .env.

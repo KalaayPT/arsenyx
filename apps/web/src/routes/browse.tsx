@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useDeferredValue, useEffect, useMemo, useRef } from "react";
 
 import { Footer } from "@/components/footer";
@@ -18,23 +18,12 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Kbd } from "@/components/ui/kbd";
+import { itemsIndexQuery } from "@/lib/items-index-query";
 import {
   isValidCategory,
   type BrowseCategory,
   type BrowseItem,
-  type ItemsIndex,
 } from "@/lib/warframe";
-
-const itemsIndexQuery = queryOptions({
-  queryKey: ["items-index"],
-  queryFn: async (): Promise<ItemsIndex> => {
-    const r = await fetch("/data/items-index.json");
-    if (!r.ok) throw new Error("failed to load items index");
-    return r.json();
-  },
-  staleTime: Infinity,
-  gcTime: Infinity,
-});
 
 type BrowseSearch = {
   category: BrowseCategory;

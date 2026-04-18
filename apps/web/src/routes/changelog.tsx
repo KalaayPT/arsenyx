@@ -19,6 +19,21 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         type: "feat",
         description:
+          "Command palette — Ctrl/Cmd+K from anywhere opens a universal search (shadcn Command) with three sections: navigation shortcuts, Warframe items (filtered from the static items index), and community builds (debounced against the `/builds?q=` endpoint). A \"Search all builds for …\" action kicks the query over to `/builds` when you want the full grid. Header gets a proper search button with a ⌘K hint",
+      },
+      {
+        type: "feat",
+        description:
+          "Builds browsing — `/builds` lists the community's public builds as image cards (newest / recently-updated sort, 24 per page), and `/builds/mine` lists your authored builds (auth-gated, redirects to sign-in). Full-text search lands alongside: a GIN-indexed `tsvector` on name / itemName / description powers `websearch_to_tsquery` matching, ranked by `ts_rank`, and the URL-synced search input + category tabs on `/builds` are wired live",
+      },
+      {
+        type: "chore",
+        description:
+          "`just dev` no longer starts the legacy Docker Postgres — the new stack talks to Neon, so the container is only needed for `just legacy`",
+      },
+      {
+        type: "feat",
+        description:
           "Build viewer uses the full editor layout in read-only mode — same ItemSidebar (capacity, reactor switch, shards, helminth, stats), same ModGrid with innate polarities, same ArcaneRow, plus the markdown guide underneath. A new `readOnly` prop on ModSlot / ArcaneSlot / ItemSidebar turns off click/hover/picker popovers and disables the reactor switch so the viewer doesn't feel like a broken editor",
       },
       {

@@ -23,6 +23,7 @@ import { arcanesQuery } from "@/lib/arcanes-query";
 import { getArcanesForCategory } from "@arsenyx/shared/warframe/arcanes";
 import { buildQuery, type BuildDetail, type SavedBuildData } from "@/lib/build-query";
 import { padShards } from "@/lib/shards";
+import { authorName } from "@/lib/user-display";
 import { slugify } from "@arsenyx/shared/warframe/slugs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -146,11 +147,7 @@ function BuildViewerBody({
     [slots.placed, slots.formaPolarities, auraInnate, normalInnates, hasReactor],
   );
 
-  const author =
-    build.user.displayUsername ??
-    build.user.username ??
-    build.user.name ??
-    "Anonymous";
+  const author = authorName(build.user);
 
   return (
     <>
