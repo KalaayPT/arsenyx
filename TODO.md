@@ -58,12 +58,17 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 
 ### Slice 6 — Build authoring (the hard stuff)
 
-- [ ] `/create` — new build flow
-- [ ] Build editor (`src/components/build-editor/`)
-- [ ] Mod slot editor + riven editor
-- [ ] Save / delete / fork build mutations
-- [ ] Helminth, zaw, polarity editors
-- [ ] Stats panel (recalc on change)
+- [x] `/create` shell — item sidebar, editor header, grid area
+- [x] Mod grid — innate polarities, forma picker, click-to-place, selection, ranks
+- [x] Compatible-mods search panel — filters, sort, dim-on-filter, used-state
+- [x] Editor sidebar — abilities, archon shards, capacity, reactor toggle, stats
+- [x] Arcane slots — click-to-open picker, +/- rank while hovered, click-out deselects
+- [x] Polarity-aware mod drain (green/red badge, halved/×1.25 cost)
+- [ ] Riven editor (stat input for riven mods)
+- [ ] Helminth abilities (subsume flow — abilities list exists, editor UI pending)
+- [ ] Zaw component editors
+- [ ] Stats panel — recalc from placed mods/arcanes (currently shows base stats)
+- [ ] Save / delete / fork build mutations (blocked on Slice 3 auth)
 - [ ] `/import` — Overframe import
 
 ### Slice 7 — Org + admin + settings
