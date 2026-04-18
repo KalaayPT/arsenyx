@@ -19,6 +19,31 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         type: "feat",
         description:
+          "Companions now show health/shield/armor/energy with mod recalc; archwing suits (Itzal, Odonata) render as warframes with abilities, while arch-guns / arch-melee fall through to the weapon panel — all auto-detected from item data",
+      },
+      {
+        type: "feat",
+        description:
+          "Ability efficiency caps at 175% (and duration at 12.5%, range at 34%) — capped stats render the capped value with the uncapped value in a muted suffix, and the popover labels \"Uncapped\" vs \"Capped\" explicitly",
+      },
+      {
+        type: "feat",
+        description:
+          "Weapon damage breakdown splits into Physical and Elemental sections, and every row (Impact, Viral, Total, etc.) is hoverable — the popover groups contributors by source (Base Damage, Cold, Toxin, Multishot…) so you can see exactly which mods combined into Viral or which mods produced a given total",
+      },
+      {
+        type: "feat",
+        description:
+          "Stats turn green when they improve and red when they regress — hover over any changed stat to see the attributing mods/arcanes/shards with their percent/flat contributions and the final multiplier formula (reload time is inverted — shorter is better)",
+      },
+      {
+        type: "feat",
+        description:
+          "Stats panel recalculates from placed mods, arcanes, shards, and rivens — weapons show per-attack sections (e.g. Acceltra's Rocket Impact + Rocket Explosion) with physical/elemental damage breakdowns and a multishot-adjusted total; warframes show modified health/shield/armor/energy and ability strength/duration/efficiency/range",
+      },
+      {
+        type: "feat",
+        description:
           "Riven editor — on weapons, a synthetic Riven Mod appears in search; placing or clicking the pencil opens a dialog for polarity, drain, 3 positives + 1 negative (stat list filters to melee-only or gun-only)",
       },
       {

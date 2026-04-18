@@ -67,7 +67,9 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] Riven editor (stat input for riven mods)
 - [x] Helminth abilities (subsume picker in editor sidebar)
 - [ ] Zaw component editors
-- [ ] Stats panel — recalc from placed mods/arcanes (currently shows base stats)
+- [x] Stats panel — recalc from placed mods/arcanes (multi-attack weapons, damage breakdown, rivens, warframe abilities, companions, archwing suits, stat caps)
+- [ ] Conditional mod stats — Galvanized, on-kill, Hunter Munitions, etc. (show-max-stacks toggle); also picks up rarer riven stats (Status Duration, Damage to Faction, Projectile Speed, Punch Through, Ammo Max, Zoom, Recoil, Finisher Damage, Slide Attack, Channeling…)
+- [ ] Aura ignore-list — Corrosive Projection and similar affect enemies not the player; port legacy ignore set before adding any player-affecting auras
 - [ ] Save / delete / fork build mutations (blocked on Slice 3 auth)
 - [ ] `/import` — Overframe import
 

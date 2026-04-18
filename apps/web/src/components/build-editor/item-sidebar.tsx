@@ -21,25 +21,48 @@ import {
   type HelminthAbility,
 } from "@/lib/helminth-query";
 import {
-  formatStatValue,
   getShardImageUrl,
   SHARD_COLOR_NAMES,
   SHARD_COLORS,
   SHARD_STATS,
-  sumShardFlatBonuses,
   type PlacedShard,
   type ShardColor,
+  formatStatValue,
 } from "@/lib/shards";
+import {
+  calculateCompanionStats,
+  calculateWarframeStats,
+  calculateWeaponStats,
+  DAMAGE_TYPE_LABELS,
+  DAMAGE_TYPE_STYLE,
+  formatWithSign,
+  type AttackModeStats,
+  type CompanionStats,
+  type DamageEntry,
+  type StatContribution,
+  type StatValue,
+  type WarframeStats,
+  type WeaponStats,
+} from "@/lib/stats";
 import { cn } from "@/lib/utils";
 import {
   type BrowseCategory,
   type DetailItem,
-  formatPct,
   formatStat,
   getImageUrl,
 } from "@/lib/warframe";
+import type { Gun, Melee, Warframe } from "@arsenyx/shared/warframe/types";
+
+import type { PlacedArcane } from "./use-arcane-slots";
+import type { PlacedMod, SlotId } from "./use-build-slots";
 
 const SHARD_SLOTS = 5;
+
+function itemHasWeaponData(item: DetailItem): boolean {
+  if (item.totalDamage !== undefined) return true;
+  const attacks = (item as { attacks?: unknown[] }).attacks;
+  return Array.isArray(attacks) && attacks.length > 0;
+}
 
 export interface ItemSidebarProps {
   item: DetailItem;
@@ -52,6 +75,8 @@ export interface ItemSidebarProps {
   onSetShard: (index: number, shard: PlacedShard | null) => void;
   helminth: Record<number, HelminthAbility>;
   onSetHelminth: (slotIndex: number, ability: HelminthAbility | null) => void;
+  placedMods: Partial<Record<SlotId, PlacedMod>>;
+  placedArcanes: (PlacedArcane | null)[];
 }
 
 export function ItemSidebar({
@@ -65,20 +90,81 @@ export function ItemSidebar({
   onSetShard,
   helminth,
   onSetHelminth,
+  placedMods,
+  placedArcanes,
 }: ItemSidebarProps) {
-  const isWarframe = category === "warframes" || category === "necramechs";
+  // Distinguish archwing *suits* (have health) from arch-guns / arch-melee
+  // (have attack data). Both share the `archwing` browse category.
+  const hasWeaponData = itemHasWeaponData(item);
+  const isArchwingSuit =
+    category === "archwing" && !hasWeaponData && item.health !== undefined;
+  const isWarframe =
+    category === "warframes" ||
+    category === "necramechs" ||
+    isArchwingSuit;
   const isPureWarframe = category === "warframes";
+  const isCompanion = category === "companions" && !hasWeaponData;
   const isWeapon =
-    category === "primary" ||
-    category === "secondary" ||
-    category === "melee" ||
-    category === "companion-weapons" ||
-    category === "archwing" ||
-    category === "exalted-weapons";
+    hasWeaponData &&
+    (category === "primary" ||
+      category === "secondary" ||
+      category === "melee" ||
+      category === "companion-weapons" ||
+      category === "archwing" ||
+      category === "exalted-weapons" ||
+      category === "companions");
   const showShards = category === "warframes";
+  const skipRankUpBonus =
+    category === "necramechs" || isArchwingSuit;
   const abilities = item.abilities ?? [];
   const boosterLabel = isWarframe ? "Reactor" : "Catalyst";
-  const shardBonuses = sumShardFlatBonuses(shards);
+
+  const modList = useMemo(
+    () =>
+      Object.values(placedMods).filter(
+        (p): p is PlacedMod => p !== undefined,
+      ),
+    [placedMods],
+  );
+  const arcaneList = useMemo(
+    () => placedArcanes.filter((a): a is PlacedArcane => !!a),
+    [placedArcanes],
+  );
+
+  const warframeStats = useMemo<WarframeStats | null>(() => {
+    if (!isWarframe) return null;
+    return calculateWarframeStats({
+      warframe: item as unknown as Warframe,
+      mods: modList,
+      arcanes: arcaneList,
+      shards,
+      skipRankUpBonus,
+    });
+  }, [isWarframe, item, modList, arcaneList, shards, skipRankUpBonus]);
+
+  const weaponStats = useMemo<WeaponStats | null>(() => {
+    if (!isWeapon) return null;
+    return calculateWeaponStats({
+      weapon: item as unknown as Gun | Melee,
+      mods: modList,
+      arcanes: arcaneList,
+    });
+  }, [isWeapon, item, modList, arcaneList]);
+
+  const companionStats = useMemo<CompanionStats | null>(() => {
+    if (!isCompanion) return null;
+    return calculateCompanionStats({
+      companion: {
+        name: item.name,
+        health: item.health,
+        shield: item.shield,
+        armor: item.armor,
+        power: item.power,
+      },
+      mods: modList,
+      arcanes: arcaneList,
+    });
+  }, [isCompanion, item, modList, arcaneList]);
 
   return (
     <div className="flex h-full flex-col">
@@ -140,56 +226,507 @@ export function ItemSidebar({
 
       <Separator />
 
-      <div className="flex flex-col gap-2 p-3">
-        {isWarframe && (
-          <>
-            <StatsBlock
-              rows={[
-                { label: "Health", value: item.health, bonus: shardBonuses.health },
-                { label: "Shield", value: item.shield, bonus: shardBonuses.shield },
-                { label: "Armor", value: item.armor, bonus: shardBonuses.armor },
-                { label: "Energy", value: item.power, bonus: shardBonuses.energy },
-                { label: "Sprint", value: item.sprintSpeed },
-              ]}
-            />
-
-            <Separator />
-
-            <StatsBlock
-              rows={[
-                { label: "Duration", value: 100, unit: "%" },
-                { label: "Efficiency", value: 100, unit: "%" },
-                { label: "Range", value: 100, unit: "%" },
-                { label: "Strength", value: 100, unit: "%" },
-              ]}
-            />
-          </>
-        )}
-        {isWeapon && (
-          <StatsBlock
-            rows={[
-              { label: "Damage", value: item.totalDamage },
-              { label: "Crit Chance", value: formatPct(item.criticalChance) },
-              {
-                label: "Crit Multi",
-                value: item.criticalMultiplier
-                  ? `${item.criticalMultiplier}x`
-                  : undefined,
-              },
-              { label: "Status", value: formatPct(item.procChance) },
-              { label: "Fire Rate", value: item.fireRate },
-              { label: "Magazine", value: item.magazineSize },
-              {
-                label: "Reload",
-                value:
-                  item.reloadTime !== undefined
-                    ? `${formatStat(item.reloadTime)}s`
-                    : undefined,
-              },
-            ]}
-          />
-        )}
+      <div className="flex flex-col gap-3 p-3">
+        {warframeStats && <WarframeStatsPanel stats={warframeStats} />}
+        {weaponStats && <WeaponStatsPanel stats={weaponStats} />}
+        {companionStats && <CompanionStatsPanel stats={companionStats} />}
       </div>
+    </div>
+  );
+}
+
+function CompanionStatsPanel({ stats }: { stats: CompanionStats }) {
+  return (
+    <div className="flex flex-col gap-1 text-xs">
+      {stats.health.base > 0 && (
+        <StatLine label="Health" value={stats.health} digits={0} />
+      )}
+      {stats.shield.base > 0 && (
+        <StatLine label="Shield" value={stats.shield} digits={0} />
+      )}
+      {stats.armor.base > 0 && (
+        <StatLine label="Armor" value={stats.armor} digits={0} />
+      )}
+      {stats.energy.base > 0 && (
+        <StatLine label="Energy" value={stats.energy} digits={0} />
+      )}
+    </div>
+  );
+}
+
+function WarframeStatsPanel({ stats }: { stats: WarframeStats }) {
+  return (
+    <>
+      <div className="flex flex-col gap-1 text-xs">
+        <StatLine label="Health" value={stats.health} digits={0} />
+        <StatLine label="Shield" value={stats.shield} digits={0} />
+        <StatLine label="Armor" value={stats.armor} digits={0} />
+        <StatLine label="Energy" value={stats.energy} digits={0} />
+        <StatLine label="Sprint" value={stats.sprintSpeed} digits={2} />
+      </div>
+
+      <Separator />
+
+      <div className="flex flex-col gap-1 text-xs">
+        <StatLine label="Strength" value={stats.abilityStrength} unit="%" digits={1} />
+        <StatLine label="Duration" value={stats.abilityDuration} unit="%" digits={1} />
+        <StatLine label="Efficiency" value={stats.abilityEfficiency} unit="%" digits={1} />
+        <StatLine label="Range" value={stats.abilityRange} unit="%" digits={1} />
+      </div>
+    </>
+  );
+}
+
+function WeaponStatsPanel({ stats }: { stats: WeaponStats }) {
+  const { attackModes, multishot, grandTotalDamage } = stats;
+  const showMultiple = attackModes.length > 1;
+  const primary = attackModes[0];
+
+  return (
+    <div className="flex flex-col gap-3 text-xs">
+      {primary && (
+        <div className="flex flex-col gap-1">
+          <StatLine label="Crit Chance" value={primary.criticalChance} unit="%" digits={1} />
+          <StatLine label="Crit Multi" value={primary.criticalMultiplier} unit="x" digits={2} />
+          <StatLine label="Status" value={primary.statusChance} unit="%" digits={1} />
+          <StatLine label="Fire Rate" value={primary.fireRate} digits={2} />
+          {primary.magazineSize && (
+            <StatLine label="Magazine" value={primary.magazineSize} digits={0} />
+          )}
+          {primary.reloadTime && (
+            <StatLine
+              label="Reload"
+              value={primary.reloadTime}
+              unit="s"
+              digits={2}
+              inverted
+            />
+          )}
+          {multishot.modified > 1.001 && (
+            <StatLine label="Multishot" value={multishot} unit="x" digits={2} />
+          )}
+          {primary.range && (
+            <StatLine label="Range" value={primary.range} unit="m" digits={2} />
+          )}
+        </div>
+      )}
+
+      {attackModes.map((mode, i) => (
+        <AttackModeBlock
+          key={`${mode.name}-${i}`}
+          mode={mode}
+          multishot={multishot.modified}
+          showHeader={showMultiple}
+        />
+      ))}
+
+      {showMultiple && (
+        <>
+          <Separator />
+          <StatLine
+            label="Total"
+            value={grandTotalDamage}
+            digits={1}
+            emphasis
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function AttackModeBlock({
+  mode,
+  multishot,
+  showHeader,
+}: {
+  mode: AttackModeStats;
+  multishot: number;
+  showHeader: boolean;
+}) {
+  const scaledTotal: StatValue = {
+    base: mode.totalDamage.base * multishot,
+    modified: mode.totalDamage.modified * multishot,
+    contributions: mode.totalDamage.contributions,
+  };
+
+  const physical = mode.damageBreakdown.physical;
+  const elemental = mode.damageBreakdown.elemental;
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {showHeader && (
+        <>
+          <Separator />
+          <div className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {mode.name}
+          </div>
+        </>
+      )}
+      <StatLine
+        label="Total Damage"
+        value={scaledTotal}
+        digits={1}
+        emphasis
+      />
+
+      {physical.length > 0 && (
+        <>
+          <DamageSectionHeader label="Physical" />
+          <div className="flex flex-col gap-0.5">
+            {physical.map((d) => (
+              <DamageRow key={d.type} entry={d} multishot={multishot} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {elemental.length > 0 && (
+        <>
+          <DamageSectionHeader label="Elemental" />
+          <div className="flex flex-col gap-0.5">
+            {elemental.map((d, i) => (
+              <DamageRow key={`${d.type}-${i}`} entry={d} multishot={multishot} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function DamageSectionHeader({ label }: { label: string }) {
+  return (
+    <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/70 mt-1">
+      {label}
+    </div>
+  );
+}
+
+function DamageRow({
+  entry,
+  multishot,
+}: {
+  entry: DamageEntry;
+  multishot: number;
+}) {
+  const scaled = entry.value * multishot;
+  const row = (
+    <div className="flex cursor-help items-baseline justify-between">
+      <span className="flex items-center gap-1.5">
+        <span
+          className={cn(
+            "size-1.5 rounded-full",
+            DAMAGE_TYPE_STYLE[entry.type].bg,
+          )}
+        />
+        <span className={cn(DAMAGE_TYPE_STYLE[entry.type].text)}>
+          {DAMAGE_TYPE_LABELS[entry.type]}
+        </span>
+      </span>
+      <span className="tabular-nums font-medium">{formatStat(scaled, 1)}</span>
+    </div>
+  );
+
+  if (entry.contributions.length === 0) return row;
+
+  return (
+    <Popover>
+      <PopoverTrigger render={row} />
+      <PopoverContent side="right" align="start" className="w-72 text-xs">
+        <DamageFormula entry={entry} multishot={multishot} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DamageFormula({
+  entry,
+  multishot,
+}: {
+  entry: DamageEntry;
+  multishot: number;
+}) {
+  const grouped = groupContributions(entry.contributions);
+  const scaled = entry.value * multishot;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between">
+        <span
+          className={cn(
+            "font-semibold",
+            DAMAGE_TYPE_STYLE[entry.type].text,
+          )}
+        >
+          {DAMAGE_TYPE_LABELS[entry.type]}
+        </span>
+        <span className="tabular-nums font-semibold">
+          {formatStat(scaled, 1)}
+        </span>
+      </div>
+      {grouped.map((g, i) => (
+        <div key={i} className="flex flex-col gap-0.5">
+          <Separator />
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            {g.label} <span className="tabular-nums">({formatSum(g.contribs)})</span>
+          </div>
+          {g.contribs.map((c, j) => (
+            <ContribRow
+              key={j}
+              name={c.name}
+              amount={formatContribAmount(c)}
+              positive={c.amount > 0}
+            />
+          ))}
+        </div>
+      ))}
+      {multishot > 1.001 && (
+        <>
+          <Separator />
+          <div className="text-[10px] text-muted-foreground">
+            × {formatStat(multishot, 2)} multishot
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function groupContributions(
+  contribs: StatContribution[],
+): { label: string; contribs: StatContribution[] }[] {
+  const groups = new Map<string, StatContribution[]>();
+  for (const c of contribs) {
+    const key = c.group ?? "";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(c);
+  }
+  return Array.from(groups, ([label, contribs]) => ({ label, contribs }));
+}
+
+function formatSum(contribs: StatContribution[]): string {
+  const sum = contribs.reduce((t, c) => t + c.amount, 0);
+  const sign = sum >= 0 ? "+" : "";
+  return `${sign}${formatStat(sum, 1)}%`;
+}
+
+function formatContribAmount(c: StatContribution): string {
+  return formatWithSign(c.amount, 1, c.operation === "percent_add" ? "%" : "");
+}
+
+function StatLine({
+  label,
+  value,
+  unit = "",
+  digits = 2,
+  inverted = false,
+  emphasis = false,
+}: {
+  label: string;
+  value: StatValue;
+  unit?: string;
+  digits?: number;
+  inverted?: boolean;
+  emphasis?: boolean;
+}) {
+  const delta = value.modified - value.base;
+  const changed = Math.abs(delta) > 0.005;
+  const capped = value.uncapped !== undefined;
+  const better = inverted ? delta < 0 : delta > 0;
+  const color = !changed
+    ? ""
+    : better
+      ? "text-green-500"
+      : "text-red-500";
+
+  const row = (
+    <div
+      className={cn(
+        "flex items-baseline justify-between",
+        changed && "cursor-help",
+      )}
+    >
+      <span className="text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          "tabular-nums",
+          emphasis ? "font-semibold" : "font-medium",
+          color,
+        )}
+      >
+        {formatStat(value.modified, digits)}
+        {unit}
+        {capped && (
+          <span className="text-muted-foreground ml-1 text-[10px] font-normal">
+            ({formatStat(value.uncapped!, digits)}
+            {unit})
+          </span>
+        )}
+      </span>
+    </div>
+  );
+
+  if (!changed || value.contributions.length === 0) return row;
+
+  return (
+    <Popover>
+      <PopoverTrigger render={row} />
+      <PopoverContent side="right" align="start" className="w-64 text-xs">
+        <StatFormula value={value} unit={unit} digits={digits} inverted={inverted} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function StatFormula({
+  value,
+  unit,
+  digits,
+  inverted,
+}: {
+  value: StatValue;
+  unit: string;
+  digits: number;
+  inverted: boolean;
+}) {
+  const hasGroups = value.contributions.some((c) => c.group);
+  const flats = value.contributions.filter((c) => c.operation === "flat_add");
+  const percents = value.contributions.filter(
+    (c) => c.operation === "percent_add",
+  );
+  const percentSum = percents.reduce((s, c) => s + c.amount, 0);
+  const flatSum = flats.reduce((s, c) => s + c.amount, 0);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between">
+        <span className="text-muted-foreground">Base</span>
+        <span className="tabular-nums">
+          {formatStat(value.base, digits)}
+          {unit}
+        </span>
+      </div>
+
+      {hasGroups ? (
+        <GroupedContribs contribs={value.contributions} />
+      ) : (
+        <>
+          {percents.length > 0 && (
+            <>
+              <Separator />
+              <div className="flex flex-col gap-0.5">
+                {percents.map((c, i) => (
+                  <ContribRow
+                    key={`p-${i}`}
+                    name={c.name}
+                    amount={formatContribAmount(c)}
+                    positive={c.amount > 0}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {flats.length > 0 && (
+            <>
+              <Separator />
+              <div className="flex flex-col gap-0.5">
+                {flats.map((c, i) => (
+                  <ContribRow
+                    key={`f-${i}`}
+                    name={c.name}
+                    amount={formatWithSign(c.amount, digits, unit)}
+                    positive={c.amount > 0}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          <Separator />
+          <div className="text-[10px] text-muted-foreground">
+            {inverted ? (
+              <>
+                {formatStat(value.base, digits)} ÷ (1 +{" "}
+                {formatStat(percentSum / 100, 2)})
+              </>
+            ) : (
+              <>
+                {formatStat(value.base, digits)} × (1 +{" "}
+                {formatStat(percentSum / 100, 2)})
+                {flatSum !== 0 && ` + ${formatStat(flatSum, digits)}`}
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      <Separator />
+      {value.uncapped !== undefined && (
+        <div className="flex items-baseline justify-between text-muted-foreground">
+          <span>Uncapped</span>
+          <span className="tabular-nums">
+            {formatStat(value.uncapped, digits)}
+            {unit}
+          </span>
+        </div>
+      )}
+      <div className="flex items-baseline justify-between font-medium">
+        <span>{value.uncapped !== undefined ? "Capped" : "Total"}</span>
+        <span className="tabular-nums">
+          {formatStat(value.modified, digits)}
+          {unit}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function GroupedContribs({ contribs }: { contribs: StatContribution[] }) {
+  const groups = groupContributions(contribs);
+  return (
+    <>
+      {groups.map((g, i) => (
+        <div key={i} className="flex flex-col gap-0.5">
+          <Separator />
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+            {g.label || "Other"}{" "}
+            <span className="tabular-nums">({formatSum(g.contribs)})</span>
+          </div>
+          {g.contribs.map((c, j) => (
+            <ContribRow
+              key={j}
+              name={c.name}
+              amount={formatContribAmount(c)}
+              positive={c.amount > 0}
+            />
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ContribRow({
+  name,
+  amount,
+  positive,
+}: {
+  name: string;
+  amount: string;
+  positive: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="truncate text-muted-foreground">{name}</span>
+      <span
+        className={cn(
+          "shrink-0 tabular-nums",
+          positive ? "text-green-500" : "text-red-500",
+        )}
+      >
+        {amount}
+      </span>
     </div>
   );
 }
@@ -369,79 +906,6 @@ function CapacityBar({ used, max }: { used: number; max: number }) {
   );
 }
 
-interface StatRowSpec {
-  label: string;
-  value: string | number | undefined;
-  bonus?: number;
-  unit?: string;
-}
-
-function StatsBlock({ rows }: { rows: StatRowSpec[] }) {
-  const shown = rows.filter(
-    (r) => r.value !== undefined && r.value !== null && r.value !== "",
-  );
-  if (shown.length === 0) return null;
-  return (
-    <div className="flex flex-col gap-1 text-xs">
-      {shown.map((r) => (
-        <StatRow key={r.label} {...r} />
-      ))}
-    </div>
-  );
-}
-
-function StatRow({ label, value, bonus = 0, unit = "" }: StatRowSpec) {
-  const isNum = typeof value === "number";
-  const base = isNum ? (value as number) : undefined;
-  const hasBonus = isNum && bonus > 0;
-  const total = hasBonus ? base! + bonus : undefined;
-  const display = isNum
-    ? `${formatStat(hasBonus ? total! : base!)}${unit}`
-    : (value as string);
-
-  const row = (
-    <div
-      className={cn(
-        "flex items-baseline justify-between",
-        hasBonus && "cursor-help",
-      )}
-    >
-      <span className="text-muted-foreground">{label}</span>
-      <span
-        className={cn(
-          "font-medium tabular-nums",
-          hasBonus && "text-primary",
-        )}
-      >
-        {display}
-      </span>
-    </div>
-  );
-
-  if (!hasBonus) return row;
-
-  return (
-    <Popover>
-      <PopoverTrigger render={row} />
-      <PopoverContent side="right" align="start" className="w-48 text-xs">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Base</span>
-          <span className="tabular-nums">{formatStat(base!)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Shards</span>
-          <span className="tabular-nums">+{formatStat(bonus)}</span>
-        </div>
-        <Separator />
-        <div className="flex justify-between font-medium">
-          <span>Total</span>
-          <span className="tabular-nums">{formatStat(total!)}</span>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 function ShardSlot({
   shard,
   onPick,
@@ -608,4 +1072,3 @@ function ShardPicker({
     </div>
   );
 }
-

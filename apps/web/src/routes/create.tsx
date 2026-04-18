@@ -31,8 +31,8 @@ import {
 } from "@/components/build-editor";
 import {
   createSyntheticRiven,
+  isRivenEligible,
   isRivenMod,
-  RIVEN_ELIGIBLE_CATEGORIES,
 } from "@arsenyx/shared/warframe/rivens";
 import type { Mod } from "@arsenyx/shared/warframe/types";
 import { arcanesQuery } from "@/lib/arcanes-query";
@@ -277,6 +277,8 @@ function EditorShell() {
               onSetShard={setShard}
               helminth={helminth}
               onSetHelminth={setHelminthAt}
+              placedMods={slots.placed}
+              placedArcanes={arcanes.placed}
             />
           </div>
 
@@ -617,7 +619,7 @@ function SearchPanel({
       },
       allMods,
     );
-    if (RIVEN_ELIGIBLE_CATEGORIES.has(category)) {
+    if (isRivenEligible(category, item)) {
       return [createSyntheticRiven(), ...mods];
     }
     return mods;

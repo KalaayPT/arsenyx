@@ -72,9 +72,21 @@ export const RIVEN_ELIGIBLE_CATEGORIES = new Set<BrowseCategory>([
   "primary",
   "secondary",
   "melee",
-  "archwing",
   "companion-weapons",
 ])
+
+/** Riven-eligible weapons per the wiki: Primary, Secondary, Melee,
+ * Arch-Guns, and Robotic (companion) weapons. The `archwing` browse
+ * category lumps Arch-Guns with Arch-Melee and Archwing suits, so we
+ * inspect the raw WFCD category for that case. */
+export function isRivenEligible(
+  category: BrowseCategory,
+  item: { category?: string },
+): boolean {
+  if (RIVEN_ELIGIBLE_CATEGORIES.has(category)) return true
+  if (category === "archwing" && item.category === "Arch-Gun") return true
+  return false
+}
 
 /** Returns the stat list appropriate to the item's category. */
 export function getRivenStatsFor(category: BrowseCategory): readonly string[] {
