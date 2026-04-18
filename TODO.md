@@ -29,14 +29,16 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 
 ### Slice 3 — Auth foundation
 
-- [ ] Better Auth on Hono middleware (`apps/api`)
-- [ ] GitHub OAuth handshake
-- [ ] `/auth/signin` page
-- [ ] `/auth/error` page
-- [ ] UserMenu (Header right side, replaces ThemeToggle-only layout)
-- [ ] Better Auth React client + session hook in `apps/web`
-- [ ] Neon dev Postgres (EU region) — one-time setup to unblock auth
-- [ ] CORS + cookies across `web.arsenyx` and `api.arsenyx` (or same-parent-domain)
+- [x] Better Auth on Hono middleware (`apps/api`)
+- [x] GitHub OAuth handshake
+- [x] `/auth/signin` page
+- [x] `/auth/error` page
+- [x] UserMenu (Header right side, replaces ThemeToggle-only layout)
+- [x] Better Auth React client + session hook in `apps/web`
+- [x] Neon dev branch connection string wired into `apps/api/.env`
+- [x] GitHub OAuth app created + credentials in `apps/api/.env`
+- [x] First `bunx prisma db push` against the new branch
+- [ ] CORS + cookies across `web.arsenyx` and `api.arsenyx` (same-origin in prod — decide at deploy time)
 
 ### Slice 4 — Build view (first real content page needing backend)
 

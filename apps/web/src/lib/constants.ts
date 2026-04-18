@@ -23,7 +23,14 @@ export const ROUTES = {
   privacy: "/privacy",
   terms: "/terms",
   about: "/about",
+  signIn: "/auth/signin",
+  signInError: "/auth/error",
 } as const
+
+// API base URL (Hono). Override with VITE_API_URL in .env.
+export const API_URL =
+  (import.meta.env?.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ??
+  "http://localhost:8787"
 
 // External links
 export const EXTERNAL_LINKS = {

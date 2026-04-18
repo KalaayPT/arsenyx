@@ -19,6 +19,11 @@ const CHANGELOG: ChangelogEntry[] = [
       {
         type: "feat",
         description:
+          "Auth foundation — Hono API with Better Auth and GitHub OAuth, Prisma schema for User/Account/Session/Verification on a new Neon branch, `/auth/signin` and `/auth/error` pages, and a UserMenu in the header (sign-in, avatar, sign-out). Builds/votes/favorites still come in Slice 4 once the schema ports over",
+      },
+      {
+        type: "feat",
+        description:
           "Build guide editor — optional summary line (160 char cap) and a markdown description with Edit/Preview tabs (GFM: tables, task lists, links, fenced code with syntax highlighting). The textarea auto-continues `-`/`*`/`1.`/`- [ ]` lists on Enter (and exits on an empty item), Tab/Shift+Tab indents and dedents, Ctrl+B / Ctrl+I wraps the selection, and pasting a URL over selected text turns it into a `[text](url)` link. Partner-builds dropdown is stubbed until save support lands",
       },
       {
