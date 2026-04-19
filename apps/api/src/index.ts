@@ -9,6 +9,7 @@ import { imports } from "./routes/imports"
 import { me } from "./routes/me"
 import { orgs } from "./routes/orgs"
 import { users } from "./routes/users"
+import { v1 } from "./routes/v1"
 
 const app = new Hono()
 
@@ -32,6 +33,7 @@ app.route("/imports", imports)
 app.route("/me", me)
 app.route("/orgs", orgs)
 app.route("/users", users)
+app.route("/api/v1", v1)
 
 app.get("/health", (c) => c.json({ ok: true }))
 

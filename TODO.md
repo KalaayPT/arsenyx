@@ -98,7 +98,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] `/api/v1/builds` — public builds list
 - [x] `/api/v1/builds/[slug]` — public build detail
 - [x] `/api/v1/imports/overframe` — public import endpoint
-- [ ] API keys: list/create/revoke flow
+- [x] API keys: list/create/revoke flow
 - [ ] Screenshot service — separate Fly machine with real Playwright (replaces chromium-min Vercel-serverless hack)
 - [ ] OG image endpoint — Satori + resvg in Hono route
 

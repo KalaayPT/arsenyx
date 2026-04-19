@@ -7,7 +7,14 @@ const API_KEY_PREFIX = "ars_live_"
 const API_KEY_SECRET_BYTES = 24
 const API_KEY_PREFIX_LENGTH = 16
 
-export const DEFAULT_API_KEY_SCOPE = "build:write"
+export const SCOPE_BUILD_READ = "build:read"
+export const SCOPE_BUILD_WRITE = "build:write"
+export type ApiKeyScope = typeof SCOPE_BUILD_READ | typeof SCOPE_BUILD_WRITE
+
+export const DEFAULT_API_KEY_SCOPES: readonly ApiKeyScope[] = [
+  SCOPE_BUILD_READ,
+  SCOPE_BUILD_WRITE,
+]
 export const DEFAULT_API_KEY_RATE_LIMIT = 60
 export const MAX_ACTIVE_API_KEYS_PER_USER = 10
 
@@ -92,7 +99,7 @@ async function createApiKeyInTransaction(
       scopes:
         input.scopes && input.scopes.length > 0
           ? input.scopes
-          : [DEFAULT_API_KEY_SCOPE],
+          : [...DEFAULT_API_KEY_SCOPES],
       rateLimit: input.rateLimit ?? DEFAULT_API_KEY_RATE_LIMIT,
       expiresAt: input.expiresAt ?? null,
     },
