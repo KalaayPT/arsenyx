@@ -5,7 +5,6 @@ import {
   Compass,
   Hammer,
   LayoutGrid,
-  Package,
   ScrollText,
   User,
 } from "lucide-react";
@@ -34,7 +33,7 @@ import {
 } from "@/lib/builds-list-query";
 import { itemsIndexQuery } from "@/lib/items-index-query";
 import { authorName } from "@/lib/user-display";
-import { CATEGORIES, type BrowseItem } from "@/lib/warframe";
+import { CATEGORIES, getImageUrl, type BrowseItem } from "@/lib/warframe";
 
 const SEARCH_DEBOUNCE_MS = 200;
 
@@ -269,7 +268,12 @@ function ItemRow({
       keywords={[item.name, item.type ?? "", item.categoryLabel]}
       onSelect={onSelect}
     >
-      <Package />
+      <img
+        src={getImageUrl(item.imageName)}
+        alt=""
+        decoding="async"
+        className="size-5 object-contain"
+      />
       <span>{item.name}</span>
       <CommandShortcut>{item.categoryLabel}</CommandShortcut>
     </CommandItem>
