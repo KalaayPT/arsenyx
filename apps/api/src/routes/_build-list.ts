@@ -8,7 +8,7 @@ export const LIST_SORTS = [
   "newest",
   "updated",
   "top",
-  "favorited",
+  "bookmarked",
   "viewed",
 ] as const;
 export type ListSort = (typeof LIST_SORTS)[number];
@@ -18,8 +18,8 @@ export const LIST_SELECT = {
   slug: true,
   name: true,
   visibility: true,
-  voteCount: true,
-  favoriteCount: true,
+  likeCount: true,
+  bookmarkCount: true,
   viewCount: true,
   hasGuide: true,
   hasShards: true,
@@ -50,8 +50,8 @@ export function serializeListRow(b: ListRow) {
     slug: b.slug,
     name: b.name,
     visibility: b.visibility,
-    voteCount: b.voteCount,
-    favoriteCount: b.favoriteCount,
+    likeCount: b.likeCount,
+    bookmarkCount: b.bookmarkCount,
     viewCount: b.viewCount,
     hasGuide: b.hasGuide,
     hasShards: b.hasShards,
@@ -102,12 +102,12 @@ function orderByForSort(sort: ListSort) {
       return [{ updatedAt: "desc" as const }];
     case "top":
       return [
-        { voteCount: "desc" as const },
+        { likeCount: "desc" as const },
         { createdAt: "desc" as const },
       ];
-    case "favorited":
+    case "bookmarked":
       return [
-        { favoriteCount: "desc" as const },
+        { bookmarkCount: "desc" as const },
         { createdAt: "desc" as const },
       ];
     case "viewed":
@@ -130,9 +130,9 @@ function tiebreakerSql(sort: ListSort) {
     case "updated":
       return Prisma.sql`"updatedAt" DESC`;
     case "top":
-      return Prisma.sql`"voteCount" DESC, "createdAt" DESC`;
-    case "favorited":
-      return Prisma.sql`"favoriteCount" DESC, "createdAt" DESC`;
+      return Prisma.sql`"likeCount" DESC, "createdAt" DESC`;
+    case "bookmarked":
+      return Prisma.sql`"bookmarkCount" DESC, "createdAt" DESC`;
     case "viewed":
       return Prisma.sql`"viewCount" DESC, "createdAt" DESC`;
     case "newest":

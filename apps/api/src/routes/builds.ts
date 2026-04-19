@@ -211,16 +211,16 @@ builds.get("/mine", async (c) => {
   return c.json(result);
 });
 
-builds.get("/favorites", async (c) => {
+builds.get("/bookmarks", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "unauthorized" }, 401);
   const userId = session.user.id;
 
-  // Favorited AND visible to viewer (own / public / unlisted; not others' private).
+  // Bookmarked AND visible to viewer (own / public / unlisted; not others' private).
   const result = await runList({
     filters: parseListQuery(c),
     baseWhere: {
-      favorites: { some: { userId } },
+      bookmarks: { some: { userId } },
       OR: [
         { visibility: BuildVisibility.PUBLIC },
         { visibility: BuildVisibility.UNLISTED },
@@ -229,8 +229,8 @@ builds.get("/favorites", async (c) => {
     },
     baseFilter: Prisma.sql`
       EXISTS (
-        SELECT 1 FROM build_favorites bf
-        WHERE bf."buildId" = builds.id AND bf."userId" = ${userId}
+        SELECT 1 FROM build_bookmarks bb
+        WHERE bb."buildId" = builds.id AND bb."userId" = ${userId}
       )
       AND (visibility IN ('PUBLIC', 'UNLISTED') OR "userId" = ${userId})
     `,
@@ -247,8 +247,8 @@ async function getBuildForSocial(slug: string) {
       userId: true,
       visibility: true,
       organizationId: true,
-      voteCount: true,
-      favoriteCount: true,
+      likeCount: true,
+      bookmarkCount: true,
     },
   });
 }
@@ -265,7 +265,7 @@ async function canViewerSeeBuild(
   return false;
 }
 
-builds.post("/:slug/vote", async (c) => {
+builds.post("/:slug/like", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "unauthorized" }, 401);
   const userId = session.user.id;
@@ -276,31 +276,31 @@ builds.post("/:slug/vote", async (c) => {
     return c.json({ error: "not_found" }, 404);
   }
   if (build.userId === userId) {
-    return c.json({ error: "cannot_vote_own_build" }, 400);
+    return c.json({ error: "cannot_like_own_build" }, 400);
   }
 
   const updated = await prisma.$transaction(async (tx) => {
-    const existing = await tx.buildVote.findUnique({
+    const existing = await tx.buildLike.findUnique({
       where: { userId_buildId: { userId, buildId: build.id } },
       select: { id: true },
     });
     if (existing) {
-      return { hasVoted: true, voteCount: build.voteCount };
+      return { hasLiked: true, likeCount: build.likeCount };
     }
-    await tx.buildVote.create({
+    await tx.buildLike.create({
       data: { userId, buildId: build.id, value: 1 },
     });
     const row = await tx.build.update({
       where: { id: build.id },
-      data: { voteCount: { increment: 1 } },
-      select: { voteCount: true },
+      data: { likeCount: { increment: 1 } },
+      select: { likeCount: true },
     });
-    return { hasVoted: true, voteCount: row.voteCount };
+    return { hasLiked: true, likeCount: row.likeCount };
   });
   return c.json(updated);
 });
 
-builds.delete("/:slug/vote", async (c) => {
+builds.delete("/:slug/like", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "unauthorized" }, 401);
   const userId = session.user.id;
@@ -309,25 +309,25 @@ builds.delete("/:slug/vote", async (c) => {
   if (!build) return c.json({ error: "not_found" }, 404);
 
   const updated = await prisma.$transaction(async (tx) => {
-    const existing = await tx.buildVote.findUnique({
+    const existing = await tx.buildLike.findUnique({
       where: { userId_buildId: { userId, buildId: build.id } },
       select: { id: true },
     });
     if (!existing) {
-      return { hasVoted: false, voteCount: build.voteCount };
+      return { hasLiked: false, likeCount: build.likeCount };
     }
-    await tx.buildVote.delete({ where: { id: existing.id } });
+    await tx.buildLike.delete({ where: { id: existing.id } });
     const row = await tx.build.update({
       where: { id: build.id },
-      data: { voteCount: { decrement: 1 } },
-      select: { voteCount: true },
+      data: { likeCount: { decrement: 1 } },
+      select: { likeCount: true },
     });
-    return { hasVoted: false, voteCount: row.voteCount };
+    return { hasLiked: false, likeCount: row.likeCount };
   });
   return c.json(updated);
 });
 
-builds.post("/:slug/favorite", async (c) => {
+builds.post("/:slug/bookmark", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "unauthorized" }, 401);
   const userId = session.user.id;
@@ -339,25 +339,25 @@ builds.post("/:slug/favorite", async (c) => {
   }
 
   const updated = await prisma.$transaction(async (tx) => {
-    const existing = await tx.buildFavorite.findUnique({
+    const existing = await tx.buildBookmark.findUnique({
       where: { userId_buildId: { userId, buildId: build.id } },
       select: { id: true },
     });
     if (existing) {
-      return { hasFavorited: true, favoriteCount: build.favoriteCount };
+      return { hasBookmarked: true, bookmarkCount: build.bookmarkCount };
     }
-    await tx.buildFavorite.create({ data: { userId, buildId: build.id } });
+    await tx.buildBookmark.create({ data: { userId, buildId: build.id } });
     const row = await tx.build.update({
       where: { id: build.id },
-      data: { favoriteCount: { increment: 1 } },
-      select: { favoriteCount: true },
+      data: { bookmarkCount: { increment: 1 } },
+      select: { bookmarkCount: true },
     });
-    return { hasFavorited: true, favoriteCount: row.favoriteCount };
+    return { hasBookmarked: true, bookmarkCount: row.bookmarkCount };
   });
   return c.json(updated);
 });
 
-builds.delete("/:slug/favorite", async (c) => {
+builds.delete("/:slug/bookmark", async (c) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session?.user) return c.json({ error: "unauthorized" }, 401);
   const userId = session.user.id;
@@ -366,20 +366,20 @@ builds.delete("/:slug/favorite", async (c) => {
   if (!build) return c.json({ error: "not_found" }, 404);
 
   const updated = await prisma.$transaction(async (tx) => {
-    const existing = await tx.buildFavorite.findUnique({
+    const existing = await tx.buildBookmark.findUnique({
       where: { userId_buildId: { userId, buildId: build.id } },
       select: { id: true },
     });
     if (!existing) {
-      return { hasFavorited: false, favoriteCount: build.favoriteCount };
+      return { hasBookmarked: false, bookmarkCount: build.bookmarkCount };
     }
-    await tx.buildFavorite.delete({ where: { id: existing.id } });
+    await tx.buildBookmark.delete({ where: { id: existing.id } });
     const row = await tx.build.update({
       where: { id: build.id },
-      data: { favoriteCount: { decrement: 1 } },
-      select: { favoriteCount: true },
+      data: { bookmarkCount: { decrement: 1 } },
+      select: { bookmarkCount: true },
     });
-    return { hasFavorited: false, favoriteCount: row.favoriteCount };
+    return { hasBookmarked: false, bookmarkCount: row.bookmarkCount };
   });
   return c.json(updated);
 });
@@ -426,21 +426,21 @@ builds.get("/:slug", async (c) => {
 
   await maybeIncrementView(c, build.id, build.slug, viewerId, build.userId);
 
-  let viewerHasVoted = false;
-  let viewerHasFavorited = false;
+  let viewerHasLiked = false;
+  let viewerHasBookmarked = false;
   if (viewerId) {
-    const [vote, fav] = await Promise.all([
-      prisma.buildVote.findUnique({
+    const [like, bookmark] = await Promise.all([
+      prisma.buildLike.findUnique({
         where: { userId_buildId: { userId: viewerId, buildId: build.id } },
         select: { id: true },
       }),
-      prisma.buildFavorite.findUnique({
+      prisma.buildBookmark.findUnique({
         where: { userId_buildId: { userId: viewerId, buildId: build.id } },
         select: { id: true },
       }),
     ]);
-    viewerHasVoted = vote != null;
-    viewerHasFavorited = fav != null;
+    viewerHasLiked = like != null;
+    viewerHasBookmarked = bookmark != null;
   }
 
   return c.json({
@@ -458,8 +458,8 @@ builds.get("/:slug", async (c) => {
     buildData: build.buildData,
     hasShards: build.hasShards,
     hasGuide: build.hasGuide,
-    voteCount: build.voteCount,
-    favoriteCount: build.favoriteCount,
+    likeCount: build.likeCount,
+    bookmarkCount: build.bookmarkCount,
     viewCount: build.viewCount,
     createdAt: build.createdAt,
     updatedAt: build.updatedAt,
@@ -467,8 +467,8 @@ builds.get("/:slug", async (c) => {
     organization: build.organization,
     guide: build.buildGuide,
     isOwner: viewerId != null && build.userId === viewerId,
-    viewerHasVoted,
-    viewerHasFavorited,
+    viewerHasLiked,
+    viewerHasBookmarked,
   });
 });
 

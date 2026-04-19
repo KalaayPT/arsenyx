@@ -6,7 +6,7 @@ export type BuildListSort =
   | "newest"
   | "updated"
   | "top"
-  | "favorited"
+  | "bookmarked"
   | "viewed";
 
 export type BuildListParams = {
@@ -23,8 +23,8 @@ export type BuildListItem = {
   slug: string;
   name: string;
   visibility: "PUBLIC" | "PRIVATE" | "UNLISTED";
-  voteCount: number;
-  favoriteCount: number;
+  likeCount: number;
+  bookmarkCount: number;
   viewCount: number;
   hasGuide: boolean;
   hasShards: boolean;
@@ -100,12 +100,12 @@ export const myBuildsQuery = (params: BuildListParams) =>
     retry: false,
   });
 
-export const favoriteBuildsQuery = (params: BuildListParams) =>
+export const bookmarkedBuildsQuery = (params: BuildListParams) =>
   queryOptions({
-    queryKey: ["builds", "favorites", params],
+    queryKey: ["builds", "bookmarks", params],
     queryFn: async (): Promise<BuildListResponse> => {
       const r = await fetch(
-        `${API_URL}/builds/favorites${buildQueryString(params, "newest")}`,
+        `${API_URL}/builds/bookmarks${buildQueryString(params, "newest")}`,
         { credentials: "include" },
       );
       if (r.status === 401) throw new Error("unauthorized");

@@ -41,7 +41,7 @@ users.get("/:username", async (c) => {
     }),
     prisma.build.aggregate({
       where: { userId: user.id, visibility: BuildVisibility.PUBLIC },
-      _sum: { voteCount: true, favoriteCount: true, viewCount: true },
+      _sum: { likeCount: true, bookmarkCount: true, viewCount: true },
     }),
   ]);
 
@@ -61,8 +61,8 @@ users.get("/:username", async (c) => {
     },
     stats: {
       buildCount,
-      totalVotes: agg._sum.voteCount ?? 0,
-      totalFavorites: agg._sum.favoriteCount ?? 0,
+      totalLikes: agg._sum.likeCount ?? 0,
+      totalBookmarks: agg._sum.bookmarkCount ?? 0,
       totalViews: agg._sum.viewCount ?? 0,
     },
   });

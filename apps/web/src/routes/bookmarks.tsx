@@ -16,12 +16,12 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { authClient } from "@/lib/auth-client";
 import {
-  favoriteBuildsQuery,
+  bookmarkedBuildsQuery,
   type BuildListSort,
 } from "@/lib/builds-list-query";
 import { type BrowseCategory } from "@/lib/warframe";
 
-type FavoritesSearch = {
+type BookmarksSearch = {
   page?: number;
   sort?: BuildListSort;
   q?: string;
@@ -30,8 +30,8 @@ type FavoritesSearch = {
   hasShards?: boolean;
 };
 
-export const Route = createFileRoute("/favorites")({
-  validateSearch: (search): FavoritesSearch => parseBuildsListSearch(search),
+export const Route = createFileRoute("/bookmarks")({
+  validateSearch: (search): BookmarksSearch => parseBuildsListSearch(search),
   beforeLoad: async () => {
     const session = await authClient.getSession();
     if (!session.data?.user) {
@@ -47,11 +47,11 @@ export const Route = createFileRoute("/favorites")({
     hasShards: search.hasShards ?? false,
   }),
   loader: ({ context, deps }) =>
-    context.queryClient.ensureQueryData(favoriteBuildsQuery(deps)),
-  component: FavoritesPage,
+    context.queryClient.ensureQueryData(bookmarkedBuildsQuery(deps)),
+  component: BookmarksPage,
 });
 
-function FavoritesPage() {
+function BookmarksPage() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header />
@@ -60,7 +60,7 @@ function FavoritesPage() {
           <Suspense
             fallback={<p className="text-muted-foreground">Loading builds…</p>}
           >
-            <FavoritesContent />
+            <BookmarksContent />
           </Suspense>
         </div>
       </main>
@@ -69,7 +69,7 @@ function FavoritesPage() {
   );
 }
 
-function FavoritesContent() {
+function BookmarksContent() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const page = search.page ?? 1;
@@ -84,9 +84,9 @@ function FavoritesContent() {
 
   return (
     <BuildsListView
-      title="My Favorites"
-      description="Builds you've favorited."
-      query={favoriteBuildsQuery({
+      title="My Bookmarks"
+      description="Builds you've bookmarked."
+      query={bookmarkedBuildsQuery({
         page,
         sort,
         q,
@@ -105,14 +105,14 @@ function FavoritesContent() {
       emptyState={
         <>
           <p className="text-muted-foreground">
-            You haven't favorited any builds yet.
+            You haven't bookmarked any builds yet.
           </p>
           <p className="text-muted-foreground mt-2 text-sm">
             Browse{" "}
             <Link to="/builds" className="text-primary underline">
               public builds
             </Link>{" "}
-            and tap the heart to save them here.
+            and tap the bookmark icon to save them here.
           </p>
         </>
       }

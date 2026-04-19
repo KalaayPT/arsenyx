@@ -27,7 +27,7 @@ export const ROUTES = {
   signInError: "/auth/error",
   profile: "/profile",
   myBuilds: "/builds/mine",
-  favorites: "/favorites",
+  bookmarks: "/bookmarks",
   settings: "/settings",
   admin: "/admin",
 } as const
@@ -86,7 +86,7 @@ export const FEATURES = [
     iconKey: "users" as const,
     title: "Community Driven",
     description:
-      "Browse, vote, and comment on community builds. Open source and built by Warframe players.",
+      "Browse, like, and comment on community builds. Open source and built by Warframe players.",
   },
   {
     iconKey: "chartSpline" as const,

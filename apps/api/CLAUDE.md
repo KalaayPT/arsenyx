@@ -5,7 +5,7 @@ Hono on Bun. Better Auth + Prisma 7 (PrismaPg adapter) + Postgres. Listens on `:
 ## Conventions
 
 - Each domain is a sub-`Hono()` app exported from `src/routes/<name>.ts`, mounted via `app.route("/<name>", sub)` in [src/index.ts](src/index.ts). Files prefixed `_` (e.g. `_build-list.ts`) are shared helpers, not mounted.
-- Build list queries (`/builds`, `/users/:username`, `/favorites`) go through [src/routes/_build-list.ts](src/routes/_build-list.ts) — extend `parseListQuery` / `runList`, don't hand-roll.
+- Build list queries (`/builds`, `/users/:username`, `/bookmarks`) go through [src/routes/_build-list.ts](src/routes/_build-list.ts) — extend `parseListQuery` / `runList`, don't hand-roll.
 - Visibility enforcement for builds is centralised in [src/routes/builds.ts](src/routes/builds.ts). Slug generation uses `nanoid` with a URL-safe alphabet (no `0/O/1/l/I`).
 - Better Auth mounts at `/auth/*`. Session in a handler: `await auth.api.getSession({ headers: c.req.raw.headers })`. `trustedOrigins` is driven by the `WEB_ORIGIN` env var (same list feeds Hono CORS).
 - Shared cross-cut types live in `packages/shared`, imported as `@arsenyx/shared/*`. If both web and api need it, put it there — don't duplicate.

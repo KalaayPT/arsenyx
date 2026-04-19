@@ -156,8 +156,8 @@ function ProfileHeader({ profile }: { profile: Profile }) {
         <span className="text-muted-foreground text-xs">Joined {joined}</span>
         <div className="text-muted-foreground mt-1 flex flex-wrap gap-4 text-sm">
           <Stat label="Builds" value={profile.stats.buildCount} />
-          <Stat label="Votes" value={profile.stats.totalVotes} />
-          <Stat label="Favorites" value={profile.stats.totalFavorites} />
+          <Stat label="Likes" value={profile.stats.totalLikes} />
+          <Stat label="Bookmarks" value={profile.stats.totalBookmarks} />
           <Stat label="Views" value={profile.stats.totalViews} />
         </div>
       </div>

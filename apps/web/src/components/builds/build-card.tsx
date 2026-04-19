@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowBigUp, Eye } from "lucide-react";
+import { Eye, Heart } from "lucide-react";
 
 import type { BuildListItem } from "@/lib/builds-list-query";
 import { relativeTime } from "@/lib/relative-time";
@@ -38,8 +38,8 @@ export function BuildCard({ build }: { build: BuildListItem }) {
         <div className="text-muted-foreground flex items-center justify-between text-xs">
           <span className="flex items-center gap-2">
             <span className="flex items-center gap-1">
-              <ArrowBigUp className="size-3.5" />
-              <span className="tabular-nums">{build.voteCount}</span>
+              <Heart className="size-3" />
+              <span className="tabular-nums">{build.likeCount}</span>
             </span>
             <span className="flex items-center gap-1">
               <Eye className="size-3" />

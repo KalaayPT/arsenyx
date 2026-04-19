@@ -33,8 +33,8 @@ export type BuildDetail = {
   buildData: unknown;
   hasShards: boolean;
   hasGuide: boolean;
-  voteCount: number;
-  favoriteCount: number;
+  likeCount: number;
+  bookmarkCount: number;
   viewCount: number;
   createdAt: string;
   updatedAt: string;
@@ -57,8 +57,8 @@ export type BuildDetail = {
     updatedAt: string;
   } | null;
   isOwner: boolean;
-  viewerHasVoted: boolean;
-  viewerHasFavorited: boolean;
+  viewerHasLiked: boolean;
+  viewerHasBookmarked: boolean;
 };
 
 export const buildQuery = (slug: string) =>

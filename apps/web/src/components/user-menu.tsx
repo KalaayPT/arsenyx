@@ -89,8 +89,8 @@ export function UserMenu() {
         <DropdownMenuItem render={<Link href={ROUTES.myBuilds} />}>
           My Builds
         </DropdownMenuItem>
-        <DropdownMenuItem render={<Link href={ROUTES.favorites} />}>
-          My Favorites
+        <DropdownMenuItem render={<Link href={ROUTES.bookmarks} />}>
+          My Bookmarks
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
           Settings

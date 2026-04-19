@@ -3,10 +3,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_URL } from "@/lib/constants";
 import type { BuildDetail } from "@/lib/build-query";
 
-type VoteResponse = { hasVoted: boolean; voteCount: number };
-type FavoriteResponse = { hasFavorited: boolean; favoriteCount: number };
+type LikeResponse = { hasLiked: boolean; likeCount: number };
+type BookmarkResponse = { hasBookmarked: boolean; bookmarkCount: number };
 
-async function send<T>(slug: string, kind: "vote" | "favorite", method: "POST" | "DELETE"): Promise<T> {
+async function send<T>(slug: string, kind: "like" | "bookmark", method: "POST" | "DELETE"): Promise<T> {
   const r = await fetch(
     `${API_URL}/builds/${encodeURIComponent(slug)}/${kind}`,
     { method, credentials: "include" },
@@ -16,19 +16,19 @@ async function send<T>(slug: string, kind: "vote" | "favorite", method: "POST" |
   return r.json();
 }
 
-export function useToggleVote(slug: string) {
+export function useToggleLike(slug: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (next: boolean): Promise<VoteResponse> =>
-      send<VoteResponse>(slug, "vote", next ? "POST" : "DELETE"),
+    mutationFn: async (next: boolean): Promise<LikeResponse> =>
+      send<LikeResponse>(slug, "like", next ? "POST" : "DELETE"),
     onMutate: async (next) => {
       await qc.cancelQueries({ queryKey: ["build", slug] });
       const prev = qc.getQueryData<BuildDetail>(["build", slug]);
       if (prev) {
         qc.setQueryData<BuildDetail>(["build", slug], {
           ...prev,
-          viewerHasVoted: next,
-          voteCount: prev.voteCount + (next ? 1 : -1),
+          viewerHasLiked: next,
+          likeCount: prev.likeCount + (next ? 1 : -1),
         });
       }
       return { prev };
@@ -41,27 +41,27 @@ export function useToggleVote(slug: string) {
       if (cur) {
         qc.setQueryData<BuildDetail>(["build", slug], {
           ...cur,
-          viewerHasVoted: data.hasVoted,
-          voteCount: data.voteCount,
+          viewerHasLiked: data.hasLiked,
+          likeCount: data.likeCount,
         });
       }
     },
   });
 }
 
-export function useToggleFavorite(slug: string) {
+export function useToggleBookmark(slug: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (next: boolean): Promise<FavoriteResponse> =>
-      send<FavoriteResponse>(slug, "favorite", next ? "POST" : "DELETE"),
+    mutationFn: async (next: boolean): Promise<BookmarkResponse> =>
+      send<BookmarkResponse>(slug, "bookmark", next ? "POST" : "DELETE"),
     onMutate: async (next) => {
       await qc.cancelQueries({ queryKey: ["build", slug] });
       const prev = qc.getQueryData<BuildDetail>(["build", slug]);
       if (prev) {
         qc.setQueryData<BuildDetail>(["build", slug], {
           ...prev,
-          viewerHasFavorited: next,
-          favoriteCount: prev.favoriteCount + (next ? 1 : -1),
+          viewerHasBookmarked: next,
+          bookmarkCount: prev.bookmarkCount + (next ? 1 : -1),
         });
       }
       return { prev };
@@ -74,11 +74,11 @@ export function useToggleFavorite(slug: string) {
       if (cur) {
         qc.setQueryData<BuildDetail>(["build", slug], {
           ...cur,
-          viewerHasFavorited: data.hasFavorited,
-          favoriteCount: data.favoriteCount,
+          viewerHasBookmarked: data.hasBookmarked,
+          bookmarkCount: data.bookmarkCount,
         });
       }
-      qc.invalidateQueries({ queryKey: ["builds", "favorites"] });
+      qc.invalidateQueries({ queryKey: ["builds", "bookmarks"] });
     },
   });
 }

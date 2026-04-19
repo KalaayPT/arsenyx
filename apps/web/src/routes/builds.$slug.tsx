@@ -4,7 +4,7 @@ import {
   useNavigate,
 } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowBigUp, Diamond, Gem, Heart, Pencil } from "lucide-react";
+import { Bookmark, Diamond, Gem, Heart, Pencil } from "lucide-react";
 import { Suspense, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -26,7 +26,7 @@ import {
 import { arcanesQuery } from "@/lib/arcanes-query";
 import { getArcanesForCategory } from "@arsenyx/shared/warframe/arcanes";
 import { buildQuery, type BuildDetail, type SavedBuildData } from "@/lib/build-query";
-import { useToggleFavorite, useToggleVote } from "@/lib/build-social";
+import { useToggleBookmark, useToggleLike } from "@/lib/build-social";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { padShards } from "@/lib/shards";
@@ -284,7 +284,7 @@ function ViewerHeader({
                 </Badge>
               )}
               <Badge variant="outline" className="text-xs">
-                {build.voteCount} votes · {build.viewCount} views
+                {build.likeCount} likes · {build.viewCount} views
               </Badge>
               {build.visibility !== "PUBLIC" ? (
                 <Badge variant="secondary" className="text-xs">
@@ -320,8 +320,8 @@ function ViewerHeader({
 function SocialActions({ build }: { build: BuildDetail }) {
   const { data: session } = authClient.useSession();
   const navigate = useNavigate();
-  const vote = useToggleVote(build.slug);
-  const fav = useToggleFavorite(build.slug);
+  const like = useToggleLike(build.slug);
+  const bookmark = useToggleBookmark(build.slug);
   const isOwner = build.isOwner;
 
   const requireAuthThen = (run: () => void) => () => {
@@ -332,39 +332,39 @@ function SocialActions({ build }: { build: BuildDetail }) {
     run();
   };
 
-  const onVote = requireAuthThen(() => vote.mutate(!build.viewerHasVoted));
-  const onFavorite = requireAuthThen(() =>
-    fav.mutate(!build.viewerHasFavorited),
+  const onLike = requireAuthThen(() => like.mutate(!build.viewerHasLiked));
+  const onBookmark = requireAuthThen(() =>
+    bookmark.mutate(!build.viewerHasBookmarked),
   );
 
   return (
     <>
       <Button
         size="sm"
-        variant={build.viewerHasVoted ? "default" : "outline"}
-        onClick={onVote}
-        disabled={isOwner || vote.isPending}
-        aria-pressed={build.viewerHasVoted}
-        title={isOwner ? "You can't vote on your own build" : undefined}
-      >
-        <ArrowBigUp
-          data-icon="inline-start"
-          className={cn(build.viewerHasVoted && "fill-current")}
-        />
-        <span className="tabular-nums">{build.voteCount}</span>
-      </Button>
-      <Button
-        size="sm"
-        variant={build.viewerHasFavorited ? "default" : "outline"}
-        onClick={onFavorite}
-        disabled={fav.isPending}
-        aria-pressed={build.viewerHasFavorited}
+        variant={build.viewerHasLiked ? "default" : "outline"}
+        onClick={onLike}
+        disabled={isOwner || like.isPending}
+        aria-pressed={build.viewerHasLiked}
+        title={isOwner ? "You can't like your own build" : undefined}
       >
         <Heart
           data-icon="inline-start"
-          className={cn(build.viewerHasFavorited && "fill-current")}
+          className={cn(build.viewerHasLiked && "fill-current")}
         />
-        <span className="tabular-nums">{build.favoriteCount}</span>
+        <span className="tabular-nums">{build.likeCount}</span>
+      </Button>
+      <Button
+        size="sm"
+        variant={build.viewerHasBookmarked ? "default" : "outline"}
+        onClick={onBookmark}
+        disabled={bookmark.isPending}
+        aria-pressed={build.viewerHasBookmarked}
+      >
+        <Bookmark
+          data-icon="inline-start"
+          className={cn(build.viewerHasBookmarked && "fill-current")}
+        />
+        <span className="tabular-nums">{build.bookmarkCount}</span>
       </Button>
     </>
   );

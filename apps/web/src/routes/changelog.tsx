@@ -17,6 +17,11 @@ const CHANGELOG: ChangelogEntry[] = [
     date: "2026-04-19",
     changes: [
       {
+        type: "refactor",
+        description:
+          "Renamed Votes → Likes (heart icon) and Favorites → Bookmarks (bookmark icon). /favorites is now /bookmarks.",
+      },
+      {
         type: "feat",
         description: "Arsenyx rewrite — new stack, same build planner. More to come.",
       },

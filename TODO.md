@@ -55,10 +55,10 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 
 - [x] `/builds` — public builds list (paginated, sort, full-text search, category filter)
 - [x] `/builds/mine` — authored builds
-- [x] `/favorites` — favorited builds
+- [x] `/bookmarks` — bookmarked builds
 - [x] `/profile/[username]`
 - [ ] `/org/[slug]`
-- [x] Vote + favorite toggles (mutation endpoints)
+- [x] Like + bookmark toggles (mutation endpoints)
 
 ### Slice 6 — Build authoring (the hard stuff)
 

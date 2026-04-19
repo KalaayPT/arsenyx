@@ -16,8 +16,8 @@ export type ProfileBadges = {
 
 export type ProfileStats = {
   buildCount: number;
-  totalVotes: number;
-  totalFavorites: number;
+  totalLikes: number;
+  totalBookmarks: number;
   totalViews: number;
 };
 

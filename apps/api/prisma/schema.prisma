@@ -34,8 +34,8 @@ model User {
   accounts                Account[]
   sessions                Session[]
   builds                  Build[]
-  votes                   BuildVote[]
-  favorites               BuildFavorite[]
+  likes                   BuildLike[]
+  bookmarks               BuildBookmark[]
   apiKeys                 ApiKey[]
   organizationMemberships OrganizationMember[]
 
@@ -170,8 +170,8 @@ model Build {
   // Maintained by Postgres trigger, not Prisma
   searchVector Unsupported("tsvector")?
 
-  voteCount     Int @default(0)
-  favoriteCount Int @default(0)
+  likeCount     Int @default(0)
+  bookmarkCount Int @default(0)
   viewCount     Int @default(0)
 
   forkedFromId String?
@@ -181,8 +181,8 @@ model Build {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  votes         BuildVote[]
-  favorites     BuildFavorite[]
+  likes         BuildLike[]
+  bookmarks     BuildBookmark[]
   linkedFrom    BuildLink[]     @relation("LinkedFromBuild")
   linkedTo      BuildLink[]     @relation("LinkedToBuild")
   partnerBuilds Build[]         @relation("PartnerBuilds")
@@ -194,17 +194,17 @@ model Build {
   @@index([userId])
   @@index([itemUniqueName])
   @@index([visibility])
-  @@index([voteCount])
+  @@index([likeCount])
   @@index([createdAt])
-  @@index([visibility, voteCount])
+  @@index([visibility, likeCount])
   @@index([visibility, createdAt])
   @@index([userId, visibility])
-  @@index([itemUniqueName, visibility, voteCount])
+  @@index([itemUniqueName, visibility, likeCount])
   @@index([hasGuide])
   @@index([forkedFromId])
   @@index([organizationId])
-  @@index([userId, visibility, voteCount])
-  @@index([itemCategory, visibility, voteCount])
+  @@index([userId, visibility, likeCount])
+  @@index([itemCategory, visibility, likeCount])
   @@map("builds")
 }
 
@@ -246,7 +246,7 @@ model BuildLink {
 // SOCIAL FEATURES
 // =============================================================================
 
-model BuildVote {
+model BuildLike {
   id String @id @default(cuid())
 
   userId String
@@ -261,10 +261,10 @@ model BuildVote {
 
   @@unique([userId, buildId])
   @@index([buildId])
-  @@map("build_votes")
+  @@map("build_likes")
 }
 
-model BuildFavorite {
+model BuildBookmark {
   id String @id @default(cuid())
 
   userId String
@@ -277,7 +277,7 @@ model BuildFavorite {
 
   @@unique([userId, buildId])
   @@index([buildId])
-  @@map("build_favorites")
+  @@map("build_bookmarks")
 }
 
 // =============================================================================
