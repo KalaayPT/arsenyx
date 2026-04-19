@@ -105,8 +105,8 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 ### Header polish (pulls in as slices land)
 
 - [x] Search command (Ctrl+K palette)
+- [x] UserMenu (sign in, avatar, sign out, settings)
 - [ ] Mobile nav (hamburger + sheet)
-- [ ] UserMenu (after auth)
 
 ### Deploy
 
@@ -121,5 +121,5 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [ ] Delete `legacy/`
 - [x] Move `build-items-index.ts` out of legacy → root `scripts/`, backed by `packages/shared/warframe`
 - [ ] Update root CLAUDE.md to reflect new architecture (Next.js references)
-- [ ] Write `apps/web/CLAUDE.md` and `apps/api/CLAUDE.md`
+- [x] Write `apps/web/CLAUDE.md` and `apps/api/CLAUDE.md`
 - [ ] Split frontend bundle — route-level code splitting to get under the 500KB Vite warning
