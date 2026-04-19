@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import {
   BuildsListView,
+  buildsListLoaderDeps,
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
@@ -26,14 +27,7 @@ type BuildsSearch = {
 
 export const Route = createFileRoute("/builds/")({
   validateSearch: (search): BuildsSearch => parseBuildsListSearch(search),
-  loaderDeps: ({ search }) => ({
-    page: search.page ?? 1,
-    sort: search.sort ?? "newest",
-    q: search.q,
-    category: search.category,
-    hasGuide: search.hasGuide ?? false,
-    hasShards: search.hasShards ?? false,
-  }),
+  loaderDeps: ({ search }) => buildsListLoaderDeps(search, "newest"),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(publicBuildsQuery(deps)),
   component: BuildsIndexPage,

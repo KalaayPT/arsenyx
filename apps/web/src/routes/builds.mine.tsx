@@ -8,6 +8,7 @@ import { Suspense } from "react";
 
 import {
   BuildsListView,
+  buildsListLoaderDeps,
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
@@ -35,14 +36,7 @@ export const Route = createFileRoute("/builds/mine")({
       throw redirect({ to: "/auth/signin" });
     }
   },
-  loaderDeps: ({ search }) => ({
-    page: search.page ?? 1,
-    sort: search.sort ?? "updated",
-    q: search.q ?? "",
-    category: search.category,
-    hasGuide: search.hasGuide ?? false,
-    hasShards: search.hasShards ?? false,
-  }),
+  loaderDeps: ({ search }) => buildsListLoaderDeps(search, "updated"),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(myBuildsQuery(deps)),
   component: MineBuildsPage,

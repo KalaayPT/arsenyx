@@ -75,6 +75,22 @@ export function parseBuildsListSearch(
   return { page, sort, q, category, hasGuide, hasShards };
 }
 
+/** Materialize the loader deps every builds-list route needs, filling in the
+ *  defaults the list component will use anyway. */
+export function buildsListLoaderDeps(
+  search: BuildsListSearch,
+  defaultSort: BuildListSort,
+) {
+  return {
+    page: search.page ?? 1,
+    sort: search.sort ?? defaultSort,
+    q: search.q ?? "",
+    category: search.category as BrowseCategory | undefined,
+    hasGuide: search.hasGuide ?? false,
+    hasShards: search.hasShards ?? false,
+  };
+}
+
 /** Strip defaults from `next` so the URL stays clean. */
 export function nextBuildsListSearch(
   next: BuildsListSearch,
@@ -106,8 +122,8 @@ export function BuildsListView({
   emptyState,
   showFilters,
 }: {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   query: BuildsQuery;
   page: number;
   sort: BuildListSort;
@@ -147,10 +163,16 @@ export function BuildsListView({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground">{description}</p>
-      </div>
+      {title || description ? (
+        <div className="flex flex-col gap-2">
+          {title ? (
+            <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+          ) : null}
+          {description ? (
+            <p className="text-muted-foreground">{description}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         {showFilters ? (

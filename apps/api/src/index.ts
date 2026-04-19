@@ -1,13 +1,14 @@
-import { Hono } from "hono";
-import { cors } from "hono/cors";
+import { Hono } from "hono"
+import { cors } from "hono/cors"
 
-import { auth } from "./auth";
-import { webOrigins } from "./env";
-import { builds } from "./routes/builds";
-import { imports } from "./routes/imports";
-import { users } from "./routes/users";
+import { auth } from "./auth"
+import { webOrigins } from "./env"
+import { builds } from "./routes/builds"
+import { imports } from "./routes/imports"
+import { orgs } from "./routes/orgs"
+import { users } from "./routes/users"
 
-const app = new Hono();
+const app = new Hono()
 
 app.use(
   "*",
@@ -19,17 +20,18 @@ app.use(
     exposeHeaders: ["Set-Cookie"],
     maxAge: 600,
   }),
-);
+)
 
-app.all("/auth/*", (c) => auth.handler(c.req.raw));
+app.all("/auth/*", (c) => auth.handler(c.req.raw))
 
-app.route("/builds", builds);
-app.route("/imports", imports);
-app.route("/users", users);
+app.route("/builds", builds)
+app.route("/imports", imports)
+app.route("/orgs", orgs)
+app.route("/users", users)
 
-app.get("/health", (c) => c.json({ ok: true }));
+app.get("/health", (c) => c.json({ ok: true }))
 
 export default {
   port: 8787,
   fetch: app.fetch,
-};
+}

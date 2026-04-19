@@ -8,6 +8,7 @@ import { Suspense } from "react";
 
 import {
   BuildsListView,
+  buildsListLoaderDeps,
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
@@ -38,14 +39,7 @@ export const Route = createFileRoute("/bookmarks")({
       throw redirect({ to: "/auth/signin" });
     }
   },
-  loaderDeps: ({ search }) => ({
-    page: search.page ?? 1,
-    sort: search.sort ?? "newest",
-    q: search.q ?? "",
-    category: search.category,
-    hasGuide: search.hasGuide ?? false,
-    hasShards: search.hasShards ?? false,
-  }),
+  loaderDeps: ({ search }) => buildsListLoaderDeps(search, "newest"),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(bookmarkedBuildsQuery(deps)),
   component: BookmarksPage,

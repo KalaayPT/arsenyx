@@ -57,7 +57,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] `/builds/mine` — authored builds
 - [x] `/bookmarks` — bookmarked builds
 - [x] `/profile/[username]`
-- [ ] `/org/[slug]`
+- [x] `/org/[slug]` — public org page (header, members grid, builds list)
 - [x] Like + bookmark toggles (mutation endpoints)
 
 ### Slice 6 — Build authoring (the hard stuff)
@@ -88,10 +88,11 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 
 ### Slice 7 — Org + admin + settings
 
-- [ ] `/settings` — profile, API keys
-- [ ] `/org/[slug]/settings` — org management
+- [ ] `/settings` — profile, API keys (Organizations tab landed via existing SettingsDialog)
+- [x] `/org/[slug]/settings` — org management (general, members, delete)
 - [ ] `/admin` — admin panel (ban user, delete build, etc.)
-- [ ] Organizations CRUD (create, add/remove member, role change)
+- [x] Organizations CRUD (create, update, delete, add/remove member, role change)
+- [ ] Wire `Build.organizationId` into `/create` editor so builds can publish under an org
 
 ### Slice 8 — Public API + screenshot service
 
