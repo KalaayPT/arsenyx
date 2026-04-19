@@ -1,8 +1,7 @@
-import { Check, Globe, Link2, Lock, Users, type LucideIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { Check, Globe, Link2, Lock, Users, type LucideIcon } from "lucide-react"
+import { useState, type ReactNode } from "react"
 
-import type { BuildDetail } from "@/lib/build-query";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,33 +9,39 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/dialog"
+import { UserAvatar } from "@/components/user-avatar"
+import type { BuildDetail } from "@/lib/build-query"
+import type { OrgSummary } from "@/lib/org-query"
+import { cn } from "@/lib/utils"
 
-export type PublishVisibility = BuildDetail["visibility"];
+export type PublishVisibility = BuildDetail["visibility"]
 
 export type PublishDialogValues = {
-  visibility: PublishVisibility;
-};
+  visibility: PublishVisibility
+  organizationId: string | null
+}
 
 type PublishDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  initialVisibility: PublishVisibility;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  initialVisibility: PublishVisibility
+  initialOrganizationId: string | null
   owner: {
-    name: string;
-    username: string | null;
-    image: string | null;
-  };
-  confirmLabel?: string;
-  onConfirm: (values: PublishDialogValues) => void;
-};
+    name: string
+    username: string | null
+    image: string | null
+  }
+  organizations: OrgSummary[]
+  confirmLabel?: string
+  onConfirm: (values: PublishDialogValues) => void
+}
 
 const VISIBILITY_OPTIONS: {
-  value: PublishVisibility;
-  label: string;
-  description: string;
-  Icon: LucideIcon;
+  value: PublishVisibility
+  label: string
+  description: string
+  Icon: LucideIcon
 }[] = [
   {
     value: "PUBLIC",
@@ -56,24 +61,33 @@ const VISIBILITY_OPTIONS: {
     description: "Only you (and org members) can view this build.",
     Icon: Lock,
   },
-];
+]
 
 export function PublishDialog({
   open,
   onOpenChange,
   initialVisibility,
+  initialOrganizationId,
   owner,
+  organizations,
   confirmLabel = "Save build",
   onConfirm,
 }: PublishDialogProps) {
-  const [visibility, setVisibility] = useState<PublishVisibility>(initialVisibility);
+  const [visibility, setVisibility] =
+    useState<PublishVisibility>(initialVisibility)
+  const [organizationId, setOrganizationId] = useState<string | null>(
+    initialOrganizationId,
+  )
 
   const handleOpenChange = (o: boolean) => {
-    if (o) setVisibility(initialVisibility);
-    onOpenChange(o);
-  };
+    if (o) {
+      setVisibility(initialVisibility)
+      setOrganizationId(initialOrganizationId)
+    }
+    onOpenChange(o)
+  }
 
-  const ownerHandle = owner.username ? `@${owner.username}` : owner.name;
+  const ownerHandle = owner.username ? `@${owner.username}` : owner.name
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -101,21 +115,39 @@ export function PublishDialog({
 
           <Section label="Publish as">
             <OptionCard
-              selected
-              leading={<OwnerAvatar owner={owner} />}
+              selected={organizationId === null}
+              onSelect={() => setOrganizationId(null)}
+              leading={
+                <UserAvatar src={owner.image} fallback={owner.name} size={7} />
+              }
               title={owner.name}
               subtitle={`${ownerHandle} · Yourself`}
             />
-            <OptionCard
-              disabled
-              leading={
-                <div className="bg-muted flex size-7 shrink-0 items-center justify-center rounded-full">
-                  <Users className="size-3.5" />
-                </div>
-              }
-              title="Organizations"
-              subtitle="Coming soon"
-            />
+            {organizations.length === 0 ? (
+              <OptionCard
+                disabled
+                leading={
+                  <div className="bg-muted flex size-7 shrink-0 items-center justify-center rounded-full">
+                    <Users className="size-3.5" />
+                  </div>
+                }
+                title="No organizations"
+                subtitle="Join or create an org to publish on its behalf"
+              />
+            ) : (
+              organizations.map((org) => (
+                <OptionCard
+                  key={org.id}
+                  selected={organizationId === org.id}
+                  onSelect={() => setOrganizationId(org.id)}
+                  leading={
+                    <UserAvatar src={org.image} fallback={org.name} size={7} />
+                  }
+                  title={org.name}
+                  subtitle={`@${org.slug} · Organization`}
+                />
+              ))
+            )}
           </Section>
         </div>
 
@@ -123,24 +155,24 @@ export function PublishDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => onConfirm({ visibility })}>
+          <Button onClick={() => onConfirm({ visibility, organizationId })}>
             {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
 function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+      <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
         {label}
       </span>
       <div className="flex flex-col gap-1.5">{children}</div>
     </div>
-  );
+  )
 }
 
 function OptionCard({
@@ -151,12 +183,12 @@ function OptionCard({
   title,
   subtitle,
 }: {
-  selected?: boolean;
-  disabled?: boolean;
-  onSelect?: () => void;
-  leading: ReactNode;
-  title: string;
-  subtitle: string;
+  selected?: boolean
+  disabled?: boolean
+  onSelect?: () => void
+  leading: ReactNode
+  title: string
+  subtitle: string
 }) {
   const className = cn(
     "flex items-start gap-3 rounded-md border p-3 text-left transition-colors",
@@ -164,13 +196,13 @@ function OptionCard({
       ? "border-dashed opacity-60"
       : "hover:bg-muted/40 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
     selected && !disabled ? "border-primary bg-primary/5" : "border-border",
-  );
+  )
 
   const content = (
     <>
       {leading}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-sm font-medium leading-none">{title}</span>
+        <span className="text-sm leading-none font-medium">{title}</span>
         <span className="text-muted-foreground text-xs leading-snug">
           {subtitle}
         </span>
@@ -179,14 +211,14 @@ function OptionCard({
         <Check className="text-primary size-4 shrink-0" />
       )}
     </>
-  );
+  )
 
   if (disabled || !onSelect) {
     return (
       <div className={className} aria-disabled={disabled || undefined}>
         {content}
       </div>
-    );
+    )
   }
 
   return (
@@ -198,19 +230,5 @@ function OptionCard({
     >
       {content}
     </button>
-  );
-}
-
-function OwnerAvatar({ owner }: { owner: { name: string; image: string | null } }) {
-  return (
-    <div className="bg-muted flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full">
-      {owner.image ? (
-        <img src={owner.image} alt="" className="size-full object-cover" />
-      ) : (
-        <span className="text-xs font-medium">
-          {owner.name.charAt(0).toUpperCase()}
-        </span>
-      )}
-    </div>
-  );
+  )
 }

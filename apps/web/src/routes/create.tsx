@@ -72,6 +72,7 @@ import { helminthQuery, type HelminthAbility } from "@/lib/helminth-query"
 import { consumeDraft } from "@/lib/import-draft"
 import { itemQuery } from "@/lib/item-query"
 import { modsQuery } from "@/lib/mods-query"
+import { myOrgsQuery } from "@/lib/org-query"
 import { padShards, type PlacedShard } from "@/lib/shards"
 import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import { formatVisibility } from "@/lib/user-display"
@@ -231,7 +232,16 @@ function EditorShell() {
   const [visibility, setVisibility] = useState<PublishVisibility>(
     () => existingBuild?.visibility ?? "PUBLIC",
   )
+  const [organizationId, setOrganizationId] = useState<string | null>(
+    () => existingBuild?.organization?.id ?? null,
+  )
   const [publishDialogOpen, setPublishDialogOpen] = useState(false)
+
+  const { data: myOrgs } = useQuery({
+    ...myOrgsQuery(),
+    enabled: !!session?.user && publishDialogOpen,
+  })
+  const organizations = myOrgs?.memberships.map((m) => m.organization) ?? []
 
   const [hasReactor, setHasReactor] = useState(
     () => savedData.hasReactor ?? true,
@@ -390,10 +400,13 @@ function EditorShell() {
       setPublishDialogOpen(true)
       return
     }
-    void performSave(visibility)
+    void performSave(visibility, organizationId)
   }
 
-  const performSave = async (nextVisibility: PublishVisibility) => {
+  const performSave = async (
+    nextVisibility: PublishVisibility,
+    nextOrganizationId: string | null,
+  ) => {
     if (!session?.user) {
       navigate({ to: "/auth/signin" })
       return
@@ -405,6 +418,7 @@ function EditorShell() {
       const body = {
         name: buildName.trim() || item.name,
         visibility: nextVisibility,
+        organizationId: nextOrganizationId,
         buildData: {
           version: 1,
           slots: slots.placed,
@@ -572,6 +586,7 @@ function EditorShell() {
         open={publishDialogOpen}
         onOpenChange={setPublishDialogOpen}
         initialVisibility={visibility}
+        initialOrganizationId={organizationId}
         owner={{
           name: session?.user?.name ?? "You",
           username:
@@ -579,11 +594,13 @@ function EditorShell() {
               ?.username ?? null,
           image: session?.user?.image ?? null,
         }}
+        organizations={organizations}
         confirmLabel={isUpdate ? "Update settings" : "Save build"}
-        onConfirm={({ visibility: next }) => {
+        onConfirm={({ visibility: next, organizationId: nextOrgId }) => {
           setVisibility(next)
+          setOrganizationId(nextOrgId)
           setPublishDialogOpen(false)
-          if (!isUpdate) void performSave(next)
+          if (!isUpdate) void performSave(next, nextOrgId)
         }}
       />
 

@@ -91,13 +91,13 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] `/org/[slug]/settings` — org management (general, members, delete)
 - [x] `/admin` — admin panel (users, content, orgs, stats)
 - [x] Organizations CRUD (create, update, delete, add/remove member, role change)
-- [ ] Wire `Build.organizationId` into `/create` editor so builds can publish under an org
+- [x] Wire `Build.organizationId` into `/create` editor so builds can publish under an org
 
 ### Slice 8 — Public API + screenshot service
 
-- [ ] `/api/v1/builds` — public builds list
-- [ ] `/api/v1/builds/[slug]` — public build detail
-- [ ] `/api/v1/imports/overframe` — public import endpoint
+- [x] `/api/v1/builds` — public builds list
+- [x] `/api/v1/builds/[slug]` — public build detail
+- [x] `/api/v1/imports/overframe` — public import endpoint
 - [ ] API keys: list/create/revoke flow
 - [ ] Screenshot service — separate Fly machine with real Playwright (replaces chromium-min Vercel-serverless hack)
 - [ ] OG image endpoint — Satori + resvg in Hono route

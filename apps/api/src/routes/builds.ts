@@ -98,6 +98,13 @@ builds.post("/", async (c) => {
   const buildData = b.buildData as InputJsonValue
   const guide = parseGuide(b.guide)
 
+  const orgResult = await resolveOrgAssignment(
+    b.organizationId,
+    session.user.id,
+  )
+  if (!orgResult.ok) return c.json({ error: orgResult.error }, orgResult.status)
+  const organizationId = orgResult.value
+
   // Retry on the astronomically-unlikely slug collision.
   for (let attempt = 0; attempt < 5; attempt++) {
     const slug = generateSlug()
@@ -113,6 +120,7 @@ builds.post("/", async (c) => {
           name,
           description,
           visibility,
+          organizationId,
           buildData,
           hasShards: hasShardsInBuildData(buildData),
           hasGuide: guide?.hasGuide ?? false,
@@ -182,6 +190,15 @@ builds.patch("/:slug", async (c) => {
   }
   if (isVisibility(b.visibility)) {
     data.visibility = b.visibility
+  }
+  if (b.organizationId === null || typeof b.organizationId === "string") {
+    const orgResult = await resolveOrgAssignment(
+      b.organizationId,
+      session.user.id,
+    )
+    if (!orgResult.ok)
+      return c.json({ error: orgResult.error }, orgResult.status)
+    data.organizationId = orgResult.value
   }
   if (b.buildData && typeof b.buildData === "object") {
     data.buildData = b.buildData as InputJsonValue
@@ -612,4 +629,20 @@ async function isOrgMember(organizationId: string, userId: string) {
     select: { userId: true },
   })
   return membership != null
+}
+
+type OrgAssignment =
+  | { ok: true; value: string | null }
+  | { ok: false; error: string; status: 400 | 403 }
+
+async function resolveOrgAssignment(
+  raw: unknown,
+  userId: string,
+): Promise<OrgAssignment> {
+  if (raw == null) return { ok: true, value: null }
+  if (typeof raw !== "string")
+    return { ok: false, error: "invalid_organization_id", status: 400 }
+  if (!(await isOrgMember(raw, userId)))
+    return { ok: false, error: "not_org_member", status: 403 }
+  return { ok: true, value: raw }
 }
