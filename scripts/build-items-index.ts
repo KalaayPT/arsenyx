@@ -203,10 +203,11 @@ async function loadAllArcanes(): Promise<Arcane[]> {
 }
 
 async function main() {
-  const [allItems, rawMods, rawArcanes] = await Promise.all([
+  const [allItems, rawMods, rawArcanes, wfcd] = await Promise.all([
     loadAllItems(),
     loadAllMods(),
     loadAllArcanes(),
+    readWfcdMeta(),
   ])
   const mods = normalizeMods(rawMods)
   const arcanes = normalizeArcanes(rawArcanes)
@@ -276,7 +277,6 @@ async function main() {
     `✓ wrote ${helminth.length} helminth abilities → helminth-abilities.json (${helminthKb} KB)`,
   )
 
-  const wfcd = await readWfcdMeta()
   const meta = {
     generatedAt: new Date().toISOString(),
     wfcdPackageVersion: wfcd.packageVersion,

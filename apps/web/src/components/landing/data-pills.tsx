@@ -1,37 +1,10 @@
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
-interface Meta {
-  generatedAt: string
-  wfcdPackageVersion: string
-  gameUpdate: string | null
-  itemCount: number
-  modCount: number
-  arcaneCount: number
-}
-
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return "just now"
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  if (days < 30) return `${days}d ago`
-  const months = Math.floor(days / 30)
-  if (months < 12) return `${months}mo ago`
-  return `${Math.floor(months / 12)}y ago`
-}
+import { metaQuery } from "@/lib/meta-query"
+import { relativeTime } from "@/lib/relative-time"
 
 export function DataPills() {
-  const [meta, setMeta] = useState<Meta | null>(null)
-
-  useEffect(() => {
-    fetch("/data/meta.json")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((m: Meta | null) => setMeta(m))
-      .catch(() => setMeta(null))
-  }, [])
+  const { data: meta } = useQuery(metaQuery)
 
   if (!meta) return null
 
@@ -45,7 +18,7 @@ export function DataPills() {
           aria-hidden
         />
         <span className="text-muted-foreground">
-          WFCD synced · {formatRelative(meta.generatedAt)}
+          WFCD synced · {relativeTime(meta.generatedAt)}
         </span>
       </Pill>
       <Pill>

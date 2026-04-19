@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BuildCard } from "@/components/builds/build-card";
 import { BuildsCategoryTabs } from "@/components/builds/builds-category-tabs";
 import { BuildsSortDropdown } from "@/components/builds/builds-sort-dropdown";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -186,13 +187,17 @@ export function BuildsListView({
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant="outline" size="sm">
-                    <Filter data-icon="inline-start" />
-                    Filters
-                    {activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
-                  </Button>
+                  <Button variant="outline" className="shrink-0 gap-2" />
                 }
-              />
+              >
+                <Filter data-icon="inline-start" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </PopoverTrigger>
               <PopoverContent align="end" className="w-56 gap-3">
                 <FilterToggle
                   label="Has guide"
