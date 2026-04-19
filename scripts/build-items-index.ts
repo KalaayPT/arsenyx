@@ -53,6 +53,26 @@ const DETAIL_DIR = resolve(PUBLIC_DATA, "items")
 const MODS_OUT = resolve(PUBLIC_DATA, "mods-all.json")
 const ARCANES_OUT = resolve(PUBLIC_DATA, "arcanes-all.json")
 const HELMINTH_OUT = resolve(PUBLIC_DATA, "helminth-abilities.json")
+const META_OUT = resolve(PUBLIC_DATA, "meta.json")
+
+async function readWfcdMeta(): Promise<{
+  packageVersion: string
+  gameUpdate: string | null
+}> {
+  const pkg = JSON.parse(
+    await readFile(resolve(WFCD_PKG, "package.json"), "utf8"),
+  ) as { version: string }
+  let gameUpdate: string | null = null
+  try {
+    const readme = await readFile(resolve(WFCD_PKG, "README.md"), "utf8")
+    // Badge format: warframe_update-<version>-<color>.svg
+    const match = readme.match(/warframe_update-([\d.]+)-[a-z]+\.svg/i)
+    if (match) gameUpdate = match[1] ?? null
+  } catch {
+    // README missing — just skip
+  }
+  return { packageVersion: pkg.version, gameUpdate }
+}
 
 // Warframe → subsumed ability name. Mirrors legacy/src/lib/warframe/helminth.ts.
 const SUBSUMABLE_ABILITIES: Record<string, string> = {
@@ -254,6 +274,20 @@ async function main() {
   const helminthKb = (Buffer.byteLength(helminthBody, "utf8") / 1024).toFixed(1)
   console.log(
     `✓ wrote ${helminth.length} helminth abilities → helminth-abilities.json (${helminthKb} KB)`,
+  )
+
+  const wfcd = await readWfcdMeta()
+  const meta = {
+    generatedAt: new Date().toISOString(),
+    wfcdPackageVersion: wfcd.packageVersion,
+    gameUpdate: wfcd.gameUpdate,
+    itemCount: totalItems,
+    modCount: mods.length,
+    arcaneCount: arcanes.length,
+  }
+  await writeFile(META_OUT, JSON.stringify(meta, null, 2), "utf8")
+  console.log(
+    `✓ wrote meta.json (game update ${wfcd.gameUpdate ?? "unknown"}, wfcd ${wfcd.packageVersion})`,
   )
 }
 

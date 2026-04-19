@@ -115,7 +115,6 @@ export const HERO_CONTENT = {
       href: EXTERNAL_LINKS.github,
       iconKey: "github" as const,
     },
-    { label: "Auto-synced with WFCD" },
     { label: "No ads, ever" },
   ],
   keyboardHint: "to search anywhere",

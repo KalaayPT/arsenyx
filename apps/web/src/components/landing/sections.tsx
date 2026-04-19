@@ -9,6 +9,7 @@ import {
   CTA_CONTENT,
 } from "@/lib/constants"
 
+import { DataPills } from "./data-pills"
 import { FeatureCard } from "./feature-card"
 import { HeroBackground } from "./hero-background"
 import { KeyboardHint } from "./keyboard-hint"
@@ -64,6 +65,8 @@ export function HeroSection() {
               </span>
             ))}
           </div>
+
+          <DataPills />
 
           <KeyboardHint hint={keyboardHint} />
         </div>
