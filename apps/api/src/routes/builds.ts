@@ -77,9 +77,13 @@ builds.post("/", async (c) => {
     typeof b.itemImageName === "string" ? b.itemImageName : null
   const name = typeof b.name === "string" ? b.name.trim() : ""
   const description = trimToMax(b.description, MAX_DESCRIPTION)
+  const userDefault = (session.user as { defaultBuildVisibility?: string })
+    .defaultBuildVisibility
   const visibility: BuildVisibility = isVisibility(b.visibility)
     ? b.visibility
-    : "PUBLIC"
+    : isVisibility(userDefault)
+      ? userDefault
+      : "PUBLIC"
 
   if (!itemUniqueName) return c.json({ error: "missing_item_unique_name" }, 400)
   if (!isValidCategory(itemCategory))

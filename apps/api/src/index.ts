@@ -5,6 +5,7 @@ import { auth } from "./auth"
 import { webOrigins } from "./env"
 import { builds } from "./routes/builds"
 import { imports } from "./routes/imports"
+import { me } from "./routes/me"
 import { orgs } from "./routes/orgs"
 import { users } from "./routes/users"
 
@@ -26,6 +27,7 @@ app.all("/auth/*", (c) => auth.handler(c.req.raw))
 
 app.route("/builds", builds)
 app.route("/imports", imports)
+app.route("/me", me)
 app.route("/orgs", orgs)
 app.route("/users", users)
 

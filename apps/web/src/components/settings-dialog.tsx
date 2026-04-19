@@ -1,9 +1,7 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import {
-  Bell,
   Building2,
-  Link as LinkIcon,
   Lock,
   Paintbrush,
   Settings as SettingsIcon,
@@ -13,7 +11,6 @@ import * as React from "react"
 
 import { Link } from "@/components/link"
 import { useTheme } from "@/components/theme-provider"
-import { UserAvatar } from "@/components/user-avatar"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -37,6 +34,14 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
@@ -46,17 +51,30 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { Switch } from "@/components/ui/switch"
+import { UserAvatar } from "@/components/user-avatar"
 import { authClient } from "@/lib/auth-client"
+import type { BuildDetail } from "@/lib/build-query"
+import { downloadMyBuildsExport } from "@/lib/me-query"
 import { useCreateOrg } from "@/lib/org-actions"
 import { myOrgsQuery } from "@/lib/org-query"
+import { authorName } from "@/lib/user-display"
+
+type BuildVisibility = BuildDetail["visibility"]
+
+type SessionUserExtras = {
+  displayUsername: string | null
+  username: string | null
+  defaultBuildVisibility: BuildVisibility
+}
+
+function extras(user: object): SessionUserExtras {
+  return user as SessionUserExtras
+}
 
 type SectionId =
   | "appearance"
   | "profile"
-  | "account"
   | "organizations"
-  | "notifications"
   | "privacy"
   | "advanced"
 
@@ -69,9 +87,7 @@ type Section = {
 const SECTIONS: Section[] = [
   { id: "appearance", name: "Appearance", icon: Paintbrush },
   { id: "profile", name: "Profile", icon: User },
-  { id: "account", name: "Connected accounts", icon: LinkIcon },
   { id: "organizations", name: "Organizations", icon: Building2 },
-  { id: "notifications", name: "Notifications", icon: Bell },
   { id: "privacy", name: "Privacy", icon: Lock },
   { id: "advanced", name: "Advanced", icon: SettingsIcon },
 ]
@@ -80,6 +96,28 @@ const THEMES = [
   { value: "light" as const, label: "Light" },
   { value: "dark" as const, label: "Dark" },
   { value: "system" as const, label: "System" },
+]
+
+const VISIBILITY_OPTIONS: ReadonlyArray<{
+  value: BuildVisibility
+  label: string
+  description: string
+}> = [
+  {
+    value: "PUBLIC",
+    label: "Public",
+    description: "Listed on the browse page and your profile.",
+  },
+  {
+    value: "UNLISTED",
+    label: "Unlisted",
+    description: "Accessible by link, but not listed publicly.",
+  },
+  {
+    value: "PRIVATE",
+    label: "Private",
+    description: "Only visible to you.",
+  },
 ]
 
 export function SettingsDialog({
@@ -159,17 +197,13 @@ function SectionPanel({ id, onClose }: { id: SectionId; onClose: () => void }) {
     case "appearance":
       return <AppearancePanel />
     case "profile":
-      return <PlaceholderPanel title="Profile" />
-    case "account":
-      return <PlaceholderPanel title="Connected accounts" />
+      return <ProfilePanel />
     case "organizations":
       return <OrganizationsPanel onClose={onClose} />
-    case "notifications":
-      return <PlaceholderPanel title="Notifications" />
     case "privacy":
-      return <PlaceholderPanel title="Privacy" />
+      return <PrivacyPanel />
     case "advanced":
-      return <PlaceholderPanel title="Advanced" />
+      return <AdvancedPanel />
   }
 }
 
@@ -196,6 +230,108 @@ function AppearancePanel() {
         </div>
       </Field>
     </FieldGroup>
+  )
+}
+
+function SignedOutNotice({ message }: { message: string }) {
+  return (
+    <FieldGroup>
+      <Field>
+        <FieldDescription>{message}</FieldDescription>
+      </Field>
+    </FieldGroup>
+  )
+}
+
+function ProfilePanel() {
+  const { data: session } = authClient.useSession()
+  const user = session?.user
+
+  if (!user) {
+    return <SignedOutNotice message="Sign in to edit your profile." />
+  }
+
+  return <ProfileForm key={user.id} user={user} />
+}
+
+function ProfileForm({
+  user,
+}: {
+  user: NonNullable<ReturnType<typeof authClient.useSession>["data"]>["user"]
+}) {
+  const queryClient = useQueryClient()
+  const initial = extras(user).displayUsername ?? extras(user).username ?? ""
+  const [displayUsername, setDisplayUsername] = React.useState(initial)
+
+  const save = useMutation({
+    mutationFn: async (next: string) => {
+      const res = await authClient.updateUser({ displayUsername: next })
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to update profile.")
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["session"] })
+    },
+  })
+
+  const trimmed = displayUsername.trim()
+  const currentUsername = extras(user).username
+  const dirty = trimmed !== initial.trim() && trimmed.length > 0
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (dirty) save.mutate(trimmed)
+      }}
+    >
+      <FieldGroup>
+        <Field>
+          <FieldLabel>Account</FieldLabel>
+          <FieldDescription>
+            Your name and avatar are synced from GitHub.
+          </FieldDescription>
+          <div className="flex items-center gap-3 pt-1">
+            <UserAvatar
+              src={user.image ?? null}
+              fallback={user.name || user.email}
+              size={10}
+            />
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-medium">{user.name}</span>
+              <span className="text-muted-foreground truncate text-xs">
+                {user.email}
+              </span>
+            </div>
+          </div>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="display-username">Display username</FieldLabel>
+          <FieldDescription>
+            Shown on your builds and profile. Your handle
+            {currentUsername ? ` (@${currentUsername})` : ""} stays the same.
+          </FieldDescription>
+          <Input
+            id="display-username"
+            value={displayUsername}
+            onChange={(e) => setDisplayUsername(e.target.value)}
+            maxLength={50}
+            placeholder={currentUsername ?? "Display name"}
+          />
+        </Field>
+        {save.error ? (
+          <p className="text-destructive text-sm">{save.error.message}</p>
+        ) : save.isSuccess ? (
+          <p className="text-muted-foreground text-sm">Saved.</p>
+        ) : null}
+        <div>
+          <Button type="submit" size="sm" disabled={!dirty || save.isPending}>
+            {save.isPending ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </FieldGroup>
+    </form>
   )
 }
 
@@ -356,17 +492,249 @@ function CreateOrgForm({ onClose }: { onClose: () => void }) {
   )
 }
 
-function PlaceholderPanel({ title }: { title: string }) {
+function PrivacyPanel() {
+  const { data: session } = authClient.useSession()
+  const user = session?.user
+  const queryClient = useQueryClient()
+
+  const update = useMutation({
+    mutationFn: async (visibility: BuildVisibility) => {
+      const res = await authClient.updateUser({
+        defaultBuildVisibility: visibility,
+      } as Parameters<typeof authClient.updateUser>[0])
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to update preference.")
+      }
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["session"] })
+    },
+  })
+
+  if (!user) {
+    return <SignedOutNotice message="Sign in to manage privacy preferences." />
+  }
+
+  const current = extras(user).defaultBuildVisibility ?? "PUBLIC"
+  const effective = update.isPending ? update.variables : current
+
   return (
     <FieldGroup>
       <Field>
-        <FieldLabel>{title}</FieldLabel>
-        <FieldDescription>Nothing here yet — coming soon.</FieldDescription>
-        <div className="flex items-center justify-between rounded-md border p-3 opacity-60">
-          <span className="text-sm">Placeholder setting</span>
-          <Switch disabled />
-        </div>
+        <FieldLabel htmlFor="default-visibility">
+          Default build visibility
+        </FieldLabel>
+        <FieldDescription>
+          Visibility applied when you create a new build without choosing one.
+          Existing builds aren't changed.
+        </FieldDescription>
+        <Select
+          items={VISIBILITY_OPTIONS}
+          value={effective}
+          onValueChange={(v) => {
+            if (v && v !== current) update.mutate(v as BuildVisibility)
+          }}
+        >
+          <SelectTrigger id="default-visibility" className="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {VISIBILITY_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm">{o.label}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {o.description}
+                    </span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {update.error ? (
+          <p className="text-destructive text-sm">{update.error.message}</p>
+        ) : null}
       </Field>
     </FieldGroup>
+  )
+}
+
+function AdvancedPanel() {
+  const { data: session } = authClient.useSession()
+  const user = session?.user
+
+  const exportAction = useMutation({ mutationFn: downloadMyBuildsExport })
+  const revokeAction = useMutation({
+    mutationFn: async () => {
+      const res = await authClient.revokeOtherSessions()
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to revoke sessions.")
+      }
+    },
+  })
+
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
+
+  if (!user) {
+    return <SignedOutNotice message="Sign in to access advanced settings." />
+  }
+
+  return (
+    <FieldGroup>
+      <Field>
+        <FieldLabel>Export my builds</FieldLabel>
+        <FieldDescription>
+          Download every build you've created as a single JSON file.
+        </FieldDescription>
+        <div className="flex items-center gap-2 pt-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => exportAction.mutate()}
+            disabled={exportAction.isPending}
+          >
+            {exportAction.isPending ? "Preparing…" : "Download JSON"}
+          </Button>
+          {exportAction.error ? (
+            <span className="text-destructive text-sm">
+              {exportAction.error.message}
+            </span>
+          ) : null}
+        </div>
+      </Field>
+
+      <Field>
+        <FieldLabel>Sign out other sessions</FieldLabel>
+        <FieldDescription>
+          Signs out every other browser and device. Your current session stays
+          active.
+        </FieldDescription>
+        <div className="flex items-center gap-2 pt-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => revokeAction.mutate()}
+            disabled={revokeAction.isPending}
+          >
+            {revokeAction.isPending
+              ? "Signing out…"
+              : "Sign out other sessions"}
+          </Button>
+          {revokeAction.isSuccess ? (
+            <span className="text-muted-foreground text-sm">
+              Other sessions signed out.
+            </span>
+          ) : revokeAction.error ? (
+            <span className="text-destructive text-sm">
+              {revokeAction.error.message}
+            </span>
+          ) : null}
+        </div>
+      </Field>
+
+      <Field>
+        <FieldLabel className="text-destructive">Delete account</FieldLabel>
+        <FieldDescription>
+          Permanently deletes your account, builds, likes, and bookmarks. This
+          cannot be undone.
+        </FieldDescription>
+        <div className="pt-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Delete account…
+          </Button>
+        </div>
+      </Field>
+
+      <DeleteAccountDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        expected={authorName(extras(user), user.email)}
+      />
+    </FieldGroup>
+  )
+}
+
+function DeleteAccountDialog({
+  open,
+  onOpenChange,
+  expected,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  expected: string
+}) {
+  const [value, setValue] = React.useState("")
+  const del = useMutation({
+    mutationFn: async () => {
+      const res = await authClient.deleteUser()
+      if (res.error) {
+        throw new Error(res.error.message ?? "Failed to delete account.")
+      }
+    },
+    onSuccess: () => {
+      window.location.href = "/"
+    },
+  })
+
+  React.useEffect(() => {
+    if (!open) {
+      setValue("")
+      del.reset()
+    }
+  }, [open, del])
+
+  const confirmed = value === expected
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="md:max-w-md">
+        <DialogTitle>Delete account</DialogTitle>
+        <DialogDescription>
+          This permanently deletes your account and every build, like, and
+          bookmark tied to it. Type{" "}
+          <code className="font-mono">{expected}</code> to confirm.
+        </DialogDescription>
+        <div className="flex flex-col gap-3 pt-2">
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={expected}
+            autoComplete="off"
+          />
+          {del.error ? (
+            <p className="text-destructive text-sm">{del.error.message}</p>
+          ) : null}
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              disabled={del.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              disabled={!confirmed || del.isPending}
+              onClick={() => del.mutate()}
+            >
+              {del.isPending ? "Deleting…" : "Delete account"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

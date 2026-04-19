@@ -1,13 +1,12 @@
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { username } from "better-auth/plugins";
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { username } from "better-auth/plugins"
 
-import { prisma } from "./db";
+import { prisma } from "./db"
+import { webOrigins } from "./env"
 
-import { webOrigins } from "./env";
-
-const githubId = process.env.GITHUB_CLIENT_ID?.trim();
-const githubSecret = process.env.GITHUB_CLIENT_SECRET?.trim();
+const githubId = process.env.GITHUB_CLIENT_ID?.trim()
+const githubSecret = process.env.GITHUB_CLIENT_SECRET?.trim()
 
 export const auth = betterAuth({
   appName: "Arsenyx",
@@ -31,12 +30,14 @@ export const auth = betterAuth({
       : {},
   plugins: [username()],
   user: {
+    deleteUser: { enabled: true },
     additionalFields: {
       isVerified: { type: "boolean", defaultValue: false },
       isCommunityLeader: { type: "boolean", defaultValue: false },
       isModerator: { type: "boolean", defaultValue: false },
       isAdmin: { type: "boolean", defaultValue: false },
       isBanned: { type: "boolean", defaultValue: false },
+      defaultBuildVisibility: { type: "string", defaultValue: "PUBLIC" },
     },
   },
   session: {
@@ -49,4 +50,4 @@ export const auth = betterAuth({
       secure: process.env.NODE_ENV === "production",
     },
   },
-});
+})
