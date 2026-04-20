@@ -3,12 +3,18 @@ import { Hono } from "hono"
 import { auth } from "../auth"
 import { prisma } from "../db"
 import {
+  ALL_API_KEY_SCOPES,
   type ApiKeyListItem,
   ApiKeyLimitExceededError,
   createApiKey,
   listApiKeysForUser,
+  PRIVILEGED_API_KEY_SCOPES,
   revokeApiKey,
 } from "../lib/api-keys"
+import { getUserRoles } from "./_admin"
+
+const KNOWN_SCOPES = new Set<string>(ALL_API_KEY_SCOPES)
+const PRIVILEGED_SCOPES = new Set<string>(PRIVILEGED_API_KEY_SCOPES)
 
 export const me = new Hono()
 
@@ -120,8 +126,28 @@ me.post("/api-keys", async (c) => {
     expiresAt = parsed
   }
 
+  let scopes: string[] | undefined
+  if (b.scopes !== undefined) {
+    if (!Array.isArray(b.scopes) || b.scopes.some((s) => typeof s !== "string")) {
+      return c.json({ error: "invalid_scopes" }, 400)
+    }
+    const requested = Array.from(new Set(b.scopes as string[]))
+    if (requested.length === 0) {
+      return c.json({ error: "empty_scopes" }, 400)
+    }
+    if (requested.some((s) => !KNOWN_SCOPES.has(s))) {
+      return c.json({ error: "unknown_scope" }, 400)
+    }
+    const roles = getUserRoles(user as { id: string } & Record<string, unknown>)
+    const canUsePrivileged = roles.isAdmin || roles.isModerator
+    if (!canUsePrivileged && requested.some((s) => PRIVILEGED_SCOPES.has(s))) {
+      return c.json({ error: "forbidden_scope" }, 403)
+    }
+    scopes = requested
+  }
+
   try {
-    const created = await createApiKey(user.id, { name, expiresAt })
+    const created = await createApiKey(user.id, { name, expiresAt, scopes })
     return c.json(
       { token: created.token, apiKey: serializeApiKey(created.apiKey) },
       201,

@@ -7,6 +7,7 @@ import { prisma } from "../db"
 import { Prisma } from "../generated/prisma/client"
 import { BuildVisibility } from "../generated/prisma/enums"
 import type { InputJsonValue } from "../generated/prisma/internal/prismaNamespace"
+import { invalidateBuildScreenshot } from "../lib/screenshot-invalidate"
 import { parseListQuery, runList } from "./_build-list"
 
 export const builds = new Hono()
@@ -221,6 +222,7 @@ builds.patch("/:slug", async (c) => {
     data,
     select: { id: true, slug: true },
   })
+  invalidateBuildScreenshot(updated.slug)
   return c.json(updated)
 })
 
@@ -240,6 +242,7 @@ builds.delete("/:slug", async (c) => {
   }
 
   await prisma.build.delete({ where: { id: existing.id } })
+  invalidateBuildScreenshot(slug)
   return c.body(null, 204)
 })
 

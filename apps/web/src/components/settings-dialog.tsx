@@ -23,6 +23,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -644,23 +645,77 @@ function ApiKeysPanel() {
   )
 }
 
+type ScopeOption = {
+  value: string
+  label: string
+  description: string
+  privileged?: boolean
+}
+
+const SCOPE_OPTIONS: readonly ScopeOption[] = [
+  {
+    value: "build:read",
+    label: "build:read",
+    description: "Read public builds via /api/v1",
+  },
+  {
+    value: "build:write",
+    label: "build:write",
+    description: "Import builds (/api/v1/imports/overframe)",
+  },
+  {
+    value: "image:generate",
+    label: "image:generate",
+    description: "Request build screenshots from ss.arsenyx.com",
+    privileged: true,
+  },
+]
+
+const DEFAULT_SCOPES = SCOPE_OPTIONS.filter((s) => !s.privileged).map(
+  (s) => s.value,
+)
+
 function CreateApiKeyForm({ disabled }: { disabled: boolean }) {
   const queryClient = useQueryClient()
+  const { data: session } = authClient.useSession()
+  const user = session?.user as
+    | { isAdmin?: boolean; isModerator?: boolean }
+    | undefined
+  const canUsePrivileged =
+    user?.isAdmin === true || user?.isModerator === true
+
   const [name, setName] = React.useState("")
   const [expiry, setExpiry] = React.useState<ExpiryValue>("never")
+  const [scopes, setScopes] = React.useState<Set<string>>(
+    () => new Set(DEFAULT_SCOPES),
+  )
   const [justCreated, setJustCreated] = React.useState<{
     token: string
     apiKey: ApiKeySummary
   } | null>(null)
   const { copied, copy } = useCopyToClipboard()
 
+  const toggleScope = (scope: string) => {
+    setScopes((prev) => {
+      const next = new Set(prev)
+      if (next.has(scope)) next.delete(scope)
+      else next.add(scope)
+      return next
+    })
+  }
+
   const create = useMutation({
     mutationFn: () =>
-      createApiKey({ name: name.trim(), expiresAt: expiryToDate(expiry) }),
+      createApiKey({
+        name: name.trim(),
+        expiresAt: expiryToDate(expiry),
+        scopes: Array.from(scopes),
+      }),
     onSuccess: (data) => {
       setJustCreated(data)
       setName("")
       setExpiry("never")
+      setScopes(new Set(DEFAULT_SCOPES))
       void queryClient.invalidateQueries({ queryKey: ["me", "api-keys"] })
     },
   })
@@ -744,6 +799,26 @@ function CreateApiKeyForm({ disabled }: { disabled: boolean }) {
           </SelectContent>
         </Select>
       </Field>
+      <Field>
+        <FieldLabel>Scopes</FieldLabel>
+        <FieldDescription>
+          Controls which endpoints this key can access.
+        </FieldDescription>
+        <div className="flex flex-col gap-1.5">
+          {SCOPE_OPTIONS.filter(
+            (s) => !s.privileged || canUsePrivileged,
+          ).map((s) => (
+            <ScopeCheckbox
+              key={s.value}
+              id={`scope-${s.value}`}
+              label={s.label}
+              description={s.description}
+              checked={scopes.has(s.value)}
+              onChange={() => toggleScope(s.value)}
+            />
+          ))}
+        </div>
+      </Field>
       {create.error ? (
         <p className="text-destructive text-sm">{create.error.message}</p>
       ) : disabled ? (
@@ -755,12 +830,46 @@ function CreateApiKeyForm({ disabled }: { disabled: boolean }) {
         <Button
           type="submit"
           size="sm"
-          disabled={!name.trim() || create.isPending || disabled}
+          disabled={
+            !name.trim() || create.isPending || disabled || scopes.size === 0
+          }
         >
           {create.isPending ? "Creating…" : "Create key"}
         </Button>
       </div>
     </form>
+  )
+}
+
+function ScopeCheckbox({
+  id,
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  id: string
+  label: string
+  description: string
+  checked: boolean
+  onChange: () => void
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className="hover:bg-muted/40 flex cursor-pointer items-start gap-2 rounded-md p-1.5"
+    >
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={onChange}
+        className="mt-0.5"
+      />
+      <div className="flex flex-col">
+        <code className="font-mono text-xs">{label}</code>
+        <span className="text-muted-foreground text-xs">{description}</span>
+      </div>
+    </label>
   )
 }
 

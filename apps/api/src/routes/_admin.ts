@@ -1,6 +1,11 @@
 import { auth } from "../auth"
 
 export type AdminUser = { id: string; isAdmin: boolean }
+export type PrivilegedUser = {
+  id: string
+  isAdmin: boolean
+  isModerator: boolean
+}
 
 export function isPrismaNotFound(err: unknown): boolean {
   return (
@@ -28,4 +33,14 @@ export async function requireAdmin(c: {
     })
   }
   return { id: session.user.id, isAdmin: true }
+}
+
+export function getUserRoles(
+  user: { id: string } & Record<string, unknown>,
+): PrivilegedUser {
+  return {
+    id: user.id,
+    isAdmin: user.isAdmin === true,
+    isModerator: user.isModerator === true,
+  }
 }

@@ -68,6 +68,7 @@ export const myApiKeysQuery = () =>
 export async function createApiKey(input: {
   name: string
   expiresAt: string | null
+  scopes?: string[]
 }): Promise<CreateApiKeyResponse> {
   const r = await fetch(`${API_URL}/me/api-keys`, {
     method: "POST",
