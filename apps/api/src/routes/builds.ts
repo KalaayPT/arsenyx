@@ -1,5 +1,6 @@
 import { isValidCategory } from "@arsenyx/shared/warframe/categories"
-import { Hono } from "hono"
+import { Hono, type Context } from "hono"
+import { getCookie, setCookie } from "hono/cookie"
 import { customAlphabet } from "nanoid"
 
 import { auth } from "../auth"
@@ -601,7 +602,7 @@ builds.get("/:slug", async (c) => {
 const VIEW_COOKIE_MAX_AGE = 12 * 60 * 60 // 12h
 
 async function maybeIncrementView(
-  c: { req: { raw: Request }; header: (k: string, v: string) => void },
+  c: Context,
   buildId: string,
   slug: string,
   viewerId: string | undefined,
@@ -609,23 +610,20 @@ async function maybeIncrementView(
 ) {
   if (viewerId && viewerId === ownerId) return
   const cookieName = `vw_${slug}`
-  const cookieHeader = c.req.raw.headers.get("cookie") ?? ""
-  const has = cookieHeader
-    .split(/;\s*/)
-    .some((p) => p.startsWith(`${cookieName}=`))
-  if (has) return
+  if (getCookie(c, cookieName)) return
   await prisma.build.update({
     where: { id: buildId },
     data: { viewCount: { increment: 1 } },
     select: { id: true },
   })
   const isProd = process.env.NODE_ENV === "production"
-  const sameSite = isProd ? "None" : "Lax"
-  const secure = isProd ? "; Secure" : ""
-  c.header(
-    "Set-Cookie",
-    `${cookieName}=1; Path=/; Max-Age=${VIEW_COOKIE_MAX_AGE}; SameSite=${sameSite}; HttpOnly${secure}`,
-  )
+  setCookie(c, cookieName, "1", {
+    path: "/",
+    maxAge: VIEW_COOKIE_MAX_AGE,
+    httpOnly: true,
+    sameSite: isProd ? "None" : "Lax",
+    secure: isProd,
+  })
 }
 
 async function isOrgMember(organizationId: string, userId: string) {

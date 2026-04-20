@@ -160,7 +160,7 @@ export async function scrapeOverframeBuild(
 
   let itemsMap: Map<string, string> | null = null
   try {
-    itemsMap = await getOverframeItemsMap()
+    itemsMap = getOverframeItemsMap()
   } catch (err) {
     warnings.push({
       type: "build_data_missing",

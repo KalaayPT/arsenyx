@@ -1,6 +1,6 @@
 # CLAUDE.md — apps/api
 
-Hono on Bun. Better Auth + Prisma 7 (PrismaPg adapter) + Postgres. Listens on `:8787`. Serves **user data only** — game data is static JSON under `apps/web/public/data/`.
+Hono on Cloudflare Workers (Bun-compatible for local dev). Better Auth + Prisma 7 (`@prisma/adapter-neon`, `workerd` runtime) + Neon Postgres. Locally on `:8787`, deployed to `api.arsenyx.com`. Serves **user data only** — game data is static JSON under `apps/web/public/data/`.
 
 ## Conventions
 
@@ -12,14 +12,15 @@ Hono on Bun. Better Auth + Prisma 7 (PrismaPg adapter) + Postgres. Listens on `:
 
 ## Prisma
 
-- Schema: [prisma/schema.prisma](prisma/schema.prisma) (single file). **Dev workflow is `bun run db:push`, never `migrate`** — migrations are deferred until prod.
+- Schema: [prisma/schema.prisma](prisma/schema.prisma) (single file). Generator has `runtime = "workerd"` — emits the `wasm-compiler-edge` runtime so the bundle works on Workers (no `fileURLToPath`, no `node:fs` at init).
+- Dev uses `bun run db:push`. Destructive migrations go in [scripts/migrations/](scripts/migrations/) as dated `.sql` files applied manually against Neon via `prisma db execute --file`.
 - Prisma 7 quirk: datasource `url` lives in [prisma.config.ts](prisma.config.ts), not the schema file.
 - Generator output: `src/generated/prisma` (gitignored). Import as `import { Prisma } from "../generated/prisma/client"`.
-- `db.ts` uses `PrismaPg` with `max: 3` for Neon's pooler + scale-to-zero.
+- **PrismaClient is request-scoped** via `AsyncLocalStorage` in [src/db.ts](src/db.ts) — Workers reuses isolates across requests and the Neon Pool is request-scoped, so a module-level singleton leaks I/O between requests. Routes keep `import { prisma }` unchanged (Proxy reads the per-request client); the fetch handler in [src/index.ts](src/index.ts) wraps everything in `withPrisma`.
 
 ## Env
 
-`.env` is the only source; prod injects the same var names via host secrets (Cloudflare/Fly). **Don't branch on `NODE_ENV`** to pick credentials. Required keys are in [`.env.example`](.env.example).
+`.env` is the only source locally; prod injects secrets via `wrangler secret put` (see [wrangler.toml](wrangler.toml) for the list). Plaintext vars (`WEB_ORIGIN`, `BETTER_AUTH_URL`, `NODE_ENV`) live in `wrangler.toml`'s `[vars]` block. **Don't branch on `NODE_ENV`** to pick credentials; do use it for cookie `SameSite`/`Secure` gates.
 
 ## Boundaries
 

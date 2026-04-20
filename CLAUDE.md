@@ -1,8 +1,16 @@
 # CLAUDE.md — Arsenyx
 
-Warframe build planner. Create, share, discover equipment builds.
+Warframe build planner. Create, share, discover equipment builds. Live at [www.arsenyx.com](https://www.arsenyx.com).
 
 Game data (items, mods, arcanes) is static JSON precomputed at build time and served from the CDN under `apps/web/public/data/`. User data (builds, votes, favorites) lives in Postgres via the API.
+
+## Deployment
+
+- Web (Vite SPA) → Cloudflare Pages, `www.arsenyx.com` + `arsenyx.com`
+- API (Hono on Workers) → `api.arsenyx.com`, Prisma 7 + `@prisma/adapter-neon` (workerd runtime)
+- DB → Neon Postgres, EU (`eu-central-1`)
+- Screenshot service → homelab Docker via Cloudflare Tunnel
+- CI deploys both apps on push to `rewrite` (prod branch). Secrets live in the CF dashboard, not in `.env`.
 
 ## Monorepo
 

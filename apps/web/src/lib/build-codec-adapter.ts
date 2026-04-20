@@ -177,10 +177,9 @@ export function buildStateToSavedData(
     }
   }
 
-  // Legacy builds may have `auraSlot` (singular) instead of `auraSlots`.
-  const legacyAura = (state as Partial<BuildState> & { auraSlot?: ModSlot })
-    .auraSlot
-  assign("aura", state.auraSlots?.[0] ?? legacyAura)
+  // Pre-Jade builds stored a singular auraSlot.
+  const auraFallback = (state as { auraSlot?: ModSlot }).auraSlot
+  assign("aura", state.auraSlots?.[0] ?? auraFallback)
   assign("exilus", state.exilusSlot)
   state.normalSlots?.forEach((s, i) => assign(`normal-${i}` as SlotId, s))
 
@@ -216,4 +215,27 @@ export function buildStateToSavedData(
     },
     buildName: state.buildName,
   }
+}
+
+// Pre-rewrite builds were persisted in BuildState shape (auraSlots/normalSlots/
+// exilusSlot/...). The editor reads SavedBuildData. Detect and convert.
+type LegacyOrSaved = Partial<BuildState> &
+  SavedBuildData & { auraSlot?: unknown }
+
+export function normalizeBuildData(
+  raw: unknown,
+  mods: Mod[],
+  arcanes: Arcane[],
+): SavedBuildData {
+  const r = (raw ?? {}) as LegacyOrSaved
+  if (
+    r.normalSlots ||
+    r.auraSlots ||
+    r.auraSlot ||
+    r.exilusSlot ||
+    r.arcaneSlots
+  ) {
+    return buildStateToSavedData(r, mods, arcanes).data
+  }
+  return r as SavedBuildData
 }

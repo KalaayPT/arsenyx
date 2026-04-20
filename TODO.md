@@ -3,6 +3,11 @@
 ## Bugs
 
 - [ ] Add riven mod support to Overframe import
+- [ ] Fix companions
+- [ ] Fix Lich weapons
+- [ ] Fix Necramech
+- [ ] Fix Jade
+- [ ] Check exalted weapons
 
 ## Polish
 
@@ -10,10 +15,16 @@
 - [ ] Mobile nav (hamburger + sheet)
 - [ ] Split frontend bundle — route-level code splitting to get under the 500KB Vite warning
 
-## Deploy
+## Deploy — done
 
-- [ ] `apps/web` → Cloudflare Pages (or similar EU-friendly static host)
-- [ ] `apps/api` → Cloudflare Workers (Hono native) — check Prisma compatibility, swap to Fly if Workers fights back
-- [ ] Database → Neon EU region
-- [ ] Screenshot service → Fly.io scale-to-zero machine
-- [ ] Domain wiring, CORS, env vars
+- [x] `apps/web` → Cloudflare Pages
+- [x] `apps/api` → Cloudflare Workers (Prisma 7 + `@prisma/adapter-neon`, workerd runtime)
+- [x] Database → Neon EU (`eu-central-1`)
+- [x] Domain wiring: `www.arsenyx.com` + `arsenyx.com` → Pages, `api.arsenyx.com` → Worker
+- [x] CORS locked to production origins, cross-origin cookies (`SameSite=None; Secure`)
+
+## Post-launch cleanup
+
+- [ ] Delete Vercel project
+- [ ] Merge `rewrite` → `main`; switch Pages + Workers Builds prod branch to `main`
+- [ ] Retire `beta.arsenyx.com` (custom domain + DNS record) once staging is no longer useful

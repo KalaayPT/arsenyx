@@ -30,6 +30,6 @@ function parseItemsCsv(csv: string): Map<string, string> {
 
 const overframeItemsMap = parseItemsCsv(OVERFRAME_ITEMS_CSV)
 
-export async function getOverframeItemsMap(): Promise<Map<string, string>> {
+export function getOverframeItemsMap(): Map<string, string> {
   return overframeItemsMap
 }
