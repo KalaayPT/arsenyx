@@ -1,57 +1,73 @@
-# Arsenyx — Warframe Build Planner
+# Arsenyx
 
-Create, share, and discover Warframe equipment builds. Live at [www.arsenyx.com](https://www.arsenyx.com).
+**A Warframe build planner for the web.** Create, share, and discover equipment builds with a keyboard-first UI, full mod and arcane management, and rich markdown guides.
+
+Live at **[www.arsenyx.com](https://www.arsenyx.com)**.
+
+---
+
+## Features
+
+- **Full build editor** — mods, arcanes, shards, helminth, exilus, forma — with live capacity and stat readouts
+- **Browse everything** — warframes, primary/secondary/melee weapons, companions, archwings, and more
+- **Markdown guides** — attach a writeup to any build, with GFM and syntax highlighting
+- **Social layer** — vote, favorite, fork, and follow other players' builds
+- **Overframe import** — paste an Overframe URL and get a first-class Arsenyx build
+- **Shareable by link** — every build encodes to a short URL, no account needed to view
+- **Bearer-token API** — publish builds from scripts, bots, or external tools
 
 ## Stack
 
-- **Web** — Vite + React 19 + TanStack Router + Tailwind v4 + shadcn/ui → Cloudflare Pages
-- **API** — Hono + Prisma 7 + Better Auth on Cloudflare Workers (workerd) → `api.arsenyx.com`
-- **DB** — Neon Postgres (`eu-central-1`)
-- **Screenshot service** — standalone Playwright worker on homelab Docker
-- **Data source** — `@wfcd/items`, precomputed to static JSON at build time
+| Layer | Tech |
+|-------|------|
+| Web | Vite · React 19 · TanStack Router · Tailwind v4 · shadcn/ui → **Cloudflare Pages** |
+| API | Hono · Prisma 7 · Better Auth on **Cloudflare Workers** → `api.arsenyx.com` |
+| Database | **Neon Postgres** (`eu-central-1`) |
+| Screenshot service | Standalone Playwright worker behind a Cloudflare Tunnel |
+| Game data | [`@wfcd/items`](https://www.npmjs.com/package/@wfcd/items), precomputed to static JSON at build time |
 
-Bun workspaces. Never use npm/npx.
+Bun workspaces throughout. No npm, no npx.
 
-## Layout
+## Repo layout
 
-- [apps/web/](apps/web/) — frontend SPA
-- [apps/api/](apps/api/) — Hono API on Workers
-- [packages/shared/](packages/shared/) — types and codecs shared by web + api
-- [services/screenshot/](services/screenshot/) — Playwright screenshot service
+- [`apps/web/`](apps/web/) — the SPA
+- [`apps/api/`](apps/api/) — the Hono API
+- [`packages/shared/`](packages/shared/) — types and codecs shared by both
+- [`services/screenshot/`](services/screenshot/) — Playwright screenshot worker
 
-Game data is static (served from `apps/web/public/data/`), user data is dynamic (Postgres via the API).
+Game data is **static** and served as JSON from `apps/web/public/data/`. User data (builds, votes, favorites, guides) is **dynamic** and lives in Postgres behind the API.
 
-## Development
+## Running locally
 
 ```bash
 bun install
-just setup   # first run — pushes schema to the Neon branch in apps/api/.env
-just dev     # runs web (5173) + api (8787)
+just setup   # first run — pushes the Prisma schema to the Neon branch in apps/api/.env
+just dev     # web on :5173, api on :8787
 ```
 
-See the [justfile](justfile) for the full command list, or [docs/commands.md](docs/commands.md) for build/db/data details.
+The full command list is in the [justfile](justfile); [docs/commands.md](docs/commands.md) covers build, database, and data-sync workflows.
 
-## Agent docs
+For agent-assisted work, start with [CLAUDE.md](CLAUDE.md) — it points to the per-app guides in [`apps/web/CLAUDE.md`](apps/web/CLAUDE.md) and [`apps/api/CLAUDE.md`](apps/api/CLAUDE.md). Open work is tracked in [TODO.md](TODO.md).
 
-- [CLAUDE.md](CLAUDE.md) — project overview and boundaries
-- [apps/web/CLAUDE.md](apps/web/CLAUDE.md), [apps/api/CLAUDE.md](apps/api/CLAUDE.md) — per-app guidance
-- [TODO.md](TODO.md) — open work
+---
 
 ## Build Upload API
 
-Arsenyx supports bearer-token build publishing for automation.
+Arsenyx supports bearer-token build publishing, so you can push builds from a script or bot instead of clicking through the editor.
 
-1. Sign in, open the user menu, go to `Settings`.
+1. Sign in, open the user menu, and head to **Settings**.
 2. Create a personal access token with the `build:write` scope.
 3. Send it as `Authorization: Bearer <token>`.
 
 ### Endpoints
 
-- `POST /api/v1/builds`
-- `PUT /api/v1/builds/:slug`
-- `POST /api/v1/imports/overframe`
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/v1/builds` | Create a build |
+| `PUT` | `/api/v1/builds/:slug` | Update a build you own |
+| `POST` | `/api/v1/imports/overframe` | Import an Overframe build by URL |
 
-### Request format
+### Creating a build
 
 `POST /api/v1/builds` and `PUT /api/v1/builds/:slug` accept a thin JSON payload:
 
@@ -85,11 +101,11 @@ Arsenyx supports bearer-token build publishing for automation.
 }
 ```
 
-The server resolves canonical item/mod/arcane/shard data, recomputes derived capacity and forma fields, and rejects invalid writes with structured `4xx` JSON errors.
+The server resolves canonical item / mod / arcane / shard data, recomputes derived capacity and forma fields, and rejects invalid writes with structured `4xx` JSON errors.
 
-### Overframe save endpoint
+### Importing from Overframe
 
-`POST /api/v1/imports/overframe` accepts:
+`POST /api/v1/imports/overframe` takes just a URL (plus optional overrides):
 
 ```json
 {
@@ -106,4 +122,4 @@ The server resolves canonical item/mod/arcane/shard data, recomputes derived cap
 }
 ```
 
-If `nameOverride`, `description`, or `guide` fields are omitted, the importer preserves Overframe metadata when available: the Overframe title becomes the build name, the page description becomes the build description/guide summary, and the Overframe guide markdown becomes the guide body. Imported Overframe guide newlines are stored as Markdown hard breaks so line-oriented text keeps its layout. Explicit `null` overrides still clear nullable fields. The response returns the created build plus any import warnings.
+If `nameOverride`, `description`, or `guide` are omitted, Arsenyx preserves the Overframe metadata: the Overframe title becomes the build name, the page description becomes the guide summary, and the Overframe guide markdown becomes the guide body. Newlines in imported guides are stored as Markdown hard breaks so line-oriented text keeps its layout. Explicit `null` values still clear nullable fields. The response returns the created build plus any import warnings.
