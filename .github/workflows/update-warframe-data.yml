@@ -23,12 +23,12 @@ jobs:
 
       - run: bun update @wfcd/items
 
-      - run: bun run sync-data
+      - run: bun run build:items
 
       - name: Check for changes
         id: diff
         run: |
-          if git diff --quiet src/data/warframe/ package.json bun.lock; then
+          if git diff --quiet apps/web/public/data/ package.json bun.lock; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
@@ -43,5 +43,5 @@ jobs:
           body: |
             Automated weekly update of Warframe game data from `@wfcd/items`.
 
-            Review the JSON diffs in `src/data/warframe/` before merging.
+            Review the JSON diffs in `apps/web/public/data/` before merging.
           commit-message: "chore: update @wfcd/items game data"
