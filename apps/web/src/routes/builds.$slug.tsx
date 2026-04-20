@@ -144,6 +144,7 @@ function BuildViewerBody({
   const slots = useBuildSlots(normalSlotCount, {
     placed: saved.slots,
     formaPolarities: saved.formaPolarities,
+    initialSelected: null,
   })
   const arcanes = useArcaneSlots(arcaneCount, saved.arcanes)
   const shards = useMemo(() => padShards(saved.shards), [saved.shards])
@@ -207,7 +208,10 @@ function BuildViewerBody({
       />
 
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-4 lg:relative lg:block">
+        <div
+          data-screenshot-target
+          className="flex flex-col gap-4 lg:relative lg:block"
+        >
           <div className="bg-card w-full rounded-lg border lg:absolute lg:top-0 lg:bottom-0 lg:left-0 lg:w-[260px] lg:overflow-y-auto">
             <ItemSidebar
               item={item}

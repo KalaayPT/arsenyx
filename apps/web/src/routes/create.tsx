@@ -42,6 +42,8 @@ import {
   calculateTotalEndoCost,
   getArcaneSlotCount,
   GuideEditor,
+  hasAuraSlot,
+  hasExilusSlot,
   ItemSidebar,
   ModGrid,
   ModSearchGrid,
@@ -51,6 +53,7 @@ import {
   toPolarity,
   useArcaneSlots,
   useBuildSlots,
+  useSlotKeyboardNav,
   type ModSlotKind,
   type RivenDialogValues,
   type SlotId,
@@ -74,6 +77,7 @@ import { itemQuery } from "@/lib/item-query"
 import { modsQuery } from "@/lib/mods-query"
 import { myOrgsQuery } from "@/lib/org-query"
 import { padShards, type PlacedShard } from "@/lib/shards"
+import { isEditableTarget } from "@/lib/utils"
 import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import { formatVisibility } from "@/lib/user-display"
 import {
@@ -184,9 +188,17 @@ function EditorShell() {
 
   const isCompanion = category === "companions"
   const normalSlotCount = 8
+  const showAura = hasAuraSlot(category)
+  const showExilus = hasExilusSlot(category)
   const slots = useBuildSlots(normalSlotCount, {
     placed: savedData.slots,
     formaPolarities: savedData.formaPolarities,
+    showAura,
+    showExilus,
+  })
+  useSlotKeyboardNav({
+    slots,
+    layout: { normalSlotCount, showAura, showExilus },
   })
   const arcaneCount = getArcaneSlotCount(category)
   const arcanes = useArcaneSlots(arcaneCount, savedData.arcanes)
@@ -201,14 +213,7 @@ function EditorShell() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return
-      const t = e.target as HTMLElement | null
-      if (
-        t?.tagName === "INPUT" ||
-        t?.tagName === "TEXTAREA" ||
-        t?.isContentEditable
-      ) {
-        return
-      }
+      if (isEditableTarget(e.target)) return
       if (document.querySelector("[data-state='open'][role='dialog']")) return
       slots.select(null)
       arcanes.select(null)

@@ -99,8 +99,7 @@ Work happens on the `rewrite` branch (tracks `origin/rewrite`). Legacy Next.js a
 - [x] `/api/v1/builds/[slug]` — public build detail
 - [x] `/api/v1/imports/overframe` — public import endpoint
 - [x] API keys: list/create/revoke flow
-- [ ] Screenshot service — separate Fly machine with real Playwright (replaces chromium-min Vercel-serverless hack)
-- [ ] OG image endpoint — Satori + resvg in Hono route
+- [ ] Screenshot service — homelab Docker (Bun + Playwright), R2 + CF edge cache, Cloudflare Tunnel. Code in `services/screenshot/`, infra setup in `services/screenshot/DEPLOY.md`
 
 ### Header polish (pulls in as slices land)
 
