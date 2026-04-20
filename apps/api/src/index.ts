@@ -2,6 +2,7 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 
 import { auth } from "./auth"
+import { withPrisma } from "./db"
 import { webOrigins } from "./env"
 import { admin } from "./routes/admin"
 import { builds } from "./routes/builds"
@@ -39,5 +40,6 @@ app.get("/health", (c) => c.json({ ok: true }))
 
 export default {
   port: 8787,
-  fetch: app.fetch,
+  fetch: (req: Request, env: unknown, ctx: ExecutionContext) =>
+    withPrisma(() => app.fetch(req, env, ctx)),
 }
