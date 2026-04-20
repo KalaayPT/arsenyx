@@ -11,7 +11,8 @@ export function normalizeArcanes(rawArcanes: Arcane[]): Arcane[] {
   return rawArcanes.filter((arcane) => {
     if (!arcane.name) return false
     if (arcane.name === "Arcane") return false
-    if ((arcane as { excludeFromCodex?: boolean }).excludeFromCodex) return false
+    if ((arcane as { excludeFromCodex?: boolean }).excludeFromCodex)
+      return false
     return true
   })
 }

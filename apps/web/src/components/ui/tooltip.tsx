@@ -1,20 +1,20 @@
-import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
+import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 function TooltipProvider({
   delay = 150,
   ...props
 }: TooltipPrimitive.Provider.Props) {
-  return <TooltipPrimitive.Provider delay={delay} {...props} />;
+  return <TooltipPrimitive.Provider delay={delay} {...props} />
 }
 
 function Tooltip({ ...props }: TooltipPrimitive.Root.Props) {
-  return <TooltipPrimitive.Root {...props} />;
+  return <TooltipPrimitive.Root {...props} />
 }
 
 function TooltipTrigger({ ...props }: TooltipPrimitive.Trigger.Props) {
-  return <TooltipPrimitive.Trigger {...props} />;
+  return <TooltipPrimitive.Trigger {...props} />
 }
 
 function TooltipContent({
@@ -24,10 +24,7 @@ function TooltipContent({
   align = "center",
   ...props
 }: TooltipPrimitive.Popup.Props &
-  Pick<
-    TooltipPrimitive.Positioner.Props,
-    "side" | "sideOffset" | "align"
-  >) {
+  Pick<TooltipPrimitive.Positioner.Props, "side" | "sideOffset" | "align">) {
   return (
     <TooltipPrimitive.Portal>
       <TooltipPrimitive.Positioner
@@ -45,7 +42,7 @@ function TooltipContent({
         />
       </TooltipPrimitive.Positioner>
     </TooltipPrimitive.Portal>
-  );
+  )
 }
 
-export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger }

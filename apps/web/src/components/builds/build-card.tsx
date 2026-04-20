@@ -1,14 +1,14 @@
-import { Link } from "@tanstack/react-router";
-import { Eye, Heart } from "lucide-react";
+import { Link } from "@tanstack/react-router"
+import { Eye, Heart } from "lucide-react"
 
-import type { BuildListItem } from "@/lib/builds-list-query";
-import { relativeTime } from "@/lib/relative-time";
-import { authorName } from "@/lib/user-display";
-import { getImageUrl } from "@/lib/warframe";
+import type { BuildListItem } from "@/lib/builds-list-query"
+import { relativeTime } from "@/lib/relative-time"
+import { authorName } from "@/lib/user-display"
+import { getImageUrl } from "@/lib/warframe"
 
 export function BuildCard({ build }: { build: BuildListItem }) {
-  const author = authorName(build.user);
-  const timeAgo = relativeTime(build.updatedAt);
+  const author = authorName(build.user)
+  const timeAgo = relativeTime(build.updatedAt)
 
   return (
     <Link
@@ -50,5 +50,5 @@ export function BuildCard({ build }: { build: BuildListItem }) {
         </div>
       </div>
     </Link>
-  );
+  )
 }

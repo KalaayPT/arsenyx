@@ -1,5 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import {
   Book,
   Compass,
@@ -7,8 +7,8 @@ import {
   LayoutGrid,
   ScrollText,
   User,
-} from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+} from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
   Command,
@@ -19,51 +19,51 @@ import {
   CommandList,
   CommandSeparator,
   CommandShortcut,
-} from "@/components/ui/command";
+} from "@/components/ui/command"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { authClient } from "@/lib/auth-client";
-import {
-  publicBuildsQuery,
-  type BuildListItem,
-} from "@/lib/builds-list-query";
-import { itemsIndexQuery } from "@/lib/items-index-query";
-import { authorName } from "@/lib/user-display";
-import { CATEGORIES, getImageUrl, type BrowseItem } from "@/lib/warframe";
+} from "@/components/ui/dialog"
+import { authClient } from "@/lib/auth-client"
+import { publicBuildsQuery, type BuildListItem } from "@/lib/builds-list-query"
+import { itemsIndexQuery } from "@/lib/items-index-query"
+import { authorName } from "@/lib/user-display"
+import { CATEGORIES, getImageUrl, type BrowseItem } from "@/lib/warframe"
 
-const SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_DEBOUNCE_MS = 200
 
-type ItemEntry = BrowseItem & { categoryLabel: string };
+type ItemEntry = BrowseItem & { categoryLabel: string }
 
 export function CommandPalette({
   open,
   onOpenChange,
 }: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }) {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  const { data: session } = authClient.useSession();
+  const navigate = useNavigate()
+  const [query, setQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const { data: session } = authClient.useSession()
 
   useEffect(() => {
-    if (open) return;
-    setQuery("");
-    setDebouncedQuery("");
-  }, [open]);
+    if (open) return
+    setQuery("")
+    setDebouncedQuery("")
+  }, [open])
 
   useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => setDebouncedQuery(query.trim()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(t);
-  }, [query, open]);
+    if (!open) return
+    const t = setTimeout(
+      () => setDebouncedQuery(query.trim()),
+      SEARCH_DEBOUNCE_MS,
+    )
+    return () => clearTimeout(t)
+  }, [query, open])
 
-  const { data: items } = useQuery({ ...itemsIndexQuery, enabled: open });
+  const { data: items } = useQuery({ ...itemsIndexQuery, enabled: open })
   const builds = useQuery({
     ...publicBuildsQuery({
       page: 1,
@@ -71,33 +71,33 @@ export function CommandPalette({
       q: debouncedQuery,
     }),
     enabled: open && debouncedQuery.length > 0,
-  });
+  })
 
   const allItems = useMemo<ItemEntry[]>(() => {
-    if (!items) return [];
+    if (!items) return []
     return CATEGORIES.flatMap(({ id, label }) =>
       (items[id] ?? []).map((it) => ({ ...it, categoryLabel: label })),
-    );
-  }, [items]);
+    )
+  }, [items])
 
   const filteredItems = useMemo<ItemEntry[]>(() => {
-    const q = debouncedQuery.toLowerCase();
-    if (!q) return allItems.slice(0, 6);
+    const q = debouncedQuery.toLowerCase()
+    if (!q) return allItems.slice(0, 6)
     return allItems
       .filter(
         (it) =>
           it.name.toLowerCase().includes(q) ||
           it.type?.toLowerCase().includes(q),
       )
-      .slice(0, 10);
-  }, [allItems, debouncedQuery]);
+      .slice(0, 10)
+  }, [allItems, debouncedQuery])
 
   const go = (fn: () => void) => {
-    onOpenChange(false);
-    fn();
-  };
+    onOpenChange(false)
+    fn()
+  }
 
-  const hasBuildResults = (builds.data?.builds.length ?? 0) > 0;
+  const hasBuildResults = (builds.data?.builds.length ?? 0) > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,7 +146,9 @@ export function CommandPalette({
                   </CommandItem>
                   {session?.user ? (
                     <CommandItem
-                      onSelect={() => go(() => navigate({ to: "/builds/mine" }))}
+                      onSelect={() =>
+                        go(() => navigate({ to: "/builds/mine" }))
+                      }
                     >
                       <User />
                       <span>My builds</span>
@@ -252,15 +254,15 @@ export function CommandPalette({
         </Command>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
 function ItemRow({
   item,
   onSelect,
 }: {
-  item: ItemEntry;
-  onSelect: () => void;
+  item: ItemEntry
+  onSelect: () => void
 }) {
   return (
     <CommandItem
@@ -277,15 +279,15 @@ function ItemRow({
       <span>{item.name}</span>
       <CommandShortcut>{item.categoryLabel}</CommandShortcut>
     </CommandItem>
-  );
+  )
 }
 
 function BuildRow({
   build,
   onSelect,
 }: {
-  build: BuildListItem;
-  onSelect: () => void;
+  build: BuildListItem
+  onSelect: () => void
 }) {
   return (
     <CommandItem
@@ -299,5 +301,5 @@ function BuildRow({
         {build.item.name} · {authorName(build.user, "—")}
       </CommandShortcut>
     </CommandItem>
-  );
+  )
 }

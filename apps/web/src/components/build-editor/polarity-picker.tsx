@@ -1,9 +1,9 @@
-import { X } from "lucide-react";
+import type { Polarity } from "@arsenyx/shared/warframe/types"
+import { X } from "lucide-react"
 
-import { cn } from "@/lib/utils";
-import type { Polarity } from "@arsenyx/shared/warframe/types";
+import { cn } from "@/lib/utils"
 
-import { PolarityIcon } from "./polarity-icon";
+import { PolarityIcon } from "./polarity-icon"
 
 /** The 7 canonical in-game polarities (no "any"/"universal"). */
 export const CANONICAL_POLARITIES: readonly Polarity[] = [
@@ -14,20 +14,20 @@ export const CANONICAL_POLARITIES: readonly Polarity[] = [
   "unairu",
   "penjaga",
   "umbra",
-] as const;
+] as const
 
 // Picker order mirrors the legacy picker: 7 canonical + "any" (Omni Forma).
 // ✕ applies "universal" forma, which explicitly clears the slot.
-const PICKER_POLARITIES: Polarity[] = [...CANONICAL_POLARITIES, "any"];
+const PICKER_POLARITIES: Polarity[] = [...CANONICAL_POLARITIES, "any"]
 
 export function PolarityPicker({
   current,
   onPick,
 }: {
   /** The slot's current forma polarity, if any — used to highlight the active button. */
-  current?: Polarity;
+  current?: Polarity
   /** Receives a real polarity on pick, or `"universal"` when ✕ is clicked. */
-  onPick: (polarity: Polarity) => void;
+  onPick: (polarity: Polarity) => void
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -61,5 +61,5 @@ export function PolarityPicker({
         </button>
       </div>
     </div>
-  );
+  )
 }

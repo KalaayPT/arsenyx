@@ -6,7 +6,6 @@ import { Suspense, useState } from "react"
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Link } from "@/components/link"
-import { UserAvatar } from "@/components/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -33,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { UserAvatar } from "@/components/user-avatar"
 import { authClient } from "@/lib/auth-client"
 import {
   useAddOrgMember,
@@ -49,9 +49,7 @@ export const Route = createFileRoute("/org/$slug_/settings")({
     if (!session.data?.user) {
       throw redirect({ to: "/auth/signin" })
     }
-    const org = await context.queryClient.ensureQueryData(
-      orgQuery(params.slug),
-    )
+    const org = await context.queryClient.ensureQueryData(orgQuery(params.slug))
     if (!org.viewer.isAdmin) {
       throw redirect({ to: "/org/$slug", params: { slug: params.slug } })
     }
@@ -383,4 +381,3 @@ function DangerCard({ org }: { org: OrgProfile }) {
     </form>
   )
 }
-

@@ -1,6 +1,5 @@
-import { Link } from "@/components/link"
-
 import { Icons } from "@/components/icons"
+import { Link } from "@/components/link"
 import { Separator } from "@/components/ui/separator"
 import { SITE_CONFIG, FOOTER_LINKS } from "@/lib/constants"
 import type { NavLink } from "@/lib/types"

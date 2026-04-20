@@ -1,3 +1,3 @@
 declare module "cssstudio" {
-  export function startStudio(): void;
+  export function startStudio(): void
 }

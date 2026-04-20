@@ -87,19 +87,26 @@ export const BROWSE_CATEGORIES: CategoryConfig[] = [
 ]
 
 // Static lookup maps built once at module init
-const CATEGORY_BY_ID = new Map(
-  BROWSE_CATEGORIES.map((c) => [c.id, c]),
-)
+const CATEGORY_BY_ID = new Map(BROWSE_CATEGORIES.map((c) => [c.id, c]))
 
-const VALID_CATEGORY_IDS = new Set<string>(
-  BROWSE_CATEGORIES.map((c) => c.id),
-)
+const VALID_CATEGORY_IDS = new Set<string>(BROWSE_CATEGORIES.map((c) => c.id))
 
-const WARFRAME_CATEGORIES_SET = new Set<BrowseCategory>(["warframes", "necramechs"])
-const WEAPON_CATEGORIES_SET = new Set<BrowseCategory>(["primary", "secondary", "melee"])
+const WARFRAME_CATEGORIES_SET = new Set<BrowseCategory>([
+  "warframes",
+  "necramechs",
+])
+const WEAPON_CATEGORIES_SET = new Set<BrowseCategory>([
+  "primary",
+  "secondary",
+  "melee",
+])
 const GUN_CATEGORIES_SET = new Set<BrowseCategory>(["primary", "secondary"])
-const EXALTED_WEAPON_CATEGORIES_SET = new Set<BrowseCategory>(["exalted-weapons"])
-const COMPANION_WEAPON_CATEGORIES_SET = new Set<BrowseCategory>(["companion-weapons"])
+const EXALTED_WEAPON_CATEGORIES_SET = new Set<BrowseCategory>([
+  "exalted-weapons",
+])
+const COMPANION_WEAPON_CATEGORIES_SET = new Set<BrowseCategory>([
+  "companion-weapons",
+])
 
 /**
  * Get category config by ID

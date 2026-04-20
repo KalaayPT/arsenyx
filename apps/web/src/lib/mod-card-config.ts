@@ -9,7 +9,7 @@
  *  - One polarity icon map, one asset URL resolver, one rarity text color.
  */
 
-import type { Polarity } from "@arsenyx/shared/warframe/types";
+import type { Polarity } from "@arsenyx/shared/warframe/types"
 
 export type ModRarity =
   | "Common"
@@ -19,20 +19,20 @@ export type ModRarity =
   | "Peculiar"
   | "Riven"
   | "Amalgam"
-  | "Galvanized";
+  | "Galvanized"
 
 export type RarityGroup =
   | "standard"
   | "legendary"
   | "riven"
   | "amalgam"
-  | "galvanized";
+  | "galvanized"
 
 interface RarityConfig {
-  group: RarityGroup;
-  folder: string;
-  prefix: string;
-  textColor: string;
+  group: RarityGroup
+  folder: string
+  prefix: string
+  textColor: string
 }
 
 export const RARITY_CONFIG: Record<ModRarity, RarityConfig> = {
@@ -84,14 +84,14 @@ export const RARITY_CONFIG: Record<ModRarity, RarityConfig> = {
     prefix: "Galvanized",
     textColor: "#7CB8E4",
   },
-};
+}
 
 export const DISPLAY_SIZE = {
   compact: { width: 184, height: 64 },
   expanded: { width: 184, height: 285 },
-} as const;
+} as const
 
-export type CardVariant = keyof typeof DISPLAY_SIZE;
+export type CardVariant = keyof typeof DISPLAY_SIZE
 
 type AssetKind =
   | "Background"
@@ -101,22 +101,22 @@ type AssetKind =
   | "SideLight"
   | "LowerTab"
   | "TopRightBacker"
-  | "RankCompleteLine";
+  | "RankCompleteLine"
 
 export function getModAssetUrl(rarity: ModRarity, asset: AssetKind): string {
-  const config = RARITY_CONFIG[rarity];
+  const config = RARITY_CONFIG[rarity]
 
   if (asset === "RankCompleteLine") {
-    return `/mod-components/${config.folder}/RankCompleteLine.png`;
+    return `/mod-components/${config.folder}/RankCompleteLine.png`
   }
 
   // Amalgam borrows Legendary corner/side lights and Silver lower tab/backer.
   if (rarity === "Amalgam") {
     if (asset === "CornerLights" || asset === "SideLight") {
-      return `/mod-components/${config.folder}/Legendary${asset}.png`;
+      return `/mod-components/${config.folder}/Legendary${asset}.png`
     }
     if (asset === "LowerTab" || asset === "TopRightBacker") {
-      return `/mod-components/${config.folder}/Silver${asset}.png`;
+      return `/mod-components/${config.folder}/Silver${asset}.png`
     }
   }
 
@@ -125,23 +125,23 @@ export function getModAssetUrl(rarity: ModRarity, asset: AssetKind): string {
     rarity === "Galvanized" &&
     (asset === "LowerTab" || asset === "TopRightBacker")
   ) {
-    return `/mod-components/${config.folder}/Silver${asset}.png`;
+    return `/mod-components/${config.folder}/Silver${asset}.png`
   }
 
   // Riven uses Silver background texture.
   if (rarity === "Riven" && asset === "Background") {
-    return `/mod-components/${config.folder}/SilverBackground.png`;
+    return `/mod-components/${config.folder}/SilverBackground.png`
   }
 
-  return `/mod-components/${config.folder}/${config.prefix}${asset}.png`;
+  return `/mod-components/${config.folder}/${config.prefix}${asset}.png`
 }
 
 export function getRarityColor(rarity: ModRarity): string {
-  return RARITY_CONFIG[rarity].textColor;
+  return RARITY_CONFIG[rarity].textColor
 }
 
 export function getRarityGroup(rarity: ModRarity): RarityGroup {
-  return RARITY_CONFIG[rarity].group;
+  return RARITY_CONFIG[rarity].group
 }
 
 const POLARITY_ICON_MAP: Record<Polarity, string> = {
@@ -154,11 +154,11 @@ const POLARITY_ICON_MAP: Record<Polarity, string> = {
   umbra: "Umbra_Pol.svg",
   any: "Any_Pol.svg",
   universal: "Any_Pol.svg",
-};
+}
 
 export function getPolarityIconUrl(polarity: Polarity): string {
-  const filename = POLARITY_ICON_MAP[polarity] ?? "Any_Pol.svg";
-  return `/focus-schools/${filename}`;
+  const filename = POLARITY_ICON_MAP[polarity] ?? "Any_Pol.svg"
+  return `/focus-schools/${filename}`
 }
 
 export function normalizeRarity(rarity?: string): ModRarity {
@@ -171,6 +171,6 @@ export function normalizeRarity(rarity?: string): ModRarity {
     "Riven",
     "Amalgam",
     "Galvanized",
-  ];
-  return valid.includes(rarity as ModRarity) ? (rarity as ModRarity) : "Common";
+  ]
+  return valid.includes(rarity as ModRarity) ? (rarity as ModRarity) : "Common"
 }

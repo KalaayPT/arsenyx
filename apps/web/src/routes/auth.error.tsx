@@ -35,9 +35,7 @@ function AuthErrorPage() {
       <Header />
       <main className="container flex flex-1 items-center justify-center py-12">
         <div className="flex w-full max-w-sm flex-col gap-6 rounded-xl border p-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Sign-in failed
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Sign-in failed</h1>
           <p className="text-muted-foreground text-sm">{message}</p>
           {error ? (
             <code className="bg-muted rounded px-2 py-1 text-xs">{error}</code>

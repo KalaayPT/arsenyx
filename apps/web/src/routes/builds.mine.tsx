@@ -3,8 +3,8 @@ import {
   Link,
   redirect,
   useNavigate,
-} from "@tanstack/react-router";
-import { Suspense } from "react";
+} from "@tanstack/react-router"
+import { Suspense } from "react"
 
 import {
   BuildsListView,
@@ -12,35 +12,35 @@ import {
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
-} from "@/components/builds/builds-list-view";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { authClient } from "@/lib/auth-client";
-import { myBuildsQuery, type BuildListSort } from "@/lib/builds-list-query";
-import { type BrowseCategory } from "@/lib/warframe";
+} from "@/components/builds/builds-list-view"
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { authClient } from "@/lib/auth-client"
+import { myBuildsQuery, type BuildListSort } from "@/lib/builds-list-query"
+import { type BrowseCategory } from "@/lib/warframe"
 
 type MineSearch = {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: BrowseCategory;
-  hasGuide?: boolean;
-  hasShards?: boolean;
-};
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: BrowseCategory
+  hasGuide?: boolean
+  hasShards?: boolean
+}
 
 export const Route = createFileRoute("/builds/mine")({
   validateSearch: (search): MineSearch => parseBuildsListSearch(search),
   beforeLoad: async () => {
-    const session = await authClient.getSession();
+    const session = await authClient.getSession()
     if (!session.data?.user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({ to: "/auth/signin" })
     }
   },
   loaderDeps: ({ search }) => buildsListLoaderDeps(search, "updated"),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(myBuildsQuery(deps)),
   component: MineBuildsPage,
-});
+})
 
 function MineBuildsPage() {
   return (
@@ -57,21 +57,21 @@ function MineBuildsPage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function MineBuildsContent() {
-  const search = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
-  const page = search.page ?? 1;
-  const sort = search.sort ?? "updated";
-  const q = search.q ?? "";
-  const category = search.category;
-  const hasGuide = search.hasGuide === true;
-  const hasShards = search.hasShards === true;
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const page = search.page ?? 1
+  const sort = search.sort ?? "updated"
+  const q = search.q ?? ""
+  const category = search.category
+  const hasGuide = search.hasGuide === true
+  const hasShards = search.hasShards === true
 
   const onUpdateSearch = (next: BuildsListSearch) =>
-    navigate({ search: nextBuildsListSearch(next, "updated"), replace: true });
+    navigate({ search: nextBuildsListSearch(next, "updated"), replace: true })
 
   return (
     <BuildsListView
@@ -112,5 +112,5 @@ function MineBuildsContent() {
         </>
       }
     />
-  );
+  )
 }

@@ -46,7 +46,7 @@ export type StatType =
   | "recoil"
   | "finisher_damage"
   | "slide_attack"
-  | "channeling";
+  | "channeling"
 
 export type DamageType =
   | "impact"
@@ -63,18 +63,18 @@ export type DamageType =
   | "viral"
   | "corrosive"
   | "void"
-  | "tau";
+  | "tau"
 
-export type StatOperation = "flat_add" | "percent_add" | "percent_mult";
+export type StatOperation = "flat_add" | "percent_add" | "percent_mult"
 
 export interface ParsedStat {
-  type: StatType;
-  value: number;
-  operation: StatOperation;
-  damageType?: DamageType;
-  isConditional?: boolean;
-  maxStacks?: number;
-  condition?: ConditionLabel;
+  type: StatType
+  value: number
+  operation: StatOperation
+  damageType?: DamageType
+  isConditional?: boolean
+  maxStacks?: number
+  condition?: ConditionLabel
 }
 
 export type ConditionLabel =
@@ -82,66 +82,66 @@ export type ConditionLabel =
   | "On Hit"
   | "When Damaged"
   | "After Reload"
-  | "After Headshot";
+  | "After Headshot"
 
 export interface StatContribution {
-  name: string;
-  amount: number;
-  operation: "percent_add" | "flat_add";
+  name: string
+  amount: number
+  operation: "percent_add" | "flat_add"
   /** Optional sub-group label (e.g. "Base Damage", "Cold", "Toxin") for
    * stats that compose from multiple multiplicative/additive factors. */
-  group?: string;
+  group?: string
 }
 
 export interface StatValue {
-  base: number;
-  modified: number;
+  base: number
+  modified: number
   /** Pre-cap value, present only when a cap was applied. */
-  uncapped?: number;
-  contributions: StatContribution[];
+  uncapped?: number
+  contributions: StatContribution[]
 }
 
 export interface DamageEntry {
-  type: DamageType;
-  value: number;
-  base: number;
-  contributions: StatContribution[];
+  type: DamageType
+  value: number
+  base: number
+  contributions: StatContribution[]
 }
 
 export interface DamageBreakdown {
-  physical: DamageEntry[];
-  elemental: DamageEntry[];
+  physical: DamageEntry[]
+  elemental: DamageEntry[]
 }
 
 export interface AttackModeStats {
-  name: string;
-  totalDamage: StatValue;
-  criticalChance: StatValue;
-  criticalMultiplier: StatValue;
-  statusChance: StatValue;
-  fireRate: StatValue;
-  magazineSize?: StatValue;
-  reloadTime?: StatValue;
-  range?: StatValue;
-  damageBreakdown: DamageBreakdown;
+  name: string
+  totalDamage: StatValue
+  criticalChance: StatValue
+  criticalMultiplier: StatValue
+  statusChance: StatValue
+  fireRate: StatValue
+  magazineSize?: StatValue
+  reloadTime?: StatValue
+  range?: StatValue
+  damageBreakdown: DamageBreakdown
 }
 
 export interface WeaponStats {
-  attackModes: AttackModeStats[];
-  multishot: StatValue;
-  grandTotalDamage: StatValue;
+  attackModes: AttackModeStats[]
+  multishot: StatValue
+  grandTotalDamage: StatValue
 }
 
 export interface WarframeStats {
-  health: StatValue;
-  shield: StatValue;
-  armor: StatValue;
-  energy: StatValue;
-  sprintSpeed: StatValue;
-  abilityStrength: StatValue;
-  abilityDuration: StatValue;
-  abilityEfficiency: StatValue;
-  abilityRange: StatValue;
+  health: StatValue
+  shield: StatValue
+  armor: StatValue
+  energy: StatValue
+  sprintSpeed: StatValue
+  abilityStrength: StatValue
+  abilityDuration: StatValue
+  abilityEfficiency: StatValue
+  abilityRange: StatValue
 }
 
 export const DAMAGE_TYPE_COLORS: Record<string, DamageType> = {
@@ -165,7 +165,7 @@ export const DAMAGE_TYPE_COLORS: Record<string, DamageType> = {
   DT_VOID_COLOR: "void",
   DT_SENTIENT: "tau",
   DT_TAU_COLOR: "tau",
-};
+}
 
 export const ELEMENTAL_COMBINATIONS: Record<string, DamageType> = {
   "heat+cold": "blast",
@@ -180,14 +180,14 @@ export const ELEMENTAL_COMBINATIONS: Record<string, DamageType> = {
   "toxin+cold": "viral",
   "electricity+toxin": "corrosive",
   "toxin+electricity": "corrosive",
-};
+}
 
 export const BASE_ELEMENTS: DamageType[] = [
   "heat",
   "cold",
   "electricity",
   "toxin",
-];
+]
 
 export const DAMAGE_TYPE_LABELS: Record<DamageType, string> = {
   impact: "Impact",
@@ -205,9 +205,12 @@ export const DAMAGE_TYPE_LABELS: Record<DamageType, string> = {
   corrosive: "Corrosive",
   void: "Void",
   tau: "Tau",
-};
+}
 
-export const DAMAGE_TYPE_STYLE: Record<DamageType, { text: string; bg: string }> = {
+export const DAMAGE_TYPE_STYLE: Record<
+  DamageType,
+  { text: string; bg: string }
+> = {
   impact: { text: "text-sky-400", bg: "bg-sky-400" },
   puncture: {
     text: "text-yellow-600 dark:text-yellow-500",
@@ -226,4 +229,4 @@ export const DAMAGE_TYPE_STYLE: Record<DamageType, { text: string; bg: string }>
   corrosive: { text: "text-emerald-400", bg: "bg-emerald-400" },
   void: { text: "text-violet-300", bg: "bg-violet-300" },
   tau: { text: "text-fuchsia-400", bg: "bg-fuchsia-400" },
-};
+}

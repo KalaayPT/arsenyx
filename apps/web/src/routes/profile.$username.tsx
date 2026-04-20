@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { Suspense } from "react"
 
 import {
   BuildsListView,
@@ -8,27 +8,27 @@ import {
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
-} from "@/components/builds/builds-list-view";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { UserAvatar } from "@/components/user-avatar";
-import { Badge } from "@/components/ui/badge";
-import { type BuildListSort } from "@/lib/builds-list-query";
+} from "@/components/builds/builds-list-view"
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { Badge } from "@/components/ui/badge"
+import { UserAvatar } from "@/components/user-avatar"
+import { type BuildListSort } from "@/lib/builds-list-query"
 import {
   profileBuildsQuery,
   profileQuery,
   type Profile,
-} from "@/lib/profile-query";
-import { type BrowseCategory } from "@/lib/warframe";
+} from "@/lib/profile-query"
+import { type BrowseCategory } from "@/lib/warframe"
 
 type ProfileSearch = {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: BrowseCategory;
-  hasGuide?: boolean;
-  hasShards?: boolean;
-};
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: BrowseCategory
+  hasGuide?: boolean
+  hasShards?: boolean
+}
 
 export const Route = createFileRoute("/profile/$username")({
   validateSearch: (search): ProfileSearch => parseBuildsListSearch(search),
@@ -39,11 +39,11 @@ export const Route = createFileRoute("/profile/$username")({
       context.queryClient.ensureQueryData(
         profileBuildsQuery(params.username, deps),
       ),
-    ]);
+    ])
   },
   component: ProfilePage,
   notFoundComponent: ProfileNotFound,
-});
+})
 
 function ProfilePage() {
   return (
@@ -60,24 +60,24 @@ function ProfilePage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function ProfileContent() {
-  const { username } = Route.useParams();
-  const search = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
-  const page = search.page ?? 1;
-  const sort = search.sort ?? "newest";
-  const q = search.q ?? "";
-  const category = search.category;
-  const hasGuide = search.hasGuide === true;
-  const hasShards = search.hasShards === true;
+  const { username } = Route.useParams()
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const page = search.page ?? 1
+  const sort = search.sort ?? "newest"
+  const q = search.q ?? ""
+  const category = search.category
+  const hasGuide = search.hasGuide === true
+  const hasShards = search.hasShards === true
 
-  const { data: profile } = useSuspenseQuery(profileQuery(username));
+  const { data: profile } = useSuspenseQuery(profileQuery(username))
 
   const onUpdateSearch = (next: BuildsListSearch) =>
-    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true });
+    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true })
 
   return (
     <>
@@ -110,17 +110,17 @@ function ProfileContent() {
         />
       </Suspense>
     </>
-  );
+  )
 }
 
 function ProfileHeader({ profile }: { profile: Profile }) {
   const display =
-    profile.displayUsername ?? profile.username ?? profile.name ?? "User";
-  const handle = profile.username ? `@${profile.username}` : null;
+    profile.displayUsername ?? profile.username ?? profile.name ?? "User"
+  const handle = profile.username ? `@${profile.username}` : null
   const joined = new Date(profile.joinedAt).toLocaleDateString(undefined, {
     year: "numeric",
     month: "long",
-  });
+  })
 
   return (
     <div className="bg-card flex flex-col gap-4 rounded-lg border p-6 sm:flex-row sm:items-center">
@@ -145,7 +145,7 @@ function ProfileHeader({ profile }: { profile: Profile }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function Stat({ label, value }: { label: string; value: number }) {
@@ -156,24 +156,33 @@ function Stat({ label, value }: { label: string; value: number }) {
       </span>{" "}
       {label}
     </span>
-  );
+  )
 }
 
 function ProfileBadges({ badges }: { badges: Profile["badges"] }) {
-  const items: { label: string; className: string }[] = [];
+  const items: { label: string; className: string }[] = []
   if (badges.admin) {
-    items.push({ label: "Admin", className: "bg-red-500/15 text-red-500" });
+    items.push({ label: "Admin", className: "bg-red-500/15 text-red-500" })
   }
   if (badges.moderator) {
-    items.push({ label: "Moderator", className: "bg-blue-500/15 text-blue-500" });
+    items.push({
+      label: "Moderator",
+      className: "bg-blue-500/15 text-blue-500",
+    })
   }
   if (badges.communityLeader) {
-    items.push({ label: "Community Leader", className: "bg-amber-500/15 text-amber-500" });
+    items.push({
+      label: "Community Leader",
+      className: "bg-amber-500/15 text-amber-500",
+    })
   }
   if (badges.verified) {
-    items.push({ label: "Verified", className: "bg-emerald-500/15 text-emerald-500" });
+    items.push({
+      label: "Verified",
+      className: "bg-emerald-500/15 text-emerald-500",
+    })
   }
-  if (items.length === 0) return null;
+  if (items.length === 0) return null
   return (
     <span className="flex flex-wrap gap-1">
       {items.map((b) => (
@@ -186,7 +195,7 @@ function ProfileBadges({ badges }: { badges: Profile["badges"] }) {
         </Badge>
       ))}
     </span>
-  );
+  )
 }
 
 function ProfileNotFound() {
@@ -201,5 +210,5 @@ function ProfileNotFound() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }

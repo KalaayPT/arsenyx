@@ -1,31 +1,35 @@
-import { Plus, Search, X } from "lucide-react";
-import { type MouseEvent, useDeferredValue, useMemo, useState } from "react";
+import type { Arcane } from "@arsenyx/shared/warframe/types"
+import { Plus, Search, X } from "lucide-react"
+import { type MouseEvent, useDeferredValue, useMemo, useState } from "react"
 
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { getArcaneImageUrl } from "@/lib/arcane-images";
-import type { Arcane } from "@arsenyx/shared/warframe/types";
+} from "@/components/ui/input-group"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { getArcaneImageUrl } from "@/lib/arcane-images"
+import { cn } from "@/lib/utils"
 
-import { ArcaneCard } from "./arcane-card";
-import type { PlacedArcane } from "./use-arcane-slots";
+import { ArcaneCard } from "./arcane-card"
+import type { PlacedArcane } from "./use-arcane-slots"
 
 interface ArcaneSlotProps {
-  options: Arcane[];
-  placed?: PlacedArcane | null;
+  options: Arcane[]
+  placed?: PlacedArcane | null
   /** Names of arcanes already placed in sibling slots — dimmed in the picker. */
-  usedNames?: Set<string>;
-  selected?: boolean;
-  onSelect?: () => void;
-  onPick: (arcane: Arcane) => void;
-  onRemove?: () => void;
-  onRankChange?: (delta: -1 | 1) => void;
-  readOnly?: boolean;
+  usedNames?: Set<string>
+  selected?: boolean
+  onSelect?: () => void
+  onPick: (arcane: Arcane) => void
+  onRemove?: () => void
+  onRankChange?: (delta: -1 | 1) => void
+  readOnly?: boolean
 }
 
 export function ArcaneSlot({
@@ -39,15 +43,15 @@ export function ArcaneSlot({
   onRankChange,
   readOnly = false,
 }: ArcaneSlotProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   const handleContextMenu = (e: MouseEvent) => {
-    if (readOnly) return;
+    if (readOnly) return
     if (placed && onRemove) {
-      e.preventDefault();
-      onRemove();
+      e.preventDefault()
+      onRemove()
     }
-  };
+  }
 
   return (
     <Popover open={open} onOpenChange={readOnly ? undefined : setOpen}>
@@ -59,8 +63,8 @@ export function ArcaneSlot({
           readOnly
             ? undefined
             : () => {
-                onSelect?.();
-                setOpen(true);
+                onSelect?.()
+                setOpen(true)
               }
         }
         onContextMenu={handleContextMenu}
@@ -88,7 +92,7 @@ export function ArcaneSlot({
         ) : (
           <>
             <Plus className="text-muted-foreground/15 group-hover:text-muted-foreground/30 size-6 transition-colors" />
-            <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] uppercase tracking-wide">
+            <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] tracking-wide uppercase">
               Arcane
             </span>
           </>
@@ -100,14 +104,14 @@ export function ArcaneSlot({
             options={options}
             usedNames={usedNames}
             onPick={(a) => {
-              onPick(a);
-              setOpen(false);
+              onPick(a)
+              setOpen(false)
             }}
           />
         </PopoverContent>
       )}
     </Popover>
-  );
+  )
 }
 
 function ArcanePicker({
@@ -115,27 +119,27 @@ function ArcanePicker({
   usedNames,
   onPick,
 }: {
-  options: Arcane[];
-  usedNames?: Set<string>;
-  onPick: (arcane: Arcane) => void;
+  options: Arcane[]
+  usedNames?: Set<string>
+  onPick: (arcane: Arcane) => void
 }) {
-  const [query, setQuery] = useState("");
-  const deferred = useDeferredValue(query);
+  const [query, setQuery] = useState("")
+  const deferred = useDeferredValue(query)
 
   const sorted = useMemo(
     () => [...options].sort((a, b) => a.name.localeCompare(b.name)),
     [options],
-  );
+  )
 
   const filtered = useMemo(() => {
-    const q = deferred.trim().toLowerCase();
-    if (!q) return sorted;
+    const q = deferred.trim().toLowerCase()
+    if (!q) return sorted
     return sorted.filter((a) => {
-      if (a.name.toLowerCase().includes(q)) return true;
-      const last = a.levelStats?.[a.levelStats.length - 1]?.stats ?? [];
-      return last.some((s) => s.toLowerCase().includes(q));
-    });
-  }, [sorted, deferred]);
+      if (a.name.toLowerCase().includes(q)) return true
+      const last = a.levelStats?.[a.levelStats.length - 1]?.stats ?? []
+      return last.some((s) => s.toLowerCase().includes(q))
+    })
+  }, [sorted, deferred])
 
   return (
     <div className="flex flex-col gap-2" style={{ width: 448 }}>
@@ -164,7 +168,7 @@ function ArcanePicker({
 
       <div className="grid max-h-[320px] grid-cols-3 gap-2 overflow-y-auto pr-1">
         {filtered.map((arcane) => {
-          const isUsed = usedNames?.has(arcane.name);
+          const isUsed = usedNames?.has(arcane.name)
           return (
             <button
               key={arcane.uniqueName}
@@ -185,7 +189,7 @@ function ArcanePicker({
                 {arcane.name}
               </span>
             </button>
-          );
+          )
         })}
         {filtered.length === 0 && (
           <p className="text-muted-foreground col-span-full py-4 text-center text-sm">
@@ -194,5 +198,5 @@ function ArcanePicker({
         )}
       </div>
     </div>
-  );
+  )
 }

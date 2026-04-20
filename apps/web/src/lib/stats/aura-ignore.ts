@@ -48,4 +48,4 @@ export const EXCLUDED_WARFRAME_AURAS = new Set<string>([
   "Shotgun Scavenger",
   "Sniper Scavenger",
   "Speed Holster",
-]);
+])

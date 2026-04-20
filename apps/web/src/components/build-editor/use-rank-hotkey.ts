@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from "react"
 
 /**
  * Listen for `-`/`+` while `enabled`, firing `onDelta(-1)` or `onDelta(1)`.
@@ -9,26 +9,26 @@ export function useRankHotkey({
   enabled,
   onDelta,
 }: {
-  enabled: boolean;
-  onDelta: (delta: -1 | 1) => void;
+  enabled: boolean
+  onDelta: (delta: -1 | 1) => void
 }) {
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) return
     const handler = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLElement) {
-        const tag = e.target.tagName;
+        const tag = e.target.tagName
         if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable)
-          return;
+          return
       }
       if (e.key === "-" || e.key === "_") {
-        e.preventDefault();
-        onDelta(-1);
+        e.preventDefault()
+        onDelta(-1)
       } else if (e.key === "=" || e.key === "+") {
-        e.preventDefault();
-        onDelta(1);
+        e.preventDefault()
+        onDelta(1)
       }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [enabled, onDelta]);
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [enabled, onDelta])
 }

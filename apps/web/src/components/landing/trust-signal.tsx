@@ -1,6 +1,5 @@
-import { Link } from "@/components/link"
-
 import { Icons } from "@/components/icons"
+import { Link } from "@/components/link"
 import type { TrustSignal } from "@/lib/types"
 
 export function TrustSignalItem({ label, href, iconKey }: TrustSignal) {

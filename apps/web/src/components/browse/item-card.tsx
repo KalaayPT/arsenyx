@@ -1,12 +1,12 @@
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Link } from "@/components/link";
-import { cn } from "@/lib/utils";
-import { getImageUrl, getItemUrl, type BrowseItem } from "@/lib/warframe";
+import { Link } from "@/components/link"
+import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { getImageUrl, getItemUrl, type BrowseItem } from "@/lib/warframe"
 
 interface ItemCardProps {
-  item: BrowseItem;
-  index?: number;
+  item: BrowseItem
+  index?: number
 }
 
 export function ItemCard({ item, index }: ItemCardProps) {
@@ -53,5 +53,5 @@ export function ItemCard({ item, index }: ItemCardProps) {
         </div>
       </Card>
     </Link>
-  );
+  )
 }

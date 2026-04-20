@@ -1,32 +1,32 @@
-import { useState } from "react";
+import type { Arcane } from "@arsenyx/shared/warframe/types"
+import { useState } from "react"
 
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { getArcaneImageUrl } from "@/lib/arcane-images";
-import type { Arcane } from "@arsenyx/shared/warframe/types";
+} from "@/components/ui/tooltip"
+import { getArcaneImageUrl } from "@/lib/arcane-images"
+import { cn } from "@/lib/utils"
 
-import { useRankHotkey } from "./use-rank-hotkey";
+import { useRankHotkey } from "./use-rank-hotkey"
 
 function statsAt(arcane: Arcane, rank: number): string[] {
-  if (!arcane.levelStats || arcane.levelStats.length === 0) return [];
-  const i = Math.min(rank, arcane.levelStats.length - 1);
-  return arcane.levelStats[i]?.stats ?? [];
+  if (!arcane.levelStats || arcane.levelStats.length === 0) return []
+  const i = Math.min(rank, arcane.levelStats.length - 1)
+  return arcane.levelStats[i]?.stats ?? []
 }
 
 interface ArcaneCardProps {
-  arcane: Arcane;
-  rank: number;
+  arcane: Arcane
+  rank: number
   /** Called with -1/+1 when the user presses -/+ while hovering. Caller clamps. */
-  onRankChange?: (delta: -1 | 1) => void;
-  onClick?: () => void;
-  isSelected?: boolean;
-  disableHover?: boolean;
-  className?: string;
+  onRankChange?: (delta: -1 | 1) => void
+  onClick?: () => void
+  isSelected?: boolean
+  disableHover?: boolean
+  className?: string
 }
 
 export function ArcaneCard({
@@ -38,22 +38,23 @@ export function ArcaneCard({
   disableHover = false,
   className,
 }: ArcaneCardProps) {
-  const [hovered, setHovered] = useState(false);
+  const [hovered, setHovered] = useState(false)
 
   useRankHotkey({
     enabled: hovered && !disableHover && !!onRankChange,
     onDelta: (d) => onRankChange?.(d),
-  });
+  })
 
-  const stats = statsAt(arcane, currentRank);
-  const formattedStats = stats.map((s) => s.replace(/\\n/g, "\n")).join("\n");
+  const stats = statsAt(arcane, currentRank)
+  const formattedStats = stats.map((s) => s.replace(/\\n/g, "\n")).join("\n")
 
   const card = (
     <div
       className={cn(
         "bg-card/80 relative flex h-[100px] w-[140px] flex-col items-center overflow-hidden rounded-md select-none",
         onClick && "cursor-pointer",
-        isSelected && "ring-primary ring-offset-background ring-2 ring-offset-1",
+        isSelected &&
+          "ring-primary ring-offset-background ring-2 ring-offset-1",
         className,
       )}
       onMouseEnter={() => setHovered(true)}
@@ -74,9 +75,9 @@ export function ArcaneCard({
         RANK {currentRank}
       </span>
     </div>
-  );
+  )
 
-  if (disableHover || !formattedStats) return card;
+  if (disableHover || !formattedStats) return card
 
   return (
     <TooltipProvider delay={200}>
@@ -104,5 +105,5 @@ export function ArcaneCard({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
-  );
+  )
 }

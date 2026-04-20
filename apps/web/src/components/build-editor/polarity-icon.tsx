@@ -1,6 +1,7 @@
-import { cn } from "@/lib/utils";
-import { getPolarityIconUrl } from "@/lib/mod-card-config";
-import type { Polarity } from "@arsenyx/shared/warframe/types";
+import type { Polarity } from "@arsenyx/shared/warframe/types"
+
+import { getPolarityIconUrl } from "@/lib/mod-card-config"
+import { cn } from "@/lib/utils"
 
 /**
  * Polarity glyph, rendered via CSS mask of the SVG asset so we can recolor it.
@@ -11,14 +12,14 @@ export function PolarityIcon({
   className,
   color = "currentColor",
 }: {
-  polarity?: Polarity;
-  className?: string;
-  color?: string;
+  polarity?: Polarity
+  className?: string
+  color?: string
 }) {
   // "universal" means "explicitly cleared" — render nothing.
   // "any" is Universal/Omni Forma, which has its own glyph (Any_Pol.svg).
-  if (polarity === "universal") return null;
-  const url = getPolarityIconUrl(polarity);
+  if (polarity === "universal") return null
+  const url = getPolarityIconUrl(polarity)
   return (
     <span
       aria-label={`${polarity} polarity`}
@@ -35,5 +36,5 @@ export function PolarityIcon({
         WebkitMaskPosition: "center",
       }}
     />
-  );
+  )
 }

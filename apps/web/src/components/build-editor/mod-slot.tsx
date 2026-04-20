@@ -1,55 +1,59 @@
-import { Pencil, Plus } from "lucide-react";
-import { useState, type MouseEvent } from "react";
+import { isRivenMod } from "@arsenyx/shared/warframe/rivens"
+import type { Mod, Polarity } from "@arsenyx/shared/warframe/types"
+import { Pencil, Plus } from "lucide-react"
+import { useState, type MouseEvent } from "react"
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { isRivenMod } from "@arsenyx/shared/warframe/rivens";
-import type { Mod, Polarity } from "@arsenyx/shared/warframe/types";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
 
 import {
   auraBonusForMod,
   effectiveDrainForMod,
   effectivePolarity,
   getMatchState,
-} from "./calculations";
-import { ModCard } from "./mod-card";
-import { PolarityIcon } from "./polarity-icon";
-import { PolarityPicker } from "./polarity-picker";
-import { useRankHotkey } from "./use-rank-hotkey";
+} from "./calculations"
+import { ModCard } from "./mod-card"
+import { PolarityIcon } from "./polarity-icon"
+import { PolarityPicker } from "./polarity-picker"
+import { useRankHotkey } from "./use-rank-hotkey"
 
-export type ModSlotKind = "normal" | "aura" | "exilus";
+export type ModSlotKind = "normal" | "aura" | "exilus"
 
 interface ModSlotProps {
-  kind?: ModSlotKind;
-  slotPolarity?: Polarity;
+  kind?: ModSlotKind
+  slotPolarity?: Polarity
   /**
    * Forma polarity. `undefined` → use innate. `"universal"` → explicitly
    * cleared (overrides innate). Any other value stamps that polarity.
    */
-  formaPolarity?: Polarity;
-  mod?: Mod;
-  rank?: number;
+  formaPolarity?: Polarity
+  mod?: Mod
+  rank?: number
   /** Whether this slot is the current placement target. */
-  selected?: boolean;
+  selected?: boolean
   /** LClick: toggle select / open picker (fires for both empty and filled). */
-  onClick?: () => void;
+  onClick?: () => void
   /** RClick: remove the placed mod. Only meaningful when `mod` is set. */
-  onRemove?: () => void;
+  onRemove?: () => void
   /** Apply a polarity (including `"universal"` to clear). */
-  onPickPolarity?: (polarity: Polarity) => void;
+  onPickPolarity?: (polarity: Polarity) => void
   /** Rank delta from `-` / `=` while the slot is hovered. */
-  onRankChange?: (delta: number) => void;
+  onRankChange?: (delta: number) => void
   /** Pencil-button handler, only rendered for riven mods. */
-  onEditRiven?: () => void;
+  onEditRiven?: () => void
   /** Disables click/hover/remove/picker/rank-hotkey. */
-  readOnly?: boolean;
+  readOnly?: boolean
 }
 
 const KIND_LABEL: Record<ModSlotKind, string> = {
   normal: "",
   aura: "Aura",
   exilus: "Exilus",
-};
+}
 
 export function ModSlot({
   kind = "normal",
@@ -65,22 +69,22 @@ export function ModSlot({
   onEditRiven,
   readOnly = false,
 }: ModSlotProps) {
-  const effective = effectivePolarity(slotPolarity, formaPolarity);
-  const [hovered, setHovered] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const effective = effectivePolarity(slotPolarity, formaPolarity)
+  const [hovered, setHovered] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   useRankHotkey({
     enabled: !readOnly && !!mod && hovered && !!onRankChange,
     onDelta: (d) => onRankChange?.(d),
-  });
+  })
 
   const handleContextMenu = (e: MouseEvent) => {
-    if (readOnly) return;
+    if (readOnly) return
     if (mod && onRemove) {
-      e.preventDefault();
-      onRemove();
+      e.preventDefault()
+      onRemove()
     }
-  };
+  }
 
   return (
     <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -105,7 +109,7 @@ export function ModSlot({
               ? "border-solid border-white/70"
               : "border-muted-foreground/10 hover:border-muted-foreground/25 border-dashed"),
           !mod && readOnly && "border-muted-foreground/10 border-dashed",
-          mod && selected && !readOnly && "ring-2 ring-white/60 rounded-md",
+          mod && selected && !readOnly && "rounded-md ring-2 ring-white/60",
         )}
       >
         {mod ? (
@@ -126,8 +130,8 @@ export function ModSlot({
                 type="button"
                 aria-label="Edit riven stats"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  onEditRiven();
+                  e.stopPropagation()
+                  onEditRiven()
                 }}
                 className="bg-background/80 text-muted-foreground hover:bg-accent hover:text-accent-foreground absolute top-1 right-1 z-30 flex size-5 items-center justify-center rounded-full border opacity-0 transition-opacity group-hover:opacity-100 max-md:opacity-100"
               >
@@ -145,7 +149,7 @@ export function ModSlot({
             )}
             <Plus className="text-muted-foreground/15 group-hover:text-muted-foreground/30 size-5 transition-colors" />
             {KIND_LABEL[kind] && (
-              <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] uppercase tracking-wide">
+              <span className="text-muted-foreground/30 mt-1 font-mono text-[10px] tracking-wide uppercase">
                 {KIND_LABEL[kind]}
               </span>
             )}
@@ -157,12 +161,12 @@ export function ModSlot({
           <PolarityPicker
             current={formaPolarity}
             onPick={(p) => {
-              onPickPolarity(p);
-              setPickerOpen(false);
+              onPickPolarity(p)
+              setPickerOpen(false)
             }}
           />
         </PopoverContent>
       )}
     </Popover>
-  );
+  )
 }

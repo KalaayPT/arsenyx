@@ -1,16 +1,16 @@
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import type { Mod } from "@arsenyx/shared/warframe/types"
+import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 
-import { cn } from "@/lib/utils";
 import {
   DISPLAY_SIZE,
   type ModRarity,
   getModAssetUrl,
   getRarityColor,
   normalizeRarity,
-} from "@/lib/mod-card-config";
-import { getImageUrl } from "@/lib/warframe";
-import type { Mod } from "@arsenyx/shared/warframe/types";
+} from "@/lib/mod-card-config"
+import { cn } from "@/lib/utils"
+import { getImageUrl } from "@/lib/warframe"
 
 import {
   DrainBadge,
@@ -19,68 +19,68 @@ import {
   ModCardFrame,
   RankCompleteLine,
   RankDots,
-} from "./mod-card-frame";
+} from "./mod-card-frame"
 
-const NUMBER_PATTERN = /(\d+(\.\d+)?)/g;
+const NUMBER_PATTERN = /(\d+(\.\d+)?)/g
 
 // Stats where a "positive" riven roll is semantically a debuff — we invert the
 // displayed sign so the number reads the way the in-game arsenal shows it.
-const INVERTED_RIVEN_STATS = new Set(["Zoom"]);
+const INVERTED_RIVEN_STATS = new Set(["Zoom"])
 
 function formatRivenValue(stat: string, v: number): string {
-  const display = INVERTED_RIVEN_STATS.has(stat) ? -v : v;
-  const fixed = display.toFixed(1);
-  const stripped = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed;
-  const sign = display > 0 ? "+" : "";
-  return `${sign}${stripped}%`;
+  const display = INVERTED_RIVEN_STATS.has(stat) ? -v : v
+  const fixed = display.toFixed(1)
+  const stripped = fixed.endsWith(".0") ? fixed.slice(0, -2) : fixed
+  const sign = display > 0 ? "+" : ""
+  return `${sign}${stripped}%`
 }
 
 function getModStats(mod: Mod, rank: number, setCount: number = 0): string[] {
   if (mod.rivenStats) {
-    const out: string[] = [];
+    const out: string[] = []
     for (const p of mod.rivenStats.positives ?? []) {
       out.push(
         `<span class="text-green-400">${formatRivenValue(p.stat, p.value)}</span> ${p.stat}`,
-      );
+      )
     }
     for (const n of mod.rivenStats.negatives ?? []) {
       out.push(
         `<span class="text-red-400">${formatRivenValue(n.stat, n.value)}</span> ${n.stat}`,
-      );
+      )
     }
-    return out;
+    return out
   }
-  if (!mod.levelStats || mod.levelStats.length === 0) return [];
-  const levelIndex = Math.min(rank, mod.levelStats.length - 1);
-  const baseStats = mod.levelStats[levelIndex]?.stats ?? [];
+  if (!mod.levelStats || mod.levelStats.length === 0) return []
+  const levelIndex = Math.min(rank, mod.levelStats.length - 1)
+  const baseStats = mod.levelStats[levelIndex]?.stats ?? []
 
   if (
     mod.modSet === "/Lotus/Upgrades/Mods/Sets/Umbra/UmbraSetMod" &&
     setCount > 1
   ) {
-    const isIntensify = mod.name.includes("Intensify");
-    let multiplier = 1.0;
-    if (setCount === 2) multiplier = isIntensify ? 1.25 : 1.3;
-    else if (setCount >= 3) multiplier = isIntensify ? 1.75 : 1.8;
+    const isIntensify = mod.name.includes("Intensify")
+    let multiplier = 1.0
+    if (setCount === 2) multiplier = isIntensify ? 1.25 : 1.3
+    else if (setCount >= 3) multiplier = isIntensify ? 1.75 : 1.8
     return baseStats.map((stat) =>
       stat.replace(NUMBER_PATTERN, (match) => {
-        const value = parseFloat(match);
-        return parseFloat((value * multiplier).toFixed(1)).toString();
+        const value = parseFloat(match)
+        return parseFloat((value * multiplier).toFixed(1)).toString()
       }),
-    );
+    )
   }
 
-  return baseStats;
+  return baseStats
 }
 
 interface CompactProps {
-  mod: Mod;
-  rarity: ModRarity;
-  rank: number;
-  isMaxRank: boolean;
-  drainOverride?: number;
-  matchState?: DrainMatchState;
-  vtPrefix?: string;
+  mod: Mod
+  rarity: ModRarity
+  rank: number
+  isMaxRank: boolean
+  drainOverride?: number
+  matchState?: DrainMatchState
+  vtPrefix?: string
 }
 
 function CompactModCard({
@@ -92,10 +92,10 @@ function CompactModCard({
   matchState = "neutral",
   vtPrefix,
 }: CompactProps) {
-  const maxRank = mod.fusionLimit ?? 0;
+  const maxRank = mod.fusionLimit ?? 0
   const drain =
     drainOverride ??
-    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank);
+    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank)
 
   return (
     <ModCardFrame rarity={rarity} variant="compact" vtPrefix={vtPrefix}>
@@ -137,9 +137,7 @@ function CompactModCard({
           color: getRarityColor(rarity),
           textShadow:
             "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000, 0 0 12px #000",
-          ...(vtPrefix
-            ? { viewTransitionName: `${vtPrefix}-name` }
-            : {}),
+          ...(vtPrefix ? { viewTransitionName: `${vtPrefix}-name` } : {}),
         }}
       >
         {mod.name}
@@ -159,11 +157,11 @@ function CompactModCard({
         vtPrefix={vtPrefix}
       />
     </ModCardFrame>
-  );
+  )
 }
 
 interface ExpandedProps extends CompactProps {
-  setCount?: number;
+  setCount?: number
 }
 
 function ExpandedModCard({
@@ -176,18 +174,18 @@ function ExpandedModCard({
   matchState = "neutral",
   vtPrefix,
 }: ExpandedProps) {
-  const stats = getModStats(mod, rank, setCount);
-  const maxRank = mod.fusionLimit ?? 0;
+  const stats = getModStats(mod, rank, setCount)
+  const maxRank = mod.fusionLimit ?? 0
   const drain =
     drainOverride ??
-    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank);
+    (mod.rivenStats ? (mod.baseDrain ?? 0) : (mod.baseDrain ?? 0) + rank)
   const compatLabel =
     mod.compatName ||
-    (mod.type ? mod.type.replace(" Mod", "").toUpperCase() : "");
+    (mod.type ? mod.type.replace(" Mod", "").toUpperCase() : "")
 
   const formattedStats = stats
     .map((s) => s.replace(/\\n/g, "<br/>"))
-    .join("<br/>");
+    .join("<br/>")
 
   return (
     <ModCardFrame rarity={rarity} variant="expanded" vtPrefix={vtPrefix}>
@@ -228,9 +226,7 @@ function ExpandedModCard({
             style={{
               fontFamily: "Roboto, sans-serif",
               color: getRarityColor(rarity),
-              ...(vtPrefix
-                ? { viewTransitionName: `${vtPrefix}-name` }
-                : {}),
+              ...(vtPrefix ? { viewTransitionName: `${vtPrefix}-name` } : {}),
             }}
           >
             {mod.name}
@@ -264,23 +260,23 @@ function ExpandedModCard({
         vtPrefix={vtPrefix}
       />
     </ModCardFrame>
-  );
+  )
 }
 
 export interface ModCardProps {
-  mod: Mod;
+  mod: Mod
   /** Leave undefined to default to the mod's max rank. */
-  rank?: number;
-  setCount?: number;
-  drainOverride?: number;
-  matchState?: DrainMatchState;
+  rank?: number
+  setCount?: number
+  drainOverride?: number
+  matchState?: DrainMatchState
   /** When true, always show the expanded variant (no hover behavior). */
-  alwaysExpanded?: boolean;
+  alwaysExpanded?: boolean
   /** When true, never show the expanded variant (used while dragging). */
-  disableHover?: boolean;
-  onClick?: () => void;
-  isSelected?: boolean;
-  className?: string;
+  disableHover?: boolean
+  onClick?: () => void
+  isSelected?: boolean
+  className?: string
 }
 
 /**
@@ -291,7 +287,7 @@ export interface ModCardProps {
  */
 // Rank dots hang ~32px below the 64px compact frame; extend the hover surface
 // so cursor motion across the dots doesn't trigger mouseleave.
-const HOVER_OVERHANG = 32;
+const HOVER_OVERHANG = 32
 
 export function ModCard({
   mod,
@@ -305,25 +301,25 @@ export function ModCard({
   isSelected,
   className,
 }: ModCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const hoverCenter = useRef<{ x: number; y: number } | null>(null);
-  const compactRef = useRef<HTMLDivElement>(null);
-  const rarity = normalizeRarity(mod.rarity);
-  const maxRank = mod.fusionLimit ?? 0;
+  const [isHovered, setIsHovered] = useState(false)
+  const hoverCenter = useRef<{ x: number; y: number } | null>(null)
+  const compactRef = useRef<HTMLDivElement>(null)
+  const rarity = normalizeRarity(mod.rarity)
+  const maxRank = mod.fusionLimit ?? 0
   // Default to max rank so preview cards read the way equipped mods look
   // in-game. Callers that need a specific rank (placed slots) pass one.
-  const effectiveRank = rank ?? maxRank;
-  const isMaxRank = maxRank > 0 && effectiveRank >= maxRank;
-  const effectiveHover = isHovered && !disableHover;
+  const effectiveRank = rank ?? maxRank
+  const isMaxRank = maxRank > 0 && effectiveRank >= maxRank
+  const effectiveHover = isHovered && !disableHover
 
   // Scroll collapses the preview — otherwise the card can stay stuck open
   // if its wrapper moves out from under the cursor silently.
   useEffect(() => {
-    if (!isHovered) return;
-    const close = () => setIsHovered(false);
-    window.addEventListener("scroll", close, { capture: true, passive: true });
-    return () => window.removeEventListener("scroll", close, { capture: true });
-  }, [isHovered]);
+    if (!isHovered) return
+    const close = () => setIsHovered(false)
+    window.addEventListener("scroll", close, { capture: true, passive: true })
+    return () => window.removeEventListener("scroll", close, { capture: true })
+  }, [isHovered])
 
   // alwaysExpanded skips all the hover machinery.
   if (alwaysExpanded) {
@@ -351,7 +347,7 @@ export function ModCard({
           matchState={matchState}
         />
       </div>
-    );
+    )
   }
 
   return (
@@ -367,14 +363,14 @@ export function ModCard({
         height: DISPLAY_SIZE.compact.height + HOVER_OVERHANG,
       }}
       onMouseEnter={() => {
-        const r = compactRef.current?.getBoundingClientRect();
+        const r = compactRef.current?.getBoundingClientRect()
         if (r) {
           hoverCenter.current = {
             x: r.left + DISPLAY_SIZE.compact.width / 2,
             y: r.top + DISPLAY_SIZE.compact.height / 2,
-          };
+          }
         }
-        setIsHovered(true);
+        setIsHovered(true)
       }}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onClick}
@@ -435,5 +431,5 @@ export function ModCard({
           document.body,
         )}
     </div>
-  );
+  )
 }

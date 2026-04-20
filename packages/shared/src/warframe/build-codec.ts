@@ -140,8 +140,14 @@ function encodeSlot(slot: ModSlot): EncodedSlot {
 
     if (slot.mod.rivenStats) {
       encodedMod.rv = {
-        p: slot.mod.rivenStats.positives.map((s) => ({ s: s.stat, v: s.value })),
-        n: slot.mod.rivenStats.negatives.map((s) => ({ s: s.stat, v: s.value })),
+        p: slot.mod.rivenStats.positives.map((s) => ({
+          s: s.stat,
+          v: s.value,
+        })),
+        n: slot.mod.rivenStats.negatives.map((s) => ({
+          s: s.stat,
+          v: s.value,
+        })),
         d: slot.mod.baseDrain,
         pol: slot.mod.polarity,
       }
@@ -312,7 +318,9 @@ export function extractBuildFromUrl(url: string): Partial<BuildState> | null {
   }
 }
 
-export async function copyBuildToClipboard(state: BuildState): Promise<boolean> {
+export async function copyBuildToClipboard(
+  state: BuildState,
+): Promise<boolean> {
   try {
     const url = generateBuildUrl(state)
     await navigator.clipboard.writeText(url)

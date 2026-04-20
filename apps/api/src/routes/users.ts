@@ -1,12 +1,11 @@
-import { Hono } from "hono";
+import { Hono } from "hono"
 
-import { Prisma } from "../generated/prisma/client";
-import { BuildVisibility } from "../generated/prisma/enums";
+import { prisma } from "../db"
+import { Prisma } from "../generated/prisma/client"
+import { BuildVisibility } from "../generated/prisma/enums"
+import { parseListQuery, runList } from "./_build-list"
 
-import { prisma } from "../db";
-import { parseListQuery, runList } from "./_build-list";
-
-export const users = new Hono();
+export const users = new Hono()
 
 const PROFILE_SELECT = {
   id: true,
@@ -21,19 +20,19 @@ const PROFILE_SELECT = {
   isModerator: true,
   isAdmin: true,
   isBanned: true,
-} as const;
+} as const
 
 users.get("/:username", async (c) => {
-  const username = c.req.param("username").toLowerCase();
+  const username = c.req.param("username").toLowerCase()
   if (!username || username.length > 64) {
-    return c.json({ error: "invalid_username" }, 400);
+    return c.json({ error: "invalid_username" }, 400)
   }
 
   const user = await prisma.user.findUnique({
     where: { username },
     select: PROFILE_SELECT,
-  });
-  if (!user || user.isBanned) return c.json({ error: "not_found" }, 404);
+  })
+  if (!user || user.isBanned) return c.json({ error: "not_found" }, 404)
 
   const [buildCount, agg] = await Promise.all([
     prisma.build.count({
@@ -43,7 +42,7 @@ users.get("/:username", async (c) => {
       where: { userId: user.id, visibility: BuildVisibility.PUBLIC },
       _sum: { likeCount: true, bookmarkCount: true, viewCount: true },
     }),
-  ]);
+  ])
 
   return c.json({
     id: user.id,
@@ -65,22 +64,22 @@ users.get("/:username", async (c) => {
       totalBookmarks: agg._sum.bookmarkCount ?? 0,
       totalViews: agg._sum.viewCount ?? 0,
     },
-  });
-});
+  })
+})
 
 users.get("/:username/builds", async (c) => {
-  const username = c.req.param("username").toLowerCase();
+  const username = c.req.param("username").toLowerCase()
   const user = await prisma.user.findUnique({
     where: { username },
     select: { id: true, isBanned: true },
-  });
-  if (!user || user.isBanned) return c.json({ error: "not_found" }, 404);
+  })
+  if (!user || user.isBanned) return c.json({ error: "not_found" }, 404)
 
   const result = await runList({
     filters: parseListQuery(c),
     baseWhere: { userId: user.id, visibility: BuildVisibility.PUBLIC },
     baseFilter: Prisma.sql`"userId" = ${user.id} AND visibility = 'PUBLIC'`,
     defaultSort: "newest",
-  });
-  return c.json(result);
-});
+  })
+  return c.json(result)
+})

@@ -110,10 +110,7 @@ function isMeleeMod(compatName: string, modType: string) {
 
 const PRIMARY_SUBTYPES = ["rifle", "shotgun", "sniper", "launcher", "bow"]
 
-function modMatchesCompat(
-  mod: Mod,
-  compatibility: ModCompatibility,
-): boolean {
+function modMatchesCompat(mod: Mod, compatibility: ModCompatibility): boolean {
   const compatName = mod.compatName?.toLowerCase() ?? ""
   const modType = mod.type?.toLowerCase() ?? ""
 

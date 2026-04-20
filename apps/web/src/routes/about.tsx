@@ -1,15 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router"
 
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { Icons } from "@/components/icons";
-import { Link } from "@/components/link";
-import { Button } from "@/components/ui/button";
-import { SITE_CONFIG, EXTERNAL_LINKS } from "@/lib/constants";
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { Icons } from "@/components/icons"
+import { Link } from "@/components/link"
+import { Button } from "@/components/ui/button"
+import { SITE_CONFIG, EXTERNAL_LINKS } from "@/lib/constants"
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
-});
+})
 
 function AboutPage() {
   return (
@@ -66,9 +66,9 @@ function AboutPage() {
               <h2 className="mb-4 text-2xl font-semibold">Community Focused</h2>
               <p>
                 From real-time stats updates to seamless sharing, every feature
-                is designed to help the Warframe community. Data is automatically
-                synced with Warframe Community Developers (WFCD) to ensure
-                accuracy.
+                is designed to help the Warframe community. Data is
+                automatically synced with Warframe Community Developers (WFCD)
+                to ensure accuracy.
               </p>
             </section>
           </div>
@@ -76,5 +76,5 @@ function AboutPage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }

@@ -1,4 +1,5 @@
-import { cn } from "@/lib/utils";
+import type { Polarity } from "@arsenyx/shared/warframe/types"
+
 import {
   type CardVariant,
   DISPLAY_SIZE,
@@ -6,8 +7,8 @@ import {
   getModAssetUrl,
   getPolarityIconUrl,
   getRarityColor,
-} from "@/lib/mod-card-config";
-import type { Polarity } from "@arsenyx/shared/warframe/types";
+} from "@/lib/mod-card-config"
+import { cn } from "@/lib/utils"
 
 /**
  * Layered PNG frame composition for a mod card. Wraps children between top
@@ -20,18 +21,18 @@ export function ModCardFrame({
   className,
   vtPrefix,
 }: {
-  rarity: ModRarity;
-  variant: CardVariant;
-  children?: React.ReactNode;
-  className?: string;
+  rarity: ModRarity
+  variant: CardVariant
+  children?: React.ReactNode
+  className?: string
   /** Per-card id. Enables View Transitions to morph matching layers between
    *  compact and expanded subtrees. Omit if you don't want VT on this card. */
-  vtPrefix?: string;
+  vtPrefix?: string
 }) {
-  const size = DISPLAY_SIZE[variant];
-  const isExpanded = variant === "expanded";
+  const size = DISPLAY_SIZE[variant]
+  const isExpanded = variant === "expanded"
   const isOversizedTop =
-    rarity === "Amalgam" || rarity === "Galvanized" || rarity === "Riven";
+    rarity === "Amalgam" || rarity === "Galvanized" || rarity === "Riven"
 
   return (
     <div
@@ -61,7 +62,9 @@ export function ModCardFrame({
         )}
         style={
           vtPrefix
-            ? ({ viewTransitionName: `${vtPrefix}-frame-top` } as React.CSSProperties)
+            ? ({
+                viewTransitionName: `${vtPrefix}-frame-top`,
+              } as React.CSSProperties)
             : undefined
         }
       />
@@ -78,12 +81,14 @@ export function ModCardFrame({
         )}
         style={
           vtPrefix
-            ? ({ viewTransitionName: `${vtPrefix}-frame-bottom` } as React.CSSProperties)
+            ? ({
+                viewTransitionName: `${vtPrefix}-frame-bottom`,
+              } as React.CSSProperties)
             : undefined
         }
       />
     </div>
-  );
+  )
 }
 
 export function RankDots({
@@ -93,17 +98,17 @@ export function RankDots({
   className,
   vtPrefix,
 }: {
-  rank: number;
-  maxRank: number;
-  variant: CardVariant;
-  className?: string;
-  vtPrefix?: string;
+  rank: number
+  maxRank: number
+  variant: CardVariant
+  className?: string
+  vtPrefix?: string
 }) {
-  if (maxRank === 0) return null;
+  if (maxRank === 0) return null
   const position =
     variant === "compact"
       ? "absolute -bottom-[27px] left-1/2 -translate-x-1/2"
-      : "absolute bottom-[4px] left-1/2 -translate-x-1/2";
+      : "absolute bottom-[4px] left-1/2 -translate-x-1/2"
 
   return (
     <div
@@ -133,7 +138,7 @@ export function RankDots({
         />
       ))}
     </div>
-  );
+  )
 }
 
 export function RankCompleteLine({
@@ -141,9 +146,9 @@ export function RankCompleteLine({
   className,
   disableAnimation,
 }: {
-  rarity: ModRarity;
-  className?: string;
-  disableAnimation?: boolean;
+  rarity: ModRarity
+  className?: string
+  disableAnimation?: boolean
 }) {
   return (
     <div className={cn("pointer-events-none overflow-hidden", className)}>
@@ -168,10 +173,10 @@ export function RankCompleteLine({
         }}
       />
     </div>
-  );
+  )
 }
 
-export type DrainMatchState = "match" | "mismatch" | "neutral";
+export type DrainMatchState = "match" | "mismatch" | "neutral"
 
 export function DrainBadge({
   drain,
@@ -180,25 +185,25 @@ export function DrainBadge({
   matchState = "neutral",
   vtPrefix,
 }: {
-  drain: number;
-  polarity: Polarity;
-  rarity: ModRarity;
-  matchState?: DrainMatchState;
-  vtPrefix?: string;
+  drain: number
+  polarity: Polarity
+  rarity: ModRarity
+  matchState?: DrainMatchState
+  vtPrefix?: string
 }) {
-  const rarityColor = getRarityColor(rarity);
+  const rarityColor = getRarityColor(rarity)
   const badgeColor =
     matchState === "match"
       ? "#4ade80"
       : matchState === "mismatch"
         ? "#f87171"
-        : rarityColor;
+        : rarityColor
   const glow =
     matchState === "match"
       ? "0 0 8px rgba(74, 222, 128, 0.45)"
       : matchState === "mismatch"
         ? "0 0 8px rgba(248, 113, 113, 0.45)"
-        : undefined;
+        : undefined
 
   return (
     <div
@@ -243,7 +248,7 @@ export function DrainBadge({
         />
       </div>
     </div>
-  );
+  )
 }
 
 export function LowerTab({
@@ -251,11 +256,11 @@ export function LowerTab({
   rarity,
   className,
 }: {
-  label?: string;
-  rarity: ModRarity;
-  className?: string;
+  label?: string
+  rarity: ModRarity
+  className?: string
 }) {
-  if (!label) return null;
+  if (!label) return null
   return (
     <div className={cn("relative h-[22px] w-[80%]", className)}>
       <img
@@ -267,5 +272,5 @@ export function LowerTab({
         {label}
       </span>
     </div>
-  );
+  )
 }

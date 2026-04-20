@@ -13,9 +13,9 @@ import {
 import { Footer } from "@/components/footer"
 import { Header } from "@/components/header"
 import { Link } from "@/components/link"
-import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { UserAvatar } from "@/components/user-avatar"
 import { type BuildListSort } from "@/lib/builds-list-query"
 import { orgBuildsQuery, orgQuery, type OrgProfile } from "@/lib/org-query"
 import { type BrowseCategory } from "@/lib/warframe"
@@ -124,7 +124,12 @@ function OrgHeader({ org }: { org: OrgProfile }) {
 
   return (
     <div className="bg-card flex flex-col gap-4 rounded-lg border p-6 sm:flex-row sm:items-center">
-      <UserAvatar src={org.image} fallback={org.name} size={20} shape="square" />
+      <UserAvatar
+        src={org.image}
+        fallback={org.name}
+        size={20}
+        shape="square"
+      />
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="truncate text-2xl font-bold tracking-tight">
@@ -165,10 +170,7 @@ function OrgMembers({ org }: { org: OrgProfile }) {
       <ul className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {org.members.map((m) => {
           const label =
-            m.user.displayUsername ??
-            m.user.name ??
-            m.user.username ??
-            "Member"
+            m.user.displayUsername ?? m.user.name ?? m.user.username ?? "Member"
           const cardContent = (
             <>
               <UserAvatar src={m.user.image} fallback={label} size={7} />
@@ -176,10 +178,7 @@ function OrgMembers({ org }: { org: OrgProfile }) {
                 {label}
               </span>
               {m.role === "ADMIN" ? (
-                <Badge
-                  variant="secondary"
-                  className="px-1.5 py-0 text-[10px]"
-                >
+                <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                   Admin
                 </Badge>
               ) : null}

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
 import { Search } from "lucide-react"
+import { useEffect, useState } from "react"
 
 import { CommandPalette } from "@/components/command-palette"
 import { Link } from "@/components/link"

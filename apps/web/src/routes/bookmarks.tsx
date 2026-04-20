@@ -3,8 +3,8 @@ import {
   Link,
   redirect,
   useNavigate,
-} from "@tanstack/react-router";
-import { Suspense } from "react";
+} from "@tanstack/react-router"
+import { Suspense } from "react"
 
 import {
   BuildsListView,
@@ -12,38 +12,38 @@ import {
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
-} from "@/components/builds/builds-list-view";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { authClient } from "@/lib/auth-client";
+} from "@/components/builds/builds-list-view"
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { authClient } from "@/lib/auth-client"
 import {
   bookmarkedBuildsQuery,
   type BuildListSort,
-} from "@/lib/builds-list-query";
-import { type BrowseCategory } from "@/lib/warframe";
+} from "@/lib/builds-list-query"
+import { type BrowseCategory } from "@/lib/warframe"
 
 type BookmarksSearch = {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: BrowseCategory;
-  hasGuide?: boolean;
-  hasShards?: boolean;
-};
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: BrowseCategory
+  hasGuide?: boolean
+  hasShards?: boolean
+}
 
 export const Route = createFileRoute("/bookmarks")({
   validateSearch: (search): BookmarksSearch => parseBuildsListSearch(search),
   beforeLoad: async () => {
-    const session = await authClient.getSession();
+    const session = await authClient.getSession()
     if (!session.data?.user) {
-      throw redirect({ to: "/auth/signin" });
+      throw redirect({ to: "/auth/signin" })
     }
   },
   loaderDeps: ({ search }) => buildsListLoaderDeps(search, "newest"),
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(bookmarkedBuildsQuery(deps)),
   component: BookmarksPage,
-});
+})
 
 function BookmarksPage() {
   return (
@@ -60,21 +60,21 @@ function BookmarksPage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function BookmarksContent() {
-  const search = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
-  const page = search.page ?? 1;
-  const sort = search.sort ?? "newest";
-  const q = search.q ?? "";
-  const category = search.category;
-  const hasGuide = search.hasGuide === true;
-  const hasShards = search.hasShards === true;
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const page = search.page ?? 1
+  const sort = search.sort ?? "newest"
+  const q = search.q ?? ""
+  const category = search.category
+  const hasGuide = search.hasGuide === true
+  const hasShards = search.hasShards === true
 
   const onUpdateSearch = (next: BuildsListSearch) =>
-    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true });
+    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true })
 
   return (
     <BuildsListView
@@ -111,5 +111,5 @@ function BookmarksContent() {
         </>
       }
     />
-  );
+  )
 }

@@ -1,59 +1,57 @@
-import { useState } from "react";
+import { useState } from "react"
 
-import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Icons } from "@/components/icons"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/popover"
+import { Slider } from "@/components/ui/slider"
+import { cn } from "@/lib/utils"
 
-export const MASTERY_MAX = 30;
+export const MASTERY_MAX = 30
 
 interface BrowseFilters {
-  masteryMax: number;
-  primeOnly: boolean;
-  hideVaulted: boolean;
+  masteryMax: number
+  primeOnly: boolean
+  hideVaulted: boolean
 }
 
 const DEFAULT_FILTERS: BrowseFilters = {
   masteryMax: MASTERY_MAX,
   primeOnly: false,
   hideVaulted: false,
-};
+}
 
 function activeFilterCount(filters: BrowseFilters): number {
   return [
     filters.masteryMax < MASTERY_MAX,
     filters.primeOnly,
     filters.hideVaulted,
-  ].filter(Boolean).length;
+  ].filter(Boolean).length
 }
 
 interface FilterDropdownProps {
-  filters: BrowseFilters;
-  onChange: (next: BrowseFilters) => void;
+  filters: BrowseFilters
+  onChange: (next: BrowseFilters) => void
 }
 
 export function FilterDropdown({ filters, onChange }: FilterDropdownProps) {
-  const [localMastery, setLocalMastery] = useState(filters.masteryMax);
-  const count = activeFilterCount(filters);
+  const [localMastery, setLocalMastery] = useState(filters.masteryMax)
+  const count = activeFilterCount(filters)
 
   const handleMasteryCommit = (value: number | readonly number[]) => {
-    const v = typeof value === "number" ? value : value[0];
-    onChange({ ...filters, masteryMax: v });
-  };
+    const v = typeof value === "number" ? value : value[0]
+    onChange({ ...filters, masteryMax: v })
+  }
 
   return (
     <Popover>
       <PopoverTrigger
-        render={
-          <Button variant="outline" className="shrink-0 gap-2" />
-        }
+        render={<Button variant="outline" className="shrink-0 gap-2" />}
       >
         <Icons.filter data-icon="inline-start" />
         Filters
@@ -71,8 +69,8 @@ export function FilterDropdown({ filters, onChange }: FilterDropdownProps) {
               variant="ghost"
               size="sm"
               onClick={() => {
-                setLocalMastery(MASTERY_MAX);
-                onChange(DEFAULT_FILTERS);
+                setLocalMastery(MASTERY_MAX)
+                onChange(DEFAULT_FILTERS)
               }}
               className={cn(
                 "h-auto px-2 py-1 text-xs",
@@ -93,7 +91,7 @@ export function FilterDropdown({ filters, onChange }: FilterDropdownProps) {
             <Slider
               value={localMastery}
               onValueChange={(value) => {
-                setLocalMastery(typeof value === "number" ? value : value[0]);
+                setLocalMastery(typeof value === "number" ? value : value[0])
               }}
               onValueCommitted={handleMasteryCommit}
               min={0}
@@ -133,5 +131,5 @@ export function FilterDropdown({ filters, onChange }: FilterDropdownProps) {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

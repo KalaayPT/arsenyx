@@ -1,4 +1,4 @@
-import type { Polarity } from "@arsenyx/shared/warframe/types";
+import type { Polarity } from "@arsenyx/shared/warframe/types"
 
 // Overframe numeric codes observed in pageProps.data.slots[].polarity
 // Based on empirical testing with a build that applied each polarity.

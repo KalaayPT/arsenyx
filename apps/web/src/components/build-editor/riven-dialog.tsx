@@ -1,13 +1,17 @@
-import { useCallback, useMemo, useState } from "react";
-
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  RIVEN_MAX_DRAIN,
+  RIVEN_MIN_DRAIN,
+  RIVEN_POLARITIES,
+  getRivenStatsFor,
+} from "@arsenyx/shared/warframe/rivens"
+import type {
+  BrowseCategory,
+  Polarity,
+  RivenStats,
+} from "@arsenyx/shared/warframe/types"
+import { useCallback, useMemo, useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import {
   Combobox,
   ComboboxContent,
@@ -15,60 +19,56 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from "@/components/ui/combobox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/combobox"
 import {
-  RIVEN_MAX_DRAIN,
-  RIVEN_MIN_DRAIN,
-  RIVEN_POLARITIES,
-  getRivenStatsFor,
-} from "@arsenyx/shared/warframe/rivens";
-import type {
-  BrowseCategory,
-  Polarity,
-  RivenStats,
-} from "@arsenyx/shared/warframe/types";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
-import { PolarityIcon } from "./polarity-icon";
+import { PolarityIcon } from "./polarity-icon"
 
 interface StatRowState {
-  stat: string | null;
-  value: string;
+  stat: string | null
+  value: string
 }
 
 export interface RivenDialogValues {
-  rivenStats: RivenStats;
-  drain: number;
-  polarity: Polarity;
+  rivenStats: RivenStats
+  drain: number
+  polarity: Polarity
 }
 
 interface RivenDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onConfirm: (values: RivenDialogValues) => void;
-  category: BrowseCategory;
-  initialValues?: Partial<RivenDialogValues>;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onConfirm: (values: RivenDialogValues) => void
+  category: BrowseCategory
+  initialValues?: Partial<RivenDialogValues>
 }
 
 function emptyPositives(init?: RivenStats): StatRowState[] {
-  const arr = init?.positives ?? [];
+  const arr = init?.positives ?? []
   return [0, 1, 2].map((i) => ({
     stat: arr[i]?.stat ?? null,
     value: arr[i] ? String(arr[i]!.value) : "",
-  }));
+  }))
 }
 
 function emptyNegative(init?: RivenStats): StatRowState {
-  const n = init?.negatives?.[0];
-  return { stat: n?.stat ?? null, value: n ? String(n.value) : "" };
+  const n = init?.negatives?.[0]
+  return { stat: n?.stat ?? null, value: n ? String(n.value) : "" }
 }
 
 function clampDrain(raw: string): number {
-  const n = parseInt(raw, 10);
-  if (Number.isNaN(n)) return RIVEN_MIN_DRAIN;
-  return Math.max(RIVEN_MIN_DRAIN, Math.min(RIVEN_MAX_DRAIN, n));
+  const n = parseInt(raw, 10)
+  if (Number.isNaN(n)) return RIVEN_MIN_DRAIN
+  return Math.max(RIVEN_MIN_DRAIN, Math.min(RIVEN_MAX_DRAIN, n))
 }
 
 export function RivenDialog({
@@ -80,39 +80,39 @@ export function RivenDialog({
 }: RivenDialogProps) {
   const [polarity, setPolarity] = useState<Polarity>(
     initialValues?.polarity ?? "madurai",
-  );
+  )
   const [drain, setDrain] = useState(
     String(initialValues?.drain ?? RIVEN_MIN_DRAIN),
-  );
+  )
   const [positives, setPositives] = useState<StatRowState[]>(() =>
     emptyPositives(initialValues?.rivenStats),
-  );
+  )
   const [negative, setNegative] = useState<StatRowState>(() =>
     emptyNegative(initialValues?.rivenStats),
-  );
+  )
 
-  const statOptions = useMemo(() => getRivenStatsFor(category), [category]);
+  const statOptions = useMemo(() => getRivenStatsFor(category), [category])
 
   const allSelected = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of positives) if (r.stat) s.add(r.stat);
-    if (negative.stat) s.add(negative.stat);
-    return s;
-  }, [positives, negative]);
+    const s = new Set<string>()
+    for (const r of positives) if (r.stat) s.add(r.stat)
+    if (negative.stat) s.add(negative.stat)
+    return s
+  }, [positives, negative])
 
   const updatePositive = useCallback(
     (index: number, patch: Partial<StatRowState>) => {
       setPositives((prev) => {
-        const next = [...prev];
-        next[index] = { ...next[index], ...patch };
-        return next;
-      });
+        const next = [...prev]
+        next[index] = { ...next[index], ...patch }
+        return next
+      })
     },
     [],
-  );
+  )
 
   const handleConfirm = useCallback(() => {
-    const drainNum = clampDrain(drain);
+    const drainNum = clampDrain(drain)
     const stats: RivenStats = {
       positives: positives
         .filter((r) => r.stat && r.value)
@@ -129,9 +129,9 @@ export function RivenDialog({
               },
             ]
           : [],
-    };
-    onConfirm({ rivenStats: stats, drain: drainNum, polarity });
-  }, [positives, negative, drain, polarity, onConfirm]);
+    }
+    onConfirm({ rivenStats: stats, drain: drainNum, polarity })
+  }, [positives, negative, drain, polarity, onConfirm])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -220,7 +220,7 @@ export function RivenDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
 function StatRow({
@@ -230,13 +230,13 @@ function StatRow({
   onChangeStat,
   onChangeValue,
 }: {
-  row: StatRowState;
-  options: readonly string[];
-  allSelected: Set<string>;
-  onChangeStat: (s: string | null) => void;
-  onChangeValue: (v: string) => void;
+  row: StatRowState
+  options: readonly string[]
+  allSelected: Set<string>
+  onChangeStat: (s: string | null) => void
+  onChangeValue: (v: string) => void
 }) {
-  const visible = options.filter((s) => s === row.stat || !allSelected.has(s));
+  const visible = options.filter((s) => s === row.stat || !allSelected.has(s))
   return (
     <div className="flex gap-2">
       <Input
@@ -269,5 +269,5 @@ function StatRow({
         </ComboboxContent>
       </Combobox>
     </div>
-  );
+  )
 }

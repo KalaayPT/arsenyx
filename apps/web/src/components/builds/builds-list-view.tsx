@@ -1,78 +1,73 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Filter } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { Filter } from "lucide-react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
-import { BuildCard } from "@/components/builds/build-card";
-import { BuildsCategoryTabs } from "@/components/builds/builds-category-tabs";
-import { BuildsSortDropdown } from "@/components/builds/builds-sort-dropdown";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { BuildCard } from "@/components/builds/build-card"
+import { BuildsCategoryTabs } from "@/components/builds/builds-category-tabs"
+import { BuildsSortDropdown } from "@/components/builds/builds-sort-dropdown"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group";
-import { Kbd } from "@/components/ui/kbd";
+} from "@/components/ui/input-group"
+import { Kbd } from "@/components/ui/kbd"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
-import {
-  publicBuildsQuery,
-  type BuildListSort,
-} from "@/lib/builds-list-query";
-import { isValidCategory, type BrowseCategory } from "@/lib/warframe";
+} from "@/components/ui/popover"
+import { Switch } from "@/components/ui/switch"
+import { publicBuildsQuery, type BuildListSort } from "@/lib/builds-list-query"
+import { isValidCategory, type BrowseCategory } from "@/lib/warframe"
 
-import { SORT_VALUES } from "./builds-sort-dropdown";
+import { SORT_VALUES } from "./builds-sort-dropdown"
 
-type BuildsQuery = ReturnType<typeof publicBuildsQuery>;
+type BuildsQuery = ReturnType<typeof publicBuildsQuery>
 
 export type BuildsListSearch = {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: string;
-  hasGuide?: boolean;
-  hasShards?: boolean;
-};
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: string
+  hasGuide?: boolean
+  hasShards?: boolean
+}
 
 /** URL → typed search. Identical for every list route; the route's own
  *  validateSearch just calls this. */
-export function parseBuildsListSearch(
-  search: Record<string, unknown>,
-): {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: BrowseCategory;
-  hasGuide?: boolean;
-  hasShards?: boolean;
+export function parseBuildsListSearch(search: Record<string, unknown>): {
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: BrowseCategory
+  hasGuide?: boolean
+  hasShards?: boolean
 } {
   const rawPage =
     typeof search.page === "string"
       ? parseInt(search.page, 10)
       : typeof search.page === "number"
         ? search.page
-        : NaN;
-  const page = Number.isFinite(rawPage) && rawPage > 1 ? rawPage : undefined;
+        : NaN
+  const page = Number.isFinite(rawPage) && rawPage > 1 ? rawPage : undefined
   const sort =
     typeof search.sort === "string" &&
     (SORT_VALUES as string[]).includes(search.sort)
       ? (search.sort as BuildListSort)
-      : undefined;
+      : undefined
   const q =
     typeof search.q === "string" && search.q.length > 0
       ? search.q.slice(0, 200)
-      : undefined;
+      : undefined
   const category =
     typeof search.category === "string" && isValidCategory(search.category)
       ? (search.category as BrowseCategory)
-      : undefined;
-  const hasGuide = search.hasGuide === true || undefined;
-  const hasShards = search.hasShards === true || undefined;
-  return { page, sort, q, category, hasGuide, hasShards };
+      : undefined
+  const hasGuide = search.hasGuide === true || undefined
+  const hasShards = search.hasShards === true || undefined
+  return { page, sort, q, category, hasGuide, hasShards }
 }
 
 /** Materialize the loader deps every builds-list route needs, filling in the
@@ -88,7 +83,7 @@ export function buildsListLoaderDeps(
     category: search.category as BrowseCategory | undefined,
     hasGuide: search.hasGuide ?? false,
     hasShards: search.hasShards ?? false,
-  };
+  }
 }
 
 /** Strip defaults from `next` so the URL stays clean. */
@@ -103,10 +98,10 @@ export function nextBuildsListSearch(
     category: (next.category as BrowseCategory | undefined) || undefined,
     hasGuide: next.hasGuide || undefined,
     hasShards: next.hasShards || undefined,
-  };
+  }
 }
 
-const SEARCH_DEBOUNCE_MS = 200;
+const SEARCH_DEBOUNCE_MS = 200
 
 export function BuildsListView({
   title,
@@ -122,30 +117,30 @@ export function BuildsListView({
   emptyState,
   showFilters,
 }: {
-  title?: string;
-  description?: string;
-  query: BuildsQuery;
-  page: number;
-  sort: BuildListSort;
-  q: string;
-  category: BrowseCategory | undefined;
-  hasGuide: boolean;
-  hasShards: boolean;
-  onUpdateSearch: (next: BuildsListSearch) => void;
-  emptyState: ReactNode;
-  showFilters: boolean;
+  title?: string
+  description?: string
+  query: BuildsQuery
+  page: number
+  sort: BuildListSort
+  q: string
+  category: BrowseCategory | undefined
+  hasGuide: boolean
+  hasShards: boolean
+  onUpdateSearch: (next: BuildsListSearch) => void
+  emptyState: ReactNode
+  showFilters: boolean
 }) {
-  const { data } = useSuspenseQuery(query);
-  const totalPages = Math.max(1, Math.ceil(data.total / data.limit));
+  const { data } = useSuspenseQuery(query)
+  const totalPages = Math.max(1, Math.ceil(data.total / data.limit))
 
-  const [qLocal, setQLocal] = useState(q);
-  useEffect(() => setQLocal(q), [q]);
+  const [qLocal, setQLocal] = useState(q)
+  useEffect(() => setQLocal(q), [q])
 
-  const latest = useRef({ sort, category, onUpdateSearch });
-  latest.current = { sort, category, onUpdateSearch };
+  const latest = useRef({ sort, category, onUpdateSearch })
+  latest.current = { sort, category, onUpdateSearch }
 
   useEffect(() => {
-    if (qLocal === q) return;
+    if (qLocal === q) return
     const t = setTimeout(() => {
       latest.current.onUpdateSearch({
         sort: latest.current.sort,
@@ -154,12 +149,12 @@ export function BuildsListView({
         page: undefined,
         hasGuide: hasGuide || undefined,
         hasShards: hasShards || undefined,
-      });
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(t);
-  }, [qLocal, q, hasGuide, hasShards]);
+      })
+    }, SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [qLocal, q, hasGuide, hasShards])
 
-  const activeFilterCount = (hasGuide ? 1 : 0) + (hasShards ? 1 : 0);
+  const activeFilterCount = (hasGuide ? 1 : 0) + (hasShards ? 1 : 0)
 
   return (
     <div className="flex flex-col gap-6">
@@ -208,9 +203,7 @@ export function BuildsListView({
           {showFilters ? (
             <Popover>
               <PopoverTrigger
-                render={
-                  <Button variant="outline" className="shrink-0 gap-2" />
-                }
+                render={<Button variant="outline" className="shrink-0 gap-2" />}
               >
                 <Filter data-icon="inline-start" />
                 Filters
@@ -330,7 +323,7 @@ export function BuildsListView({
         </div>
       ) : null}
     </div>
-  );
+  )
 }
 
 function FilterToggle({
@@ -338,15 +331,14 @@ function FilterToggle({
   checked,
   onChange,
 }: {
-  label: string;
-  checked: boolean;
-  onChange: (next: boolean) => void;
+  label: string
+  checked: boolean
+  onChange: (next: boolean) => void
 }) {
   return (
     <label className="hover:bg-muted/50 flex cursor-pointer items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm">
       <span>{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </label>
-  );
+  )
 }
-

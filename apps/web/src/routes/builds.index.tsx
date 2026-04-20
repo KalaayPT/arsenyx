@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { Suspense } from "react"
 
 import {
   BuildsListView,
@@ -7,23 +7,20 @@ import {
   nextBuildsListSearch,
   parseBuildsListSearch,
   type BuildsListSearch,
-} from "@/components/builds/builds-list-view";
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import {
-  publicBuildsQuery,
-  type BuildListSort,
-} from "@/lib/builds-list-query";
-import { type BrowseCategory } from "@/lib/warframe";
+} from "@/components/builds/builds-list-view"
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { publicBuildsQuery, type BuildListSort } from "@/lib/builds-list-query"
+import { type BrowseCategory } from "@/lib/warframe"
 
 type BuildsSearch = {
-  page?: number;
-  sort?: BuildListSort;
-  q?: string;
-  category?: BrowseCategory;
-  hasGuide?: boolean;
-  hasShards?: boolean;
-};
+  page?: number
+  sort?: BuildListSort
+  q?: string
+  category?: BrowseCategory
+  hasGuide?: boolean
+  hasShards?: boolean
+}
 
 export const Route = createFileRoute("/builds/")({
   validateSearch: (search): BuildsSearch => parseBuildsListSearch(search),
@@ -31,7 +28,7 @@ export const Route = createFileRoute("/builds/")({
   loader: ({ context, deps }) =>
     context.queryClient.ensureQueryData(publicBuildsQuery(deps)),
   component: BuildsIndexPage,
-});
+})
 
 function BuildsIndexPage() {
   return (
@@ -48,21 +45,21 @@ function BuildsIndexPage() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function BuildsIndexContent() {
-  const search = Route.useSearch();
-  const navigate = useNavigate({ from: Route.fullPath });
-  const page = search.page ?? 1;
-  const sort = search.sort ?? "newest";
-  const q = search.q ?? "";
-  const category = search.category;
-  const hasGuide = search.hasGuide === true;
-  const hasShards = search.hasShards === true;
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
+  const page = search.page ?? 1
+  const sort = search.sort ?? "newest"
+  const q = search.q ?? ""
+  const category = search.category
+  const hasGuide = search.hasGuide === true
+  const hasShards = search.hasShards === true
 
   const onUpdateSearch = (next: BuildsListSearch) =>
-    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true });
+    navigate({ search: nextBuildsListSearch(next, "newest"), replace: true })
 
   return (
     <BuildsListView
@@ -101,5 +98,5 @@ function BuildsIndexContent() {
         </>
       }
     />
-  );
+  )
 }

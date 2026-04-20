@@ -1,14 +1,18 @@
-import { createFileRoute, notFound, Link as RouterLink } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query"
+import {
+  createFileRoute,
+  notFound,
+  Link as RouterLink,
+} from "@tanstack/react-router"
+import { Suspense } from "react"
 
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { itemQuery } from "@/lib/item-query";
+import { Footer } from "@/components/footer"
+import { Header } from "@/components/header"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { itemQuery } from "@/lib/item-query"
 import {
   CATEGORIES,
   formatPct,
@@ -16,11 +20,11 @@ import {
   getImageUrl,
   isValidCategory,
   type BrowseCategory,
-} from "@/lib/warframe";
+} from "@/lib/warframe"
 
 export const Route = createFileRoute("/browse_/$category/$slug")({
   beforeLoad: ({ params }) => {
-    if (!isValidCategory(params.category)) throw notFound();
+    if (!isValidCategory(params.category)) throw notFound()
   },
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(
@@ -28,7 +32,7 @@ export const Route = createFileRoute("/browse_/$category/$slug")({
     ),
   component: ItemDetailPage,
   notFoundComponent: ItemNotFound,
-});
+})
 
 function ItemDetailPage() {
   return (
@@ -36,32 +40,33 @@ function ItemDetailPage() {
       <Header />
       <main className="flex-1">
         <div className="container flex flex-col gap-8 py-6">
-          <Suspense fallback={<p className="text-muted-foreground">Loading item…</p>}>
+          <Suspense
+            fallback={<p className="text-muted-foreground">Loading item…</p>}
+          >
             <ItemDetailContent />
           </Suspense>
         </div>
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function ItemDetailContent() {
-  const { category, slug } = Route.useParams();
-  const cat = category as BrowseCategory;
-  const { data: item } = useSuspenseQuery(itemQuery(cat, slug));
-  const categoryLabel =
-    CATEGORIES.find((c) => c.id === cat)?.label ?? cat;
+  const { category, slug } = Route.useParams()
+  const cat = category as BrowseCategory
+  const { data: item } = useSuspenseQuery(itemQuery(cat, slug))
+  const categoryLabel = CATEGORIES.find((c) => c.id === cat)?.label ?? cat
 
-  const isWarframe = cat === "warframes" || cat === "necramechs";
+  const isWarframe = cat === "warframes" || cat === "necramechs"
   const isWeapon =
     cat === "primary" ||
     cat === "secondary" ||
     cat === "melee" ||
     cat === "companion-weapons" ||
     cat === "archwing" ||
-    cat === "exalted-weapons";
-  const isMelee = cat === "melee";
+    cat === "exalted-weapons"
+  const isMelee = cat === "melee"
 
   return (
     <>
@@ -105,7 +110,9 @@ function ItemDetailContent() {
               {item.vaulted && <Badge variant="outline">Vaulted</Badge>}
             </div>
             {item.description && (
-              <p className="text-muted-foreground max-w-2xl">{item.description}</p>
+              <p className="text-muted-foreground max-w-2xl">
+                {item.description}
+              </p>
             )}
           </div>
 
@@ -230,7 +237,7 @@ function ItemDetailContent() {
         )}
       </div>
     </>
-  );
+  )
 }
 
 function ItemNotFound() {
@@ -254,22 +261,22 @@ function ItemNotFound() {
       </main>
       <Footer />
     </div>
-  );
+  )
 }
 
 function StatItem({
   label,
   value,
 }: {
-  label: string;
-  value: string | number | undefined;
+  label: string
+  value: string | number | undefined
 }) {
-  if (value === undefined || value === null || value === "") return null;
-  const display = typeof value === "number" ? formatStat(value) : value;
+  if (value === undefined || value === null || value === "") return null
+  const display = typeof value === "number" ? formatStat(value) : value
   return (
     <div className="flex flex-col">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="font-medium tabular-nums">{display}</dd>
     </div>
-  );
+  )
 }

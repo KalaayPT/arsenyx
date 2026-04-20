@@ -443,4 +443,3 @@ orgs.delete("/:slug/members/:userId", async (c) => {
   })
   return c.body(null, 204)
 })
-

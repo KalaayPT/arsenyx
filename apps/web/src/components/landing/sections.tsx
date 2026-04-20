@@ -1,6 +1,5 @@
-import { Link } from "@/components/link"
-
 import { Icons } from "@/components/icons"
+import { Link } from "@/components/link"
 import { Button } from "@/components/ui/button"
 import {
   FEATURES,
