@@ -585,6 +585,7 @@ function EditorShell() {
             category={category}
             usedModNames={slots.usedNames}
             onSelect={handleModSelect}
+            helminth={helminth}
             selectedSlotKind={
               slots.selected === "aura" || slots.selected === "exilus"
                 ? slots.selected
@@ -825,16 +826,18 @@ function SearchPanel({
   usedModNames,
   onSelect,
   selectedSlotKind,
+  helminth,
 }: {
   item: DetailItem
   category: BrowseCategory
   usedModNames: Set<string>
   onSelect: (mod: Mod) => void
   selectedSlotKind?: ModSlotKind
+  helminth: Record<number, HelminthAbility>
 }) {
   const { data: allMods } = useSuspenseQuery(modsQuery)
   const compatible = useMemo(() => {
-    const mods = getModsForItem(
+    const base = getModsForItem(
       {
         type: item.type,
         category: item.category,
@@ -842,11 +845,27 @@ function SearchPanel({
       },
       allMods,
     )
+    // Augments for subsumed abilities belong to a different warframe's
+    // `compatName`, so `getModsForItem` filters them out. Stitch them back
+    // in by matching source warframe + "<Ability> Augment:" description prefix.
+    const extras: Mod[] = []
+    for (const ability of Object.values(helminth)) {
+      const source = ability.source.toLowerCase()
+      const prefix = `${ability.name.toLowerCase()} augment:`
+      for (const m of allMods) {
+        if (!m.isAugment) continue
+        if ((m.compatName ?? "").toLowerCase() !== source) continue
+        const desc = (m.levelStats?.[0]?.stats?.[0] ?? "").toLowerCase()
+        if (!desc.startsWith(prefix)) continue
+        extras.push(m)
+      }
+    }
+    const mods = [...base, ...extras]
     if (isRivenEligible(category, item)) {
       return [createSyntheticRiven(), ...mods]
     }
     return mods
-  }, [allMods, item.type, item.category, item.name, category])
+  }, [allMods, item.type, item.category, item.name, category, helminth])
 
   return (
     <ModSearchGrid
