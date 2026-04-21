@@ -17,7 +17,7 @@ export const ROUTES = {
   create: "/create",
   import: "/import",
   modsTest: "/mods-test",
-  feed: "/feed",
+  orgs: "/orgs",
   docs: "/docs",
   changelog: "/changelog",
   privacy: "/privacy",
@@ -41,6 +41,7 @@ export const API_URL =
 export const EXTERNAL_LINKS = {
   github: "https://github.com/Reuzehagel/arsenyx",
   wfcd: "https://warframestat.us",
+  apiBase: "https://api.arsenyx.com",
 } as const
 
 // Navigation items for header
@@ -56,7 +57,7 @@ export const FOOTER_LINKS = {
     { label: "Import Build", href: ROUTES.import },
   ],
   community: [
-    { label: "Build Feed", href: ROUTES.feed },
+    { label: "Organizations", href: ROUTES.orgs },
     { label: "Documentation", href: ROUTES.docs },
     { label: "Changelog", href: ROUTES.changelog },
     { label: "GitHub", href: EXTERNAL_LINKS.github, external: true },
