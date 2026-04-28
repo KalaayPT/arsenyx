@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router"
 import {
   Bookmark,
+  Check,
+  Code2,
   Diamond,
   Gem,
   GitFork,
@@ -67,6 +69,7 @@ import {
 } from "@/lib/build-codec-adapter"
 import { buildQuery, type BuildDetail } from "@/lib/build-query"
 import { useToggleBookmark, useToggleLike } from "@/lib/build-social"
+import { useCopyToClipboard } from "@/lib/use-copy-to-clipboard"
 import { itemQuery } from "@/lib/item-query"
 import { modsQuery } from "@/lib/mods-query"
 import { padShards } from "@/lib/shards"
@@ -80,17 +83,15 @@ import {
 } from "@/lib/warframe"
 
 interface BuildSearch {
-  /** When true, render a chrome-less view suitable for embedding (e.g. the
-   *  Profit-Taker wiki). Hides the site header/footer, viewer header, and
-   *  guide block. */
+  /** When true, render a chrome-less view suitable for embedding. */
   embed?: boolean
-  /** Visual scale factor applied to the embed. Defaults to 0.65 — sized to
-   *  fit comfortably in a ~700px iframe (the PT wiki's Nuxt embed width). */
+  /** CSS zoom multiplier applied to the whole embed (e.g. 0.9 = 90%).
+   *  Shrinks everything uniformly while container-query reflow still works
+   *  (mods wrap at narrow widths). */
   scale?: number
-  /** Logical layout width (px) the embed renders at internally before
-   *  scaling. Kept ≥ 1024 by default so the dense single-row mod layout
-   *  triggers; the visible width is `layout * scale`. */
-  layout?: number
+  /** Optional background colour (CSS value without #, e.g. `22272e`).
+   *  Applied to the iframe body so the embed blends with the host page. */
+  bg?: string
 }
 
 export const Route = createFileRoute("/builds/$slug")({
@@ -101,19 +102,16 @@ export const Route = createFileRoute("/builds/$slug")({
       return typeof n === "number" && Number.isFinite(n) ? n : undefined
     }
     const rawScale = num(s.scale)
-    const rawLayout = num(s.layout)
     const scale =
       rawScale !== undefined
-        ? Math.min(1.5, Math.max(0.3, rawScale))
+        ? Math.min(2, Math.max(0.1, rawScale))
         : undefined
-    const layout =
-      rawLayout !== undefined
-        ? Math.min(2000, Math.max(640, Math.round(rawLayout)))
-        : undefined
+    const bg =
+      typeof s.bg === "string" && s.bg.length > 0 ? s.bg : undefined
     return {
       ...(embed && { embed }),
       ...(scale !== undefined && { scale }),
-      ...(layout !== undefined && { layout }),
+      ...(bg !== undefined && { bg }),
     }
   },
   loader: ({ context, params }) =>
@@ -123,11 +121,11 @@ export const Route = createFileRoute("/builds/$slug")({
 })
 
 function BuildPage() {
-  const { embed, scale, layout } = Route.useSearch()
+  const { embed, scale, bg } = Route.useSearch()
 
   if (embed) {
     return (
-      <EmbedShell scale={scale ?? 0.65} layoutWidth={layout ?? 1140}>
+      <EmbedShell scale={scale} bg={bg}>
         <Suspense
           fallback={<p className="text-muted-foreground">Loading build…</p>}
         >
@@ -155,55 +153,60 @@ function BuildPage() {
 }
 
 /**
- * Embed wrapper that forces the build view to lay out at a fixed logical
- * width (so the dense single-row mod layout triggers via container queries)
- * then visually scales the result down to fit a smaller iframe. A
- * ResizeObserver mirrors the inner element's height back to the wrapper so
- * the iframe content doesn't have a giant whitespace gutter.
+ * Embed wrapper. Fires postMessage so host pages can auto-resize the iframe
+ * to the exact content height. The `bg` param sets body background to blend
+ * the embed with the host page.
+ *
+ * `scale` applies CSS `zoom` globally (e.g. 0.9 = 90%). Because `zoom`
+ * affects layout, container-query responsive reflow still works — mods wrap
+ * at narrow widths just as they do without scaling.
  */
 function EmbedShell({
   scale,
-  layoutWidth,
+  bg,
   children,
 }: {
-  scale: number
-  layoutWidth: number
+  scale?: number
+  bg?: string
   children: React.ReactNode
 }) {
   const innerRef = useRef<HTMLDivElement | null>(null)
-  const [innerHeight, setInnerHeight] = useState<number | null>(null)
+  const [innerH, setInnerH] = useState<number | null>(null)
+  const zoom = scale ?? 1
 
   useEffect(() => {
-    const node = innerRef.current
-    if (!node) return
+    const inner = innerRef.current
+    if (!inner) return
     const ro = new ResizeObserver((entries) => {
       const h = entries[0]?.contentRect.height
       if (typeof h !== "number") return
-      const rounded = Math.ceil(h)
-      setInnerHeight((prev) => (prev === rounded ? prev : rounded))
+      const r = Math.ceil(h)
+      setInnerH((prev) => (prev === r ? prev : r))
     })
-    ro.observe(node)
+    ro.observe(inner)
     return () => ro.disconnect()
   }, [])
 
+  useEffect(() => {
+    if (innerH === null) return
+    window.parent.postMessage(
+      { type: "arsenyx-embed-resize", height: Math.ceil(innerH * zoom) },
+      "*",
+    )
+  }, [innerH, zoom])
+
+  const bgColor = bg ? (bg.startsWith("#") ? bg : `#${bg}`) : undefined
+
   return (
     <div
-      className="bg-background overflow-hidden"
+      ref={innerRef}
+      className="bg-background w-full"
       style={{
-        width: layoutWidth * scale,
-        height: innerHeight !== null ? innerHeight * scale : undefined,
+        ...(zoom !== 1 && { zoom }),
+        ...(bgColor && { backgroundColor: bgColor }),
       }}
     >
-      <div
-        ref={innerRef}
-        style={{
-          width: layoutWidth,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   )
 }
@@ -395,19 +398,14 @@ function BuildViewerBodyInner({
           data-screenshot-target
           className={cn(
             "flex flex-col gap-4",
-            embed ? "flex-row" : "xl:relative xl:block",
+            !embed && "xl:relative xl:block",
           )}
         >
-          <div
-            className={cn(
-              "flex w-full flex-col",
-              embed
-                ? "w-[260px] shrink-0"
-                : "sm:hidden xl:absolute xl:top-0 xl:bottom-0 xl:left-0 xl:flex xl:w-[260px]",
-            )}
-          >
-            <ItemSidebar {...sidebarProps} />
-          </div>
+          {!embed && (
+            <div className="flex w-full flex-col sm:hidden xl:absolute xl:top-0 xl:bottom-0 xl:left-0 xl:flex xl:w-[260px]">
+              <ItemSidebar {...sidebarProps} />
+            </div>
+          )}
 
           <div
             className={cn(
@@ -415,12 +413,13 @@ function BuildViewerBodyInner({
               !embed && "xl:ml-[calc(260px+1rem)]",
             )}
           >
-            {!embed && (
-              <ItemSidebarPopover
-                {...sidebarProps}
-                className="hidden self-start sm:inline-flex xl:hidden"
-              />
-            )}
+            <ItemSidebarPopover
+              {...sidebarProps}
+              className={cn(
+                "self-start",
+                !embed && "hidden sm:inline-flex xl:hidden",
+              )}
+            />
             <ModGrid
               item={item}
               category={category}
@@ -540,6 +539,7 @@ function ViewerHeader({
         </div>
         <div className="flex items-center gap-2">
           <SocialActions build={build} />
+          <CopyEmbedButton slug={build.slug} />
           {build.isOwner ? (
             <Button
               size="sm"
@@ -658,6 +658,36 @@ function BuildActionsMenu({
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function CopyEmbedButton({ slug }: { slug: string }) {
+  const { copied, copy } = useCopyToClipboard()
+  const [hovered, setHovered] = useState(false)
+  const handleCopy = () => {
+    const src = `${window.location.origin}/builds/${slug}?embed=1`
+    copy(
+      `<iframe src="${src}" style="width:100%;border:none" height="1" loading="lazy"></iframe>`,
+    )
+  }
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={handleCopy}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title="Copy embed code"
+    >
+      {copied ? (
+        <Check data-icon="inline-start" className="text-green-500" />
+      ) : (
+        <Code2 data-icon="inline-start" />
+      )}
+      <span className="inline-block w-[3.25rem] text-center">
+        {copied ? "Copied!" : hovered ? "Copy" : "Embed"}
+      </span>
+    </Button>
   )
 }
 

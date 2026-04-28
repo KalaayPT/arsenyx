@@ -172,7 +172,8 @@ export function ModGrid({
         <div
           className={cn(
             "grid grid-cols-[repeat(2,minmax(0,184px))] justify-center gap-x-2 gap-y-6 @min-[1016px]/loadout:mx-auto @min-[1016px]/loadout:w-fit @min-[1016px]/loadout:grid-cols-5 @min-[1016px]/loadout:gap-4",
-            embed && "mx-auto w-fit grid-cols-5 gap-4",
+            embed &&
+              "grid-cols-3 gap-3 @min-[520px]/loadout:grid-cols-5 @min-[520px]/loadout:gap-4",
           )}
         >
           {Array.from({ length: normalSlotCount }, (_, i) => {
@@ -188,7 +189,8 @@ export function ModGrid({
             key={rowIdx}
             className={cn(
               "grid grid-cols-[repeat(2,minmax(0,184px))] justify-center gap-x-2 gap-y-6 @min-[816px]/loadout:flex @min-[816px]/loadout:gap-4",
-              embed && "flex justify-center gap-4",
+              embed &&
+                "grid grid-cols-2 gap-3 @min-[520px]/loadout:grid-cols-4 @min-[520px]/loadout:gap-4",
             )}
           >
             {row.map((i) => {

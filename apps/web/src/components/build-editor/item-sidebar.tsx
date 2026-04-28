@@ -392,11 +392,11 @@ export function ItemSidebarPopover({
           <button
             type="button"
             className={cn(
-              "text-muted-foreground hover:bg-accent/40 hover:text-foreground inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs transition-colors",
+              "text-muted-foreground hover:bg-accent/40 hover:text-foreground inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors",
               className,
             )}
           >
-            <SlidersHorizontal className="size-3.5" />
+            <SlidersHorizontal className="size-4" />
             <span>Stats</span>
           </button>
         }
