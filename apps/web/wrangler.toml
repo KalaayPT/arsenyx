@@ -1,4 +1,4 @@
-name = "arsenyx-web"
+name = "arsenyx"
 compatibility_date = "2026-04-29"
 
 # Custom domains. The zone must use Cloudflare nameservers (already the case
