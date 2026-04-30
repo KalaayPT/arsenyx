@@ -105,10 +105,11 @@ export function ModSlot({
         onMouseEnter={readOnly ? undefined : () => setHovered(true)}
         onMouseLeave={readOnly ? undefined : () => setHovered(false)}
         className={cn(
-          // Sized via @container/loadout on the parent grid (not the viewport),
-          // so the sidebar's width never squeezes the grid into overflow.
-          "group relative flex h-[80px] w-full max-w-[184px] flex-col items-center justify-center transition-colors",
-          "@min-[816px]/loadout:h-[100px] @min-[816px]/loadout:w-[184px]",
+          // Fixed 184×100 to match the underlying ModCard (mod-card-config.ts
+          // DISPLAY_SIZE). The grid auto-rearranges its column count based on
+          // the loadout wrap width — see mod-grid.tsx — so individual
+          // slots stay a constant size and never need to shrink.
+          "group relative flex h-[100px] w-[184px] flex-col items-center justify-center transition-colors",
           // `selected` is the single source of visual truth; suppress the
           // default focus ring so a clicked-then-arrowed-away slot doesn't
           // keep highlighting alongside the new selection.
